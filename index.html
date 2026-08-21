@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Paya Rengas Delivery V2</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+    <div class="logo">
+
+        <img src="icons/logo.svg"
+             alt="Logo Paya Rengas Delivery">
+
+        <div>
+
+            <h1>Paya Rengas Delivery</h1>
+
+            <p>
+                Pesan Makanan & Produk UMKM Desa Paya Rengas
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <nav>
+
+        <a href="#">Home</a>
+
+        <a href="#menu">Menu</a>
+
+        <a href="#checkout">Checkout</a>
+
+        <a href="#promo">Promo</a>
+
+        <a href="login.html">Login</a>
+
+    </nav>
+
+</header>
+
+
+
+<!-- =====================================================
+     BANNER
+===================================================== -->
+
+<section class="banner">
+
+    <div class="banner-text">
+
+        <h2>
+            Selamat Datang
+        </h2>
+
+        <h1>
+            Paya Rengas Delivery
+        </h1>
+
+        <p>
+
+            Pesan makanan favorit,
+            jajanan UMKM,
+            dan berbagai kebutuhan harian
+            langsung dari rumah.
+
+        </p>
+
+
+        <button type="button">
+
+            <i class="fa-solid fa-basket-shopping"></i>
+
+            Lihat Menu
+
+        </button>
+
+    </div>
+
+
+    <div class="banner-image">
+
+        <img src="images/banner.jpg"
+             alt="Banner Paya Rengas Delivery">
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SEARCH
+===================================================== -->
+
+<section class="search-area">
+
+    <input
+        type="text"
+        id="search"
+        placeholder="Cari makanan atau minuman..."
+        autocomplete="off"
+    >
+
+
+    <button type="button">
+
+        <i class="fa-solid fa-magnifying-glass"></i>
+
+        Cari
+
+    </button>
+
+</section>
+
+
+
+<!-- =====================================================
+     KATEGORI
+===================================================== -->
+
+<section class="kategori">
+
+    <button
+        type="button"
+        class="kategori-btn active">
+
+        🍽 Semua
+
+    </button>
+
+
+    <button
+        type="button"
+        class="kategori-btn">
+
+        🍜 Makanan
+
+    </button>
+
+
+    <button
+        type="button"
+        class="kategori-btn">
+
+        🥤 Minuman
+
+    </button>
+
+
+    <button
+        type="button"
+        class="kategori-btn">
+
+        🍩 Snack
+
+    </button>
+
+
+    <button
+        type="button"
+        class="kategori-btn">
+
+        🔥 Promo
+
+    </button>
+
+</section>
+
+
+
+<!-- =====================================================
+     MENU
+===================================================== -->
+
+<section
+    class="menu"
+    id="menu">
+
+    <h2>
+        🍽 Menu Pilihan
+    </h2>
+
+
+    <div class="produk">
+
+
+
+        <!-- DONAT -->
+
+        <div class="card">
+
+            <span class="promo">
+                Promo
+            </span>
+
+
+            <button
+                type="button"
+                class="favorite">
+
+                ❤
+
+            </button>
+
+
+            <img
+                src="images/donat.jpg"
+                alt="Donat Rahayu">
+
+
+            <h3>
+                Donat Rahayu
+            </h3>
+
+
+            <p>
+                Donat lembut topping melimpah.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐⭐
+            </div>
+
+
+            <h4>
+                Rp10.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Donat Rahayu',10000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+
+        <!-- MIE AYAM -->
+
+        <div class="card">
+
+            <img
+                src="images/mieayam.jpg"
+                alt="Mie Ayam">
+
+
+            <h3>
+                Mie Ayam
+            </h3>
+
+
+            <p>
+                Mie ayam spesial.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐☆
+            </div>
+
+
+            <h4>
+                Rp12.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Mie Ayam',12000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+
+        <!-- BURGER -->
+
+        <div class="card">
+
+            <img
+                src="images/burger.jpg"
+                alt="Burger Spesial">
+
+
+            <h3>
+                Burger Spesial
+            </h3>
+
+
+            <p>
+                Burger daging sapi.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐⭐
+            </div>
+
+
+            <h4>
+                Rp15.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Burger',15000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+
+        <!-- MINUMAN -->
+
+        <div class="card">
+
+            <img
+                src="images/minuman.jpg"
+                alt="Es Teh Manis">
+
+
+            <h3>
+                Es Teh Manis
+            </h3>
+
+
+            <p>
+                Segar dan dingin.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐☆
+            </div>
+
+
+            <h4>
+                Rp5.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Es Teh Manis',5000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+
+        <!-- AYAM GEPREK -->
+
+        <div class="card">
+
+            <span class="promo">
+                Best Seller
+            </span>
+
+
+            <img
+                src="images/ayamgeprek.jpg"
+                alt="Ayam Geprek">
+
+
+            <h3>
+                Ayam Geprek
+            </h3>
+
+
+            <p>
+                Ayam geprek pedas level 1-5.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐⭐
+            </div>
+
+
+            <h4>
+                Rp18.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Ayam Geprek',18000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+
+        <!-- NASI GORENG -->
+
+        <div class="card">
+
+            <img
+                src="images/nasigoreng.jpg"
+                alt="Nasi Goreng">
+
+
+            <h3>
+                Nasi Goreng
+            </h3>
+
+
+            <p>
+                Nasi goreng spesial telur.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐☆
+            </div>
+
+
+            <h4>
+                Rp20.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Nasi Goreng',20000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+
+        <!-- PIZZA -->
+
+        <div class="card">
+
+            <img
+                src="images/pizza.jpg"
+                alt="Pizza Mini">
+
+
+            <h3>
+                Pizza Mini
+            </h3>
+
+
+            <p>
+                Pizza keju dengan sosis.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐⭐
+            </div>
+
+
+            <h4>
+                Rp25.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Pizza Mini',25000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+
+        <!-- HOTDOG -->
+
+        <div class="card">
+
+            <img
+                src="images/hotdog.jpg"
+                alt="Hotdog">
+
+
+            <h3>
+                Hotdog
+            </h3>
+
+
+            <p>
+                Hotdog isi sosis jumbo.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐☆
+            </div>
+
+
+            <h4>
+                Rp15.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Hotdog',15000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+
+        <!-- BOBA -->
+
+        <div class="card">
+
+            <img
+                src="images/boba.jpg"
+                alt="Boba Brown Sugar">
+
+
+            <h3>
+                Boba Brown Sugar
+            </h3>
+
+
+            <p>
+                Minuman boba favorit.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐⭐
+            </div>
+
+
+            <h4>
+                Rp12.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Boba Brown Sugar',12000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+
+        <!-- KENTANG -->
+
+        <div class="card">
+
+            <img
+                src="images/kentang.jpg"
+                alt="Kentang Goreng">
+
+
+            <h3>
+                Kentang Goreng
+            </h3>
+
+
+            <p>
+                Renyah dengan saus sambal.
+            </p>
+
+
+            <div class="rating">
+                ⭐⭐⭐⭐☆
+            </div>
+
+
+            <h4>
+                Rp10.000
+            </h4>
+
+
+            <button
+                type="button"
+                onclick="tambahKeranjang('Kentang Goreng',10000)">
+
+                🛒 Pesan
+
+            </button>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     KERANJANG
+===================================================== -->
+
+<section
+    class="keranjang"
+    id="keranjang">
+
+    <h2>
+        🛒 Keranjang Belanja
+    </h2>
+
+
+    <div id="pesanan">
+
+        Belum ada pesanan.
+
+    </div>
+
+
+    <h3 id="total">
+
+        Total : Rp0
+
+    </h3>
+
+
+    <div class="aksi">
+
+
+        <button
+            type="button"
+            onclick="ambilLokasi()">
+
+            📍 Lokasi Saya
+
+        </button>
+
+
+        <button
+            type="button"
+            onclick="kirimWA()">
+
+            💬 Pesan via WhatsApp
+
+        </button>
+
+
+        <button
+            type="button"
+            onclick="kosongkanKeranjang()">
+
+            🗑 Kosongkan Keranjang
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="statusLokasi"
+        style="
+            margin-top:15px;
+            color:#666;
+        ">
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     CHECKOUT
+===================================================== -->
+
+<section
+    class="checkout"
+    id="checkout">
+
+
+    <div class="checkout-box">
+
+
+        <h2>
+            🧾 Checkout Pesanan
+        </h2>
+
+
+        <p>
+            Silakan isi data untuk pengantaran pesanan.
+        </p>
+
+
+
+        <!-- DATA PELANGGAN -->
+
+        <div class="checkout-form">
+
+
+            <label for="namaPelanggan">
+                Nama Pelanggan
+            </label>
+
+
+            <input
+                type="text"
+                id="namaPelanggan"
+                placeholder="Masukkan nama Anda"
+                autocomplete="name"
+            >
+
+
+
+            <label for="nomorWhatsApp">
+                Nomor WhatsApp
+            </label>
+
+
+            <input
+                type="tel"
+                id="nomorWhatsApp"
+                placeholder="Contoh: 083851564958"
+                autocomplete="tel"
+            >
+
+
+
+            <label for="alamatPengantaran">
+                Alamat Pengantaran
+            </label>
+
+
+            <textarea
+                id="alamatPengantaran"
+                rows="4"
+                placeholder="Masukkan alamat lengkap pengantaran"></textarea>
+
+
+
+            <!-- GPS -->
+
+            <button
+                type="button"
+                onclick="ambilLokasi()">
+
+                📍 Ambil Lokasi Saya
+
+            </button>
+
+
+            <div
+                id="statusLokasiCheckout"
+                style="
+                    margin-top:8px;
+                    color:#777;
+                ">
+
+            </div>
+
+
+
+            <label for="catatanPesanan">
+                Catatan Pesanan
+            </label>
+
+
+            <textarea
+                id="catatanPesanan"
+                rows="3"
+                placeholder="Contoh: tidak pedas, sambal dipisah, dll."></textarea>
+
+
+
+            <!-- =================================================
+                 PILIHAN ONGKIR
+            ================================================== -->
+
+            <label for="pilihanOngkir">
+                🚚 Pilihan Pengantaran
+            </label>
+
+
+            <select
+                id="pilihanOngkir">
+
+                <option
+                    value=""
+                    data-ongkir="0">
+
+                    -- Pilih Pengantaran --
+
+                </option>
+
+
+                <option
+                    value="Dalam Desa Paya Rengas"
+                    data-ongkir="5000">
+
+                    🏠 Dalam Desa Paya Rengas — Rp5.000
+
+                </option>
+
+
+                <option
+                    value="Sekitar Kecamatan Hinai"
+                    data-ongkir="10000">
+
+                    📍 Sekitar Kecamatan Hinai — Rp10.000
+
+                </option>
+
+
+                <option
+                    value="Di Luar Kecamatan Hinai"
+                    data-ongkir="15000">
+
+                    🚚 Di Luar Kecamatan Hinai — Rp15.000
+
+                </option>
+
+
+                <option
+                    value="Ambil Sendiri"
+                    data-ongkir="0">
+
+                    🛵 Ambil Sendiri — Gratis
+
+                </option>
+
+            </select>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             RINGKASAN
+        ================================================== -->
+
+        <div class="checkout-summary">
+
+
+            <h3>
+                📋 Ringkasan Pembayaran
+            </h3>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Total Belanja
+                </span>
+
+                <strong id="totalBelanja">
+                    Rp0
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Ongkos Kirim
+                </span>
+
+                <strong id="ongkir">
+                    Rp0
+                </strong>
+
+            </div>
+
+
+            <hr>
+
+
+            <div class="summary-row total-row">
+
+                <span>
+                    Total Pembayaran
+                </span>
+
+                <strong id="totalPembayaran">
+                    Rp0
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             KONFIRMASI
+        ================================================== -->
+
+        <button
+            type="button"
+            id="konfirmasiPesan"
+            class="btn-konfirmasi">
+
+            💬 Konfirmasi & Pesan Sekarang
+
+        </button>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     PROMO
+===================================================== -->
+
+<section
+    id="promo"
+    style="
+        width:95%;
+        max-width:1200px;
+        margin:40px auto;
+    ">
+
+    <h2>
+        🔥 Promo Paya Rengas Delivery
+    </h2>
+
+
+    <p>
+        Nikmati berbagai makanan dan jajanan UMKM
+        dari Desa Paya Rengas.
+    </p>
+
+</section>
+
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer>
+
+
+    <div class="footer-logo">
+
+        <h2>
+            🍔 Paya Rengas Delivery
+        </h2>
+
+
+        <p>
+            Platform UMKM Desa Paya Rengas
+        </p>
+
+    </div>
+
+
+
+    <div class="footer-menu">
+
+        <a href="#">
+            Beranda
+        </a>
+
+
+        <a href="#menu">
+            Menu
+        </a>
+
+
+        <a href="#promo">
+            Promo
+        </a>
+
+
+        <a href="#checkout">
+            Checkout
+        </a>
+
+    </div>
+
+
+
+    <div class="footer-copy">
+
+        © 2026 Paya Rengas Delivery
+
+        <br>
+
+        Dibuat dengan ❤️ di Desa Paya Rengas
+
+    </div>
+
+
+</footer>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script src="script.js"></script>
+
+
+</body>
+
+</html>

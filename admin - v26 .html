@@ -1,0 +1,5990 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paya Rengas Delivery - Admin V26</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f5f6fa;
+    color:#333;
+}
+
+button,
+input,
+select,
+textarea{
+    font-family:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+img{
+    max-width:100%;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.header{
+    height:70px;
+    background:linear-gradient(135deg,#ff9800,#ff5722);
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 24px;
+    position:sticky;
+    top:0;
+    z-index:1000;
+    box-shadow:0 3px 12px rgba(0,0,0,.15);
+}
+
+.header-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.logo-admin{
+    width:45px;
+    height:45px;
+    border-radius:12px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    flex-shrink:0;
+}
+
+.header-title h1{
+    font-size:20px;
+}
+
+.header-title small{
+    font-size:12px;
+}
+
+.btn-toko{
+    border:0;
+    background:white;
+    color:#ff5722;
+    padding:10px 16px;
+    border-radius:9px;
+    font-weight:bold;
+}
+
+/* =========================
+   LAYOUT
+========================= */
+
+.layout{
+    display:flex;
+    min-height:calc(100vh - 70px);
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar{
+    width:240px;
+    background:#222;
+    color:#fff;
+    padding:18px 12px;
+    flex-shrink:0;
+}
+
+.profile{
+    text-align:center;
+    padding:8px 0 18px;
+    border-bottom:1px solid #444;
+    margin-bottom:14px;
+}
+
+.profile-icon{
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    background:#ff5722;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 9px;
+    font-size:30px;
+}
+
+.profile p{
+    color:#aaa;
+    font-size:12px;
+    margin-top:4px;
+}
+
+.menu{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.menu button{
+    width:100%;
+    border:0;
+    background:transparent;
+    color:#ddd;
+    text-align:left;
+    padding:13px;
+    border-radius:9px;
+}
+
+.menu button:hover,
+.menu button.active{
+    background:#ff5722;
+    color:white;
+}
+
+.badge{
+    background:#f44336;
+    color:#fff;
+    border-radius:20px;
+    padding:3px 7px;
+    font-size:10px;
+    margin-left:4px;
+}
+
+/* =========================
+   CONTENT
+========================= */
+
+.content{
+    flex:1;
+    min-width:0;
+    padding:24px;
+}
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+.page-title{
+    margin-bottom:20px;
+}
+
+.page-title h2{
+    color:#ff5722;
+    margin-bottom:5px;
+}
+
+.page-title p{
+    color:#777;
+    font-size:13px;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+.btn{
+    border:0;
+    border-radius:8px;
+    padding:9px 13px;
+    font-weight:bold;
+}
+
+.btn:hover{
+    opacity:.88;
+}
+
+.btn-primary{
+    background:#ff5722;
+    color:#fff;
+}
+
+.btn-success{
+    background:#25a244;
+    color:#fff;
+}
+
+.btn-danger{
+    background:#e53935;
+    color:#fff;
+}
+
+.btn-warning{
+    background:#ff9800;
+    color:#fff;
+}
+
+.btn-blue{
+    background:#2196f3;
+    color:#fff;
+}
+
+.btn-purple{
+    background:#673ab7;
+    color:#fff;
+}
+
+.btn-gray{
+    background:#777;
+    color:#fff;
+}
+
+.btn-small{
+    padding:6px 9px;
+    font-size:11px;
+}
+
+/* =========================
+   DASHBOARD
+========================= */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    margin-bottom:22px;
+}
+
+.stat{
+    background:white;
+    border-radius:14px;
+    padding:19px;
+    display:flex;
+    align-items:center;
+    gap:13px;
+    box-shadow:0 3px 15px rgba(0,0,0,.06);
+}
+
+.stat-icon{
+    width:50px;
+    height:50px;
+    border-radius:12px;
+    background:#fff3e0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:23px;
+    flex-shrink:0;
+}
+
+.stat h3{
+    font-size:20px;
+    margin-bottom:4px;
+}
+
+.stat p{
+    color:#777;
+    font-size:11px;
+}
+
+/* =========================
+   PANEL
+========================= */
+
+.panel{
+    background:#fff;
+    border-radius:15px;
+    padding:21px;
+    box-shadow:0 3px 15px rgba(0,0,0,.06);
+    margin-bottom:20px;
+}
+
+.panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:17px;
+    flex-wrap:wrap;
+}
+
+.panel-header h3{
+    color:#ff5722;
+}
+
+/* =========================
+   TOOLBAR
+========================= */
+
+.toolbar{
+    display:flex;
+    gap:9px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+}
+
+.search{
+    flex:1;
+    min-width:180px;
+    padding:11px 12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    outline:none;
+}
+
+.search:focus{
+    border-color:#ff5722;
+}
+
+.filter{
+    min-width:150px;
+    padding:11px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    outline:none;
+    background:#fff;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table-scroll{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:850px;
+}
+
+th{
+    background:#fff3e0;
+    padding:12px;
+    text-align:left;
+    font-size:12px;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    font-size:12px;
+    vertical-align:middle;
+}
+
+tr:hover td{
+    background:#fafafa;
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.status{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:10px;
+    font-weight:bold;
+}
+
+.status-baru{
+    background:#fff3cd;
+    color:#856404;
+}
+
+.status-diproses{
+    background:#cfe2ff;
+    color:#084298;
+}
+
+.status-selesai{
+    background:#d1e7dd;
+    color:#0f5132;
+}
+
+.status-batal{
+    background:#f8d7da;
+    color:#842029;
+}
+
+/* =========================
+   PRODUCT
+========================= */
+
+.product-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:17px;
+}
+
+.product-card{
+    background:#fff;
+    border:1px solid #eee;
+    border-radius:13px;
+    overflow:hidden;
+    transform:translateZ(0);
+    contain:layout paint;
+}
+
+.product-image{
+    width:100%;
+    height:170px;
+    overflow:hidden;
+    background:#eee;
+}
+
+.product-image img{
+    width:100%;
+    height:170px;
+    object-fit:cover;
+    display:block;
+    transform:translateZ(0);
+    backface-visibility:hidden;
+}
+
+.product-body{
+    padding:14px;
+}
+
+.product-body h3{
+    font-size:17px;
+    margin-bottom:5px;
+}
+
+.product-description{
+    color:#777;
+    font-size:11px;
+    line-height:1.5;
+    min-height:34px;
+}
+
+.category{
+    display:inline-block;
+    margin-top:7px;
+    padding:4px 8px;
+    border-radius:15px;
+    background:#fff3e0;
+    color:#e65100;
+    font-size:10px;
+}
+
+.rating{
+    margin-top:7px;
+}
+
+.price{
+    color:#ff5722;
+    font-size:18px;
+    font-weight:bold;
+    margin:9px 0;
+}
+
+.product-actions{
+    display:flex;
+    gap:6px;
+}
+
+.product-actions button{
+    flex:1;
+}
+
+/* =========================
+   FORM
+========================= */
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.form-group.full{
+    grid-column:1/-1;
+}
+
+.form-group label{
+    font-size:12px;
+    font-weight:bold;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+    width:100%;
+    padding:11px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    outline:none;
+    background:#fff;
+}
+
+.form-group textarea{
+    min-height:95px;
+    resize:vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+    border-color:#ff5722;
+}
+
+.form-buttons{
+    display:flex;
+    gap:7px;
+    margin-top:18px;
+    flex-wrap:wrap;
+}
+
+.preview{
+    width:180px;
+    height:125px;
+    border:1px solid #ddd;
+    border-radius:9px;
+    overflow:hidden;
+    background:#eee;
+}
+
+.preview img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+/* =========================
+   SUMMARY
+========================= */
+
+.summary-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+}
+
+.summary-box{
+    background:#fff8ef;
+    border:1px solid #ffe0b2;
+    border-radius:11px;
+    padding:15px;
+}
+
+.summary-box h4{
+    color:#e65100;
+    margin-bottom:5px;
+    font-size:13px;
+}
+
+.summary-box strong{
+    font-size:20px;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+    z-index:3000;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    width:100%;
+    max-width:680px;
+    max-height:90vh;
+    overflow-y:auto;
+    background:#fff;
+    border-radius:15px;
+    padding:21px;
+}
+
+.modal-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:17px;
+}
+
+.modal-head h3{
+    color:#ff5722;
+}
+
+.close{
+    width:33px;
+    height:33px;
+    border:0;
+    border-radius:50%;
+    background:#eee;
+    font-size:20px;
+}
+
+/* =========================
+   BACKUP
+========================= */
+
+.backup-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.backup-item{
+    background:#fafafa;
+    border:1px solid #eee;
+    border-radius:11px;
+    padding:16px;
+}
+
+.backup-item h4{
+    color:#ff5722;
+    margin-bottom:7px;
+}
+
+.backup-item p{
+    color:#777;
+    font-size:12px;
+    margin-bottom:12px;
+}
+
+/* =========================
+   EMPTY
+========================= */
+
+.empty{
+    text-align:center;
+    padding:32px 10px;
+    color:#888;
+    line-height:1.8;
+}
+
+/* =========================
+   TOAST
+========================= */
+
+.toast{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    background:#222;
+    color:white;
+    padding:13px 18px;
+    border-radius:9px;
+    display:none;
+    z-index:5000;
+    box-shadow:0 5px 20px rgba(0,0,0,.25);
+}
+
+.toast.show{
+    display:block;
+}
+
+/* =========================
+   PRINT STRUK
+========================= */
+
+.print-area{
+    display:none;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1000px){
+
+    .stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:750px){
+
+    .layout{
+        display:block;
+    }
+
+    .sidebar{
+        width:100%;
+        padding:7px;
+    }
+
+    .profile{
+        display:none;
+    }
+
+    .menu{
+        flex-direction:row;
+        overflow-x:auto;
+    }
+
+    .menu button{
+        white-space:nowrap;
+        width:auto;
+    }
+
+    .content{
+        padding:14px;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .form-group.full{
+        grid-column:auto;
+    }
+
+    .summary-grid{
+        grid-template-columns:1fr;
+    }
+
+    .backup-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media(max-width:500px){
+
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    .header{
+        padding:0 12px;
+    }
+
+    .header-title h1{
+        font-size:16px;
+    }
+
+    .header-title small{
+        display:none;
+    }
+
+    .panel{
+        padding:15px;
+    }
+
+}
+
+/* =========================
+   PRINT
+========================= */
+
+@media print{
+
+    body *{
+        visibility:hidden !important;
+    }
+
+    #printArea,
+    #printArea *,
+    #printLaporan,
+    #printLaporan *{
+        visibility:visible !important;
+    }
+
+    #printArea{
+        display:block !important;
+        position:absolute;
+        left:0;
+        top:0;
+        width:100%;
+        padding:20px;
+        background:white;
+    }
+
+    #printLaporan{
+        display:block !important;
+        position:absolute;
+        left:0;
+        top:0;
+        width:100%;
+        padding:20px;
+        background:white;
+    }
+
+    .no-print{
+        display:none !important;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="header">
+
+    <div class="header-left">
+
+        <div class="logo-admin">
+            🍔
+        </div>
+
+        <div class="header-title">
+            <h1>Paya Rengas Delivery</h1>
+            <small>Administrator V25</small>
+        </div>
+
+    </div>
+
+    <button
+        class="btn-toko"
+        onclick="keToko()">
+
+        🏠 Toko
+
+    </button>
+
+</header>
+
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+
+    <div class="profile">
+
+        <div class="profile-icon">
+            👨‍💼
+        </div>
+
+        <b>Administrator</b>
+
+        <p>
+            Paya Rengas Delivery
+        </p>
+
+    </div>
+
+
+    <div class="menu">
+
+        <button
+            class="active"
+            onclick="showPage('dashboard',this)">
+
+            📊 Dashboard
+
+        </button>
+
+
+        <button
+            onclick="showPage('pesanan',this)">
+
+            🛒 Pesanan
+
+            <span
+                id="badgePesanan"
+                class="badge"
+                style="display:none">
+
+                0
+
+            </span>
+
+        </button>
+
+
+        <button
+            onclick="showPage('produk',this)">
+
+            🍔 Produk
+
+        </button>
+
+
+        <button
+            onclick="showPage('tambah',this)">
+
+            ➕ Tambah Produk
+
+        </button>
+
+
+        <button
+            onclick="showPage('riwayat',this)">
+
+            📜 Riwayat
+
+        </button>
+
+
+        <button
+            onclick="showPage('laporan',this)">
+
+            📈 Laporan
+
+        </button>
+
+
+        <button
+            onclick="showPage('operasional',this)">
+
+            📦 Stok & Pelanggan
+
+        </button>
+
+
+        <button onclick="showPage('keuangan',this)">💰 Keuangan</button>
+
+        <button onclick="showPage('kategori',this)">🏷️ Kategori</button>
+
+        <button onclick="showPage('notifikasi',this)">🔔 Notifikasi <span id="badgeNotifikasi" class="badge" style="display:none">0</span></button>
+
+        <button onclick="showPage('pusatv23',this)">🧭 Pusat Kontrol V23</button>
+        <button onclick="showPage('pengantaranv24',this)">🚚 Pengantaran V24</button>
+        <button onclick="showPage('pelangganv25',this)">👥 CRM Pelanggan V26</button>
+
+        <button
+            onclick="showPage('backup',this)">
+
+            💾 Backup
+
+        </button>
+
+    </div>
+
+</aside>
+
+
+<main class="content">
+
+
+<!-- =========================
+     DASHBOARD
+========================= -->
+
+<section
+    id="dashboard"
+    class="page active">
+
+    <div class="page-title">
+
+        <h2>📊 Dashboard</h2>
+
+        <p>
+            Ringkasan Paya Rengas Delivery.
+        </p>
+
+    </div>
+
+
+    <div class="stats">
+
+        <div class="stat">
+
+            <div class="stat-icon">
+                🛒
+            </div>
+
+            <div>
+
+                <h3 id="totalPesanan">
+                    0
+                </h3>
+
+                <p>
+                    Total Pesanan
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-icon">
+                🔔
+            </div>
+
+            <div>
+
+                <h3 id="pesananBaru">
+                    0
+                </h3>
+
+                <p>
+                    Pesanan Baru
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-icon">
+                🍔
+            </div>
+
+            <div>
+
+                <h3 id="totalProduk">
+                    0
+                </h3>
+
+                <p>
+                    Total Produk
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-icon">
+                💰
+            </div>
+
+            <div>
+
+                <h3 id="totalPendapatan">
+                    Rp0
+                </h3>
+
+                <p>
+                    Total Penjualan
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <h3>
+                📊 Ringkasan Penjualan
+            </h3>
+
+        </div>
+
+
+        <div class="summary-grid">
+
+            <div class="summary-box">
+
+                <h4>
+                    Pesanan Selesai
+                </h4>
+
+                <strong id="jumlahSelesai">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="summary-box">
+
+                <h4>
+                    Total Ongkir
+                </h4>
+
+                <strong id="totalOngkir">
+                    Rp0
+                </strong>
+
+            </div>
+
+
+            <div class="summary-box">
+
+                <h4>
+                    Rata-rata Pesanan
+                </h4>
+
+                <strong id="rataPesanan">
+                    Rp0
+                </strong>
+
+            </div>
+
+
+            <div class="summary-box">
+
+                <h4>
+                    Pesanan Hari Ini
+                </h4>
+
+                <strong id="pesananHariIni">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="summary-box">
+
+                <h4>
+                    Penjualan Hari Ini
+                </h4>
+
+                <strong id="penjualanHariIni">
+                    Rp0
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="panel-header">
+            <h3>⚡ Ringkasan Operasional V21</h3>
+            <button class="btn btn-warning" onclick="showPageById('operasional')">Kelola</button>
+        </div>
+        <div class="summary-grid">
+            <div class="summary-box"><h4>Stok Menipis</h4><strong id="stokMenipis">0</strong></div>
+            <div class="summary-box"><h4>Pelanggan</h4><strong id="totalPelanggan">0</strong></div>
+            <div class="summary-box"><h4>Perlu Diantar</h4><strong id="perluDiantar">0</strong></div>
+            <div class="summary-box"><h4>Pesanan Aktif</h4><strong id="pesananAktif">0</strong></div>
+        </div>
+    </div>
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <h3>
+                📋 Pesanan Terbaru
+            </h3>
+
+            <button
+                class="btn btn-primary"
+                onclick="showPageById('pesanan')">
+
+                Lihat Semua
+
+            </button>
+
+        </div>
+
+
+        <div id="pesananTerbaru"></div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     PESANAN
+========================= -->
+
+<section
+    id="pesanan"
+    class="page">
+
+    <div class="page-title">
+
+        <h2>🛒 Pesanan</h2>
+
+        <p>
+            Kelola pesanan pelanggan.
+        </p>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="toolbar">
+
+            <input
+                id="searchPesanan"
+                class="search"
+                placeholder="Cari nama pelanggan / WhatsApp..."
+                oninput="renderPesanan()">
+
+
+            <select
+                id="filterStatus"
+                class="filter"
+                onchange="renderPesanan()">
+
+                <option value="semua">
+                    Semua Status
+                </option>
+
+                <option value="baru">
+                    Baru
+                </option>
+
+                <option value="diproses">
+                    Diproses
+                </option>
+
+                <option value="diantar">
+                    Diantar
+                </option>
+
+                <option value="selesai">
+                    Selesai
+                </option>
+
+                <option value="batal">
+                    Batal
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="table-scroll">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>No</th>
+
+                        <th>Pelanggan</th>
+
+                        <th>WhatsApp</th>
+
+                        <th>Total</th>
+
+                        <th>Status</th>
+
+                        <th>Aksi</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody
+                    id="tabelPesanan">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     PRODUK
+========================= -->
+
+<section
+    id="produk"
+    class="page">
+
+    <div class="page-title">
+
+        <h2>🍔 Produk</h2>
+
+        <p>
+            Kelola produk makanan dan minuman.
+        </p>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <h3>
+                Daftar Produk
+            </h3>
+
+            <button
+                class="btn btn-primary"
+                onclick="showPageById('tambah')">
+
+                ➕ Tambah Produk
+
+            </button>
+
+        </div>
+
+
+        <input
+            id="searchProduk"
+            class="search"
+            placeholder="Cari nama produk..."
+            oninput="renderProducts()">
+
+
+        <br><br>
+
+
+        <div
+            id="produkGrid"
+            class="product-grid">
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     TAMBAH PRODUK
+========================= -->
+
+<section
+    id="tambah"
+    class="page">
+
+    <div class="page-title">
+
+        <h2>➕ Tambah Produk</h2>
+
+        <p>
+            Tambahkan produk baru.
+        </p>
+
+    </div>
+
+
+    <div class="panel">
+
+        <form
+            onsubmit="simpanProduk(event)">
+
+            <div class="form-grid">
+
+
+                <div class="form-group">
+
+                    <label>
+                        Nama Produk
+                    </label>
+
+                    <input
+                        id="namaProduk"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Harga
+                    </label>
+
+                    <input
+                        id="hargaProduk"
+                        type="number"
+                        min="0"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Kategori
+                    </label>
+
+                    <select id="kategoriProduk">
+
+                        <option value="Makanan">
+                            Makanan
+                        </option>
+
+                        <option value="Minuman">
+                            Minuman
+                        </option>
+
+                        <option value="Snack">
+                            Snack
+                        </option>
+
+                        <option value="Promo">
+                            Promo
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Rating
+                    </label>
+
+                    <select id="ratingProduk">
+
+                        <option value="5">
+                            ⭐⭐⭐⭐⭐
+                        </option>
+
+                        <option value="4">
+                            ⭐⭐⭐⭐
+                        </option>
+
+                        <option value="3">
+                            ⭐⭐⭐
+                        </option>
+
+                        <option value="2">
+                            ⭐⭐
+                        </option>
+
+                        <option value="1">
+                            ⭐
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Stok Awal
+                    </label>
+
+                    <input id="stokProduk" type="number" min="0" value="0">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Status
+                    </label>
+
+                    <select id="statusProduk">
+
+                        <option value="tersedia">
+                            Tersedia
+                        </option>
+
+                        <option value="habis">
+                            Habis
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Foto Produk
+                    </label>
+
+                    <input
+                        id="fileProduk"
+                        type="file"
+                        accept="image/*"
+                        onchange="previewTambah(event)">
+
+                </div>
+
+
+                <div class="form-group full">
+
+                    <label>
+                        Deskripsi
+                    </label>
+
+                    <textarea
+                        id="deskripsiProduk"
+                        required></textarea>
+
+                </div>
+
+
+                <div
+                    class="form-group full">
+
+                    <label>
+                        Preview Foto
+                    </label>
+
+                    <div
+                        id="previewTambahBox"
+                        class="preview"
+                        style="display:none">
+
+                        <img
+                            id="previewTambahImg">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-buttons">
+
+                <button
+                    class="btn btn-primary">
+
+                    💾 Simpan Produk
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="btn btn-gray"
+                    onclick="resetForm()">
+
+                    ↻ Reset
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     RIWAYAT
+========================= -->
+
+<section
+    id="riwayat"
+    class="page">
+
+    <div class="page-title">
+
+        <h2>📜 Riwayat Pesanan</h2>
+
+        <p>
+            Lihat pesanan yang telah tersimpan.
+        </p>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="toolbar">
+
+            <input
+                id="searchRiwayat"
+                class="search"
+                placeholder="Cari nama pelanggan..."
+                oninput="renderRiwayat()">
+
+
+            <input
+                id="tanggalRiwayat"
+                class="filter"
+                type="date"
+                onchange="renderRiwayat()">
+
+
+            <select
+                id="filterRiwayat"
+                class="filter"
+                onchange="renderRiwayat()">
+
+                <option value="semua">
+                    Semua
+                </option>
+
+                <option value="selesai">
+                    Selesai
+                </option>
+
+                <option value="batal">
+                    Batal
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="table-scroll">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>No</th>
+
+                        <th>Pelanggan</th>
+
+                        <th>Tanggal</th>
+
+                        <th>Total</th>
+
+                        <th>Status</th>
+
+                        <th>Aksi</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody
+                    id="tabelRiwayat">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     LAPORAN V17
+========================= -->
+
+<section
+    id="laporan"
+    class="page">
+
+    <div class="page-title">
+
+        <h2>📈 Laporan Penjualan</h2>
+
+        <p>
+            Rekap pesanan, pendapatan, dan ongkir.
+        </p>
+
+    </div>
+
+    <div class="panel no-print">
+
+        <div class="toolbar">
+
+            <input
+                id="tanggalLaporan"
+                class="filter"
+                type="date"
+                onchange="renderLaporan()">
+
+            <select
+                id="statusLaporan"
+                class="filter"
+                onchange="renderLaporan()">
+
+                <option value="semua">Semua Status</option>
+                <option value="baru">Baru</option>
+                <option value="diproses">Diproses</option>
+                <option value="diantar">Diantar</option>
+                <option value="selesai">Selesai</option>
+                <option value="batal">Batal</option>
+
+            </select>
+
+            <button
+                class="btn btn-primary"
+                onclick="renderLaporan()">
+                🔄 Tampilkan
+            </button>
+
+            <button
+                class="btn btn-success"
+                onclick="cetakLaporan()">
+                🖨 Cetak
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="stats">
+
+        <div class="stat">
+            <div class="stat-icon">🛒</div>
+            <div>
+                <h3 id="lapTotalPesanan">0</h3>
+                <p>Total Pesanan</p>
+            </div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-icon">💰</div>
+            <div>
+                <h3 id="lapPendapatan">Rp0</h3>
+                <p>Total Penjualan</p>
+            </div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-icon">🚚</div>
+            <div>
+                <h3 id="lapOngkir">Rp0</h3>
+                <p>Total Ongkir</p>
+            </div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-icon">✅</div>
+            <div>
+                <h3 id="lapSelesai">0</h3>
+                <p>Pesanan Selesai</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="panel" id="printLaporan">
+
+        <div class="panel-header">
+            <h3>📋 Detail Laporan</h3>
+        </div>
+
+        <div class="table-scroll">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Pelanggan</th>
+                        <th>Tanggal</th>
+                        <th>Total</th>
+                        <th>Ongkir</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tabelLaporan"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     OPERASIONAL V21
+========================= -->
+<section id="operasional" class="page">
+    <div class="page-title"><h2>📦 Stok & Pelanggan</h2><p>Kelola stok, lihat pelanggan, dan pantau pengantaran aktif.</p></div>
+    <div class="stats">
+        <div class="stat"><div class="stat-icon">📦</div><div><h3 id="opTotalProduk">0</h3><p>Total Produk</p></div></div>
+        <div class="stat"><div class="stat-icon">⚠️</div><div><h3 id="opStokMenipis">0</h3><p>Stok Menipis</p></div></div>
+        <div class="stat"><div class="stat-icon">👥</div><div><h3 id="opPelanggan">0</h3><p>Pelanggan</p></div></div>
+        <div class="stat"><div class="stat-icon">🚚</div><div><h3 id="opAntar">0</h3><p>Perlu Diantar</p></div></div>
+    </div>
+    <div class="panel"><div class="panel-header"><h3>📦 Kontrol Stok</h3><button class="btn btn-primary" onclick="renderOperasional()">🔄 Refresh</button></div><div class="table-scroll"><table><thead><tr><th>Produk</th><th>Kategori</th><th>Stok</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="tabelStok"></tbody></table></div></div>
+    <div class="panel"><div class="panel-header"><h3>👥 Data Pelanggan</h3></div><div class="table-scroll"><table><thead><tr><th>No</th><th>Pelanggan</th><th>WhatsApp</th><th>Pesanan</th><th>Total Belanja</th><th>Terakhir</th></tr></thead><tbody id="tabelPelanggan"></tbody></table></div></div>
+    <div class="panel"><div class="panel-header"><h3>🚚 Pesanan Perlu Diantar</h3></div><div class="table-scroll"><table><thead><tr><th>Pelanggan</th><th>Alamat</th><th>WhatsApp</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="tabelAntar"></tbody></table></div></div>
+</section>
+
+<!-- =========================
+     KEUANGAN V22
+========================= -->
+<section id="keuangan" class="page">
+  <div class="page-title"><h2>💰 Keuangan & Analitik</h2><p>Ringkasan omzet, ongkir, estimasi laba, dan penjualan 7 hari.</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-icon">💵</div><div><h3 id="v22Omzet">Rp0</h3><p>Omzet</p></div></div>
+    <div class="stat"><div class="stat-icon">🚚</div><div><h3 id="v22Ongkir">Rp0</h3><p>Total Ongkir</p></div></div>
+    <div class="stat"><div class="stat-icon">📈</div><div><h3 id="v22Laba">Rp0</h3><p>Estimasi Laba</p></div></div>
+    <div class="stat"><div class="stat-icon">🧾</div><div><h3 id="v22Rata">Rp0</h3><p>Rata-rata Pesanan</p></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>📊 Penjualan 7 Hari Terakhir</h3><canvas id="grafikPenjualan" height="220" style="width:100%;max-width:900px"></canvas></div>
+  <div class="card" style="margin-top:16px"><h3>🏆 Produk Terlaris</h3><div class="table-wrap"><table><thead><tr><th>#</th><th>Produk</th><th>Terjual</th><th>Omzet</th></tr></thead><tbody id="produkTerlarisV22"></tbody></table></div></div>
+</section>
+
+<!-- =========================
+     KATEGORI V22
+========================= -->
+<section id="kategori" class="page">
+  <div class="page-title"><h2>🏷️ Kategori Produk</h2><p>Kelola kategori berdasarkan produk yang tersimpan.</p></div>
+  <div class="card"><button class="btn btn-success" onclick="tambahKategoriV22()">➕ Tambah Kategori</button><div id="daftarKategoriV22" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px"></div></div>
+</section>
+
+<!-- =========================
+     NOTIFIKASI V22
+========================= -->
+<section id="notifikasi" class="page">
+  <div class="page-title"><h2>🔔 Notifikasi</h2><p>Pesanan baru dan peringatan stok.</p></div>
+  <div class="card"><div id="daftarNotifikasiV22"></div></div>
+</section>
+
+<!-- =========================
+     PUSAT KONTROL V23
+========================= -->
+<section id="pusatv23" class="page">
+  <div class="page-title">
+    <h2>🧭 Pusat Kontrol V23</h2>
+    <p>Ringkasan cepat, pencarian pesanan, dan ekspor data Paya Rengas Delivery.</p>
+  </div>
+
+  <div class="stats" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat"><div class="stat-icon">🛒</div><div><h3 id="v23Pesanan">0</h3><p>Total Pesanan</p></div></div>
+    <div class="stat"><div class="stat-icon">👥</div><div><h3 id="v23Pelanggan">0</h3><p>Pelanggan</p></div></div>
+    <div class="stat"><div class="stat-icon">🍔</div><div><h3 id="v23Produk">0</h3><p>Produk</p></div></div>
+    <div class="stat"><div class="stat-icon">⚠️</div><div><h3 id="v23Stok">0</h3><p>Stok Menipis</p></div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>🔎 Cari Pesanan</h3>
+      <button class="btn btn-gray" onclick="resetPusatKontrolV23()">↻ Refresh</button>
+    </div>
+    <div class="toolbar">
+      <input id="v23CariPesanan" class="search" placeholder="Cari nama pelanggan, WhatsApp, alamat, atau nomor pesanan..." oninput="renderPusatKontrolV23()">
+      <select id="v23StatusPesanan" class="filter" onchange="renderPusatKontrolV23()">
+        <option value="semua">Semua Status</option>
+        <option value="baru">Baru</option>
+        <option value="diproses">Diproses</option>
+        <option value="diantar">Diantar</option>
+        <option value="selesai">Selesai</option>
+        <option value="batal">Batal</option>
+      </select>
+    </div>
+    <div class="table-scroll">
+      <table style="min-width:900px">
+        <thead><tr><th>#</th><th>Pelanggan</th><th>Kontak</th><th>Tanggal</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody id="tabelPusatPesananV23"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>📊 Ringkasan Status</h3>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-box"><h4>🟡 Pesanan Baru</h4><strong id="v23Baru">0</strong></div>
+      <div class="summary-box"><h4>🔵 Sedang Diproses</h4><strong id="v23Proses">0</strong></div>
+      <div class="summary-box"><h4>🚚 Sedang Diantar</h4><strong id="v23Diantar">0</strong></div>
+      <div class="summary-box"><h4>🟢 Selesai</h4><strong id="v23Selesai">0</strong></div>
+      <div class="summary-box"><h4>🔴 Batal</h4><strong id="v23Batal">0</strong></div>
+      <div class="summary-box"><h4>💰 Omzet</h4><strong id="v23Omzet">Rp0</strong></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>📤 Ekspor Data</h3>
+    </div>
+    <p style="color:#777;font-size:12px;margin-bottom:14px">Gunakan tombol berikut untuk menyimpan data pesanan atau produk dalam format CSV yang bisa dibuka di Excel.</p>
+    <div class="form-buttons">
+      <button class="btn btn-primary" onclick="exportPesananCSVV23()">📥 Export Pesanan CSV</button>
+      <button class="btn btn-success" onclick="exportProdukCSVV23()">📥 Export Produk CSV</button>
+      <button class="btn btn-blue" onclick="printPusatKontrolV23()">🖨️ Cetak Ringkasan</button>
+    </div>
+  </div>
+</section>
+
+<!-- =========================
+     PENGANTARAN V24
+========================= -->
+<section id="pengantaranv24" class="page">
+  <div class="page-title">
+    <h2>🚚 Manajemen Pengantaran V24</h2>
+    <p>Kelola driver, tugaskan pesanan, dan pantau status pengantaran.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-icon">🚚</div><div><h3 id="v24DriverCount">0</h3><p>Total Driver</p></div></div>
+    <div class="stat"><div class="stat-icon">🟠</div><div><h3 id="v24Aktif">0</h3><p>Pengantaran Aktif</p></div></div>
+    <div class="stat"><div class="stat-icon">🟢</div><div><h3 id="v24Selesai">0</h3><p>Pengantaran Selesai</p></div></div>
+    <div class="stat"><div class="stat-icon">📦</div><div><h3 id="v24Belum">0</h3><p>Belum Ditugaskan</p></div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h3>👤 Daftar Driver</h3><button class="btn btn-success" onclick="tambahDriverV24()">➕ Tambah Driver</button></div>
+    <div class="toolbar"><input id="v24CariDriver" class="search" placeholder="Cari nama atau WhatsApp driver..." oninput="renderPengantaranV24()"><button class="btn btn-gray" onclick="renderPengantaranV24()">🔄 Refresh</button></div>
+    <div class="table-scroll"><table style="min-width:750px"><thead><tr><th>#</th><th>Driver</th><th>WhatsApp</th><th>Status</th><th>Pesanan Aktif</th><th>Aksi</th></tr></thead><tbody id="tabelDriverV24"></tbody></table></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h3>📦 Penugasan Pesanan</h3><button class="btn btn-blue" onclick="renderPengantaranV24()">🔄 Refresh</button></div>
+    <div class="toolbar">
+      <input id="v24CariPesanan" class="search" placeholder="Cari pelanggan, alamat, atau nomor pesanan..." oninput="renderPengantaranV24()">
+      <select id="v24FilterStatus" class="filter" onchange="renderPengantaranV24()">
+        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
+      </select>
+    </div>
+    <div class="table-scroll"><table style="min-width:1100px"><thead><tr><th>#</th><th>Pelanggan</th><th>Alamat</th><th>Total</th><th>Status</th><th>Driver</th><th>Aksi</th></tr></thead><tbody id="tabelPengantaranV24"></tbody></table></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h3>💡 Cara Kerja V24</h3></div>
+    <div class="summary-grid">
+      <div class="summary-box"><h4>1️⃣ Tambahkan Driver</h4><span>Masukkan nama dan nomor WhatsApp driver.</span></div>
+      <div class="summary-box"><h4>2️⃣ Tugaskan Pesanan</h4><span>Pilih driver pada pesanan yang akan diantar.</span></div>
+      <div class="summary-box"><h4>3️⃣ Update Status</h4><span>Gunakan tombol status untuk memperbarui perjalanan pesanan.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================
+     CRM PELANGGAN V25
+========================= -->
+<section id="pelangganv25" class="page">
+  <div class="page-title"><h2>👥 CRM Pelanggan V25</h2><p>Kelola ringkasan pelanggan berdasarkan riwayat pesanan.</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-icon">👥</div><div><h3 id="v25TotalPelanggan">0</h3><p>Total Pelanggan</p></div></div>
+    <div class="stat"><div class="stat-icon">⭐</div><div><h3 id="v25AktifPelanggan">0</h3><p>Pelanggan Aktif</p></div></div>
+    <div class="stat"><div class="stat-icon">💰</div><div><h3 id="v25TotalBelanja">Rp0</h3><p>Total Belanja</p></div></div>
+    <div class="stat"><div class="stat-icon">🛒</div><div><h3 id="v25TotalTransaksi">0</h3><p>Total Transaksi</p></div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><h3>🔎 Daftar Pelanggan</h3><div class="form-buttons" style="margin-top:0"><button class="btn btn-gray" onclick="renderCRMV25()">🔄 Refresh</button><button class="btn btn-success" onclick="exportPelangganCSVV25()">📥 Export CSV</button></div></div>
+    <div class="toolbar"><input id="v25CariPelanggan" class="search" placeholder="Cari nama, WhatsApp, atau alamat..." oninput="renderCRMV25()"><select id="v25FilterPelanggan" class="filter" onchange="renderCRMV25()"><option value="semua">Semua Pelanggan</option><option value="aktif">Aktif (ada pesanan)</option><option value="besar">Belanja terbesar</option></select></div>
+    <div class="table-scroll"><table style="min-width:1050px"><thead><tr><th>#</th><th>Pelanggan</th><th>WhatsApp</th><th>Alamat Terakhir</th><th>Pesanan</th><th>Total Belanja</th><th>Terakhir Pesan</th><th>Aksi</th></tr></thead><tbody id="tabelCRMV25"></tbody></table></div>
+  </div>
+  <div class="panel"><div class="panel-header"><h3>🏆 Pelanggan Terbaik</h3></div><div class="summary-grid">
+    <div class="summary-box"><h4>🥇 Pelanggan #1</h4><strong id="v25Top1">-</strong><p id="v25Top1Detail" style="color:#777;font-size:11px;margin-top:5px">Belum ada data</p></div>
+    <div class="summary-box"><h4>🥈 Pelanggan #2</h4><strong id="v25Top2">-</strong><p id="v25Top2Detail" style="color:#777;font-size:11px;margin-top:5px">Belum ada data</p></div>
+    <div class="summary-box"><h4>🥉 Pelanggan #3</h4><strong id="v25Top3">-</strong><p id="v25Top3Detail" style="color:#777;font-size:11px;margin-top:5px">Belum ada data</p></div>
+  </div></div>
+  <div class="panel"><div class="panel-header"><h3>💡 Keterangan V25</h3></div><div class="summary-grid">
+    <div class="summary-box"><h4>👤 Data Otomatis</h4><span>Pelanggan dibuat otomatis dari pesanan yang tersimpan.</span></div>
+    <div class="summary-box"><h4>💰 Total Belanja</h4><span>Dihitung dari seluruh nilai pesanan pelanggan.</span></div>
+    <div class="summary-box"><h4>📱 WhatsApp</h4><span>Tombol WA membuka percakapan dengan nomor pelanggan.</span></div>
+  </div></div>
+</section>
+
+<!-- =========================
+     BACKUP
+========================= -->
+
+<section
+    id="backup"
+    class="page">
+
+    <div class="page-title">
+
+        <h2>💾 Backup Data</h2>
+
+        <p>
+            Simpan dan kembalikan data aplikasi.
+        </p>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="backup-grid">
+
+
+            <div class="backup-item">
+
+                <h4>
+                    💾 Backup Data
+                </h4>
+
+                <p>
+                    Download seluruh produk dan pesanan.
+                </p>
+
+                <button
+                    class="btn btn-primary"
+                    onclick="backupData()">
+
+                    ⬇️ Download Backup
+
+                </button>
+
+            </div>
+
+
+            <div class="backup-item">
+
+                <h4>
+                    ♻️ Restore Data
+                </h4>
+
+                <p>
+                    Kembalikan data dari file backup.
+                </p>
+
+                <input
+                    id="restoreFile"
+                    type="file"
+                    accept=".json">
+
+                <br><br>
+
+                <button
+                    class="btn btn-success"
+                    onclick="restoreData()">
+
+                    ♻️ Restore Data
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- =========================
+     MODAL DETAIL PESANAN
+========================= -->
+
+<div
+    id="modalPesanan"
+    class="modal">
+
+    <div class="modal-box">
+
+        <div class="modal-head">
+
+            <h3>
+                📋 Detail Pesanan
+            </h3>
+
+            <button
+                class="close"
+                onclick="closeModal('modalPesanan')">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <div
+            id="detailPesanan">
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     MODAL EDIT PRODUK
+========================= -->
+
+<div
+    id="modalEdit"
+    class="modal">
+
+    <div class="modal-box">
+
+        <div class="modal-head">
+
+            <h3>
+                ✏️ Edit Produk
+            </h3>
+
+            <button
+                class="close"
+                onclick="closeModal('modalEdit')">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <form
+            onsubmit="simpanEdit(event)">
+
+            <input
+                id="editId"
+                type="hidden">
+
+
+            <div class="form-grid">
+
+
+                <div
+                    class="form-group full">
+
+                    <label>
+                        Nama Produk
+                    </label>
+
+                    <input
+                        id="editNama"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Harga
+                    </label>
+
+                    <input
+                        id="editHarga"
+                        type="number"
+                        min="0"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Kategori
+                    </label>
+
+                    <select id="editKategori">
+
+                        <option value="Makanan">
+                            Makanan
+                        </option>
+
+                        <option value="Minuman">
+                            Minuman
+                        </option>
+
+                        <option value="Snack">
+                            Snack
+                        </option>
+
+                        <option value="Promo">
+                            Promo
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Rating
+                    </label>
+
+                    <select id="editRating">
+
+                        <option value="5">
+                            ⭐⭐⭐⭐⭐
+                        </option>
+
+                        <option value="4">
+                            ⭐⭐⭐⭐
+                        </option>
+
+                        <option value="3">
+                            ⭐⭐⭐
+                        </option>
+
+                        <option value="2">
+                            ⭐⭐
+                        </option>
+
+                        <option value="1">
+                            ⭐
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Stok
+                    </label>
+
+                    <input id="editStok" type="number" min="0" value="0">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Status
+                    </label>
+
+                    <select id="editStatus">
+
+                        <option value="tersedia">
+                            Tersedia
+                        </option>
+
+                        <option value="habis">
+                            Habis
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div
+                    class="form-group full">
+
+                    <label>
+                        Deskripsi
+                    </label>
+
+                    <textarea
+                        id="editDeskripsi"
+                        required></textarea>
+
+                </div>
+
+
+                <div
+                    class="form-group full">
+
+                    <label>
+                        Ganti Foto Produk
+                    </label>
+
+                    <input
+                        id="editFile"
+                        type="file"
+                        accept="image/*"
+                        onchange="previewEdit(event)">
+
+                    <small
+                        style="color:#777">
+
+                        Tidak memilih foto baru =
+                        foto lama tetap digunakan.
+
+                    </small>
+
+                    <br>
+
+                    <div class="preview">
+
+                        <img
+                            id="previewEditImg">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-buttons">
+
+                <button
+                    class="btn btn-primary">
+
+                    💾 Simpan Perubahan
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="btn btn-gray"
+                    onclick="closeModal('modalEdit')">
+
+                    Batal
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     PRINT AREA
+========================= -->
+
+<div
+    id="printArea"
+    class="print-area">
+
+</div>
+
+
+<!-- TOAST -->
+<div
+    id="toast"
+    class="toast">
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   STORAGE
+===================================================== */
+
+const PRODUCT_KEY =
+    "payaRengasProduk";
+
+const ORDER_KEY =
+    "payaRengasPesanan";
+
+
+let selectedNewImage = "";
+
+let selectedEditImage = "";
+
+let lastOrderCount = 0;
+
+
+/* =====================================================
+   DEFAULT PRODUCT
+===================================================== */
+
+const defaultProducts = [
+
+    {
+        id:1,
+        nama:"Donat Rahayu",
+        harga:10000,
+        kategori:"Snack",
+        rating:5,
+        status:"tersedia",
+        deskripsi:"Donat lembut dengan topping melimpah.",
+        gambar:"donat.jpg"
+    },
+
+    {
+        id:2,
+        nama:"Mie Ayam",
+        harga:12000,
+        kategori:"Makanan",
+        rating:5,
+        status:"tersedia",
+        deskripsi:"Mie ayam lezat dan gurih.",
+        gambar:"mieayam.jpg"
+    },
+
+    {
+        id:3,
+        nama:"Burger",
+        harga:15000,
+        kategori:"Makanan",
+        rating:5,
+        status:"tersedia",
+        deskripsi:"Burger spesial dengan isian lengkap.",
+        gambar:"burger.jpg"
+    },
+
+    {
+        id:4,
+        nama:"Es Teh",
+        harga:5000,
+        kategori:"Minuman",
+        rating:5,
+        status:"tersedia",
+        deskripsi:"Es teh manis segar.",
+        gambar:"minuman.jpg"
+    },
+
+    {
+        id:5,
+        nama:"Ayam Geprek",
+        harga:18000,
+        kategori:"Makanan",
+        rating:5,
+        status:"tersedia",
+        deskripsi:"Ayam geprek dengan sambal pedas.",
+        gambar:"ayamgeprek.jpg"
+    },
+
+    {
+        id:6,
+        nama:"Nasi Goreng",
+        harga:15000,
+        kategori:"Makanan",
+        rating:5,
+        status:"tersedia",
+        deskripsi:"Nasi goreng spesial.",
+        gambar:"nasigoreng.jpg"
+    }
+
+];
+
+
+/* =====================================================
+   DATA
+===================================================== */
+
+function getProducts(){
+
+    try{
+
+        const data =
+            JSON.parse(
+                localStorage.getItem(
+                    PRODUCT_KEY
+                )
+            );
+
+        if(Array.isArray(data)){
+            return data;
+        }
+
+    }catch(e){}
+
+    localStorage.setItem(
+        PRODUCT_KEY,
+        JSON.stringify(defaultProducts)
+    );
+
+    return [...defaultProducts];
+
+}
+
+
+function getOrders(){
+
+    try{
+
+        const data =
+            JSON.parse(
+                localStorage.getItem(
+                    ORDER_KEY
+                )
+            );
+
+        if(Array.isArray(data)){
+            return data;
+        }
+
+    }catch(e){}
+
+    return [];
+
+}
+
+
+function saveProducts(data){
+
+    localStorage.setItem(
+        PRODUCT_KEY,
+        JSON.stringify(data)
+    );
+
+}
+
+
+/* =====================================================
+   FORMAT
+===================================================== */
+
+function rupiah(value){
+
+    return new Intl.NumberFormat(
+        "id-ID",
+        {
+            style:"currency",
+            currency:"IDR",
+            maximumFractionDigits:0
+        }
+    ).format(
+        Number(value) || 0
+    );
+
+}
+
+
+function safe(value){
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+function imagePath(image){
+
+    if(!image){
+        return "images/banner.jpg";
+    }
+
+    if(
+        image.startsWith("data:image/")
+    ){
+        return image;
+    }
+
+    if(
+        image.startsWith("http://") ||
+        image.startsWith("https://")
+    ){
+        return image;
+    }
+
+    if(
+        image.startsWith("images/")
+    ){
+        return image;
+    }
+
+    return "images/" + image;
+
+}
+
+
+/* =====================================================
+   NAVIGASI
+===================================================== */
+
+function showPage(id,button){
+
+    document
+        .querySelectorAll(".page")
+        .forEach(page=>{
+
+            page.classList.remove(
+                "active"
+            );
+
+        });
+
+
+    const page =
+        document.getElementById(id);
+
+
+    if(page){
+        page.classList.add("active");
+    }
+
+
+    document
+        .querySelectorAll(".menu button")
+        .forEach(btn=>{
+
+            btn.classList.remove(
+                "active"
+            );
+
+        });
+
+
+    if(button){
+        button.classList.add("active");
+    }
+
+
+    if(id==="dashboard"){
+        updateDashboard();
+    }
+
+    if(id==="pesanan"){
+        renderPesanan();
+    }
+
+    if(id==="produk"){
+        renderProducts();
+    }
+
+    if(id==="riwayat"){
+        renderRiwayat();
+    }
+
+    if(id==="operasional"){
+        renderOperasional();
+    }
+
+}
+
+
+function showPageById(id){
+
+    const buttons =
+        document.querySelectorAll(
+            ".menu button"
+        );
+
+
+    let target = null;
+
+
+    buttons.forEach(btn=>{
+
+        const code =
+            btn.getAttribute(
+                "onclick"
+            ) || "";
+
+
+        if(
+            code.includes(
+                "'" + id + "'"
+            )
+        ){
+
+            target = btn;
+
+        }
+
+    });
+
+
+    showPage(
+        id,
+        target
+    );
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+function statusHTML(status){
+
+    const s =
+        String(
+            status || "baru"
+        ).toLowerCase();
+
+
+    if(s==="diproses"){
+
+        return `
+            <span class="status status-diproses">
+                Diproses
+            </span>
+        `;
+
+    }
+
+
+    if(s==="selesai"){
+
+        return `
+            <span class="status status-selesai">
+                Selesai
+            </span>
+        `;
+
+    }
+
+    if(s==="diantar"){
+
+        return `
+            <span class="status status-diantar">
+                Diantar
+            </span>
+        `;
+
+    }
+
+
+    if(s==="batal"){
+
+        return `
+            <span class="status status-batal">
+                Batal
+            </span>
+        `;
+
+    }
+
+
+    return `
+        <span class="status status-baru">
+            Baru
+        </span>
+    `;
+
+}
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+function updateDashboard(){
+
+    const products = getProducts();
+    const orders = getOrders();
+
+    document.getElementById("totalProduk").textContent = products.length;
+    document.getElementById("totalPesanan").textContent = orders.length;
+
+    let baru = 0, selesai = 0, pendapatan = 0, ongkir = 0;
+    let hariIni = 0, penjualanHariIni = 0;
+    const today = new Date();
+    const todayKey = today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
+
+    orders.forEach(order=>{
+        const status = String(order.status || "baru").toLowerCase();
+        const total = Number(order.total || order.totalPembayaran || order.totalBelanja || 0);
+        const ong = Number(order.ongkir || order.biayaKirim || 0);
+        if(status === "baru") baru++;
+        if(status === "selesai") selesai++;
+        pendapatan += total;
+        ongkir += ong;
+        if(getOrderDate(order) === todayKey){
+            hariIni++;
+            penjualanHariIni += total;
+        }
+    });
+
+    document.getElementById("pesananBaru").textContent = baru;
+    document.getElementById("totalPendapatan").textContent = rupiah(pendapatan);
+    document.getElementById("jumlahSelesai").textContent = selesai;
+    document.getElementById("totalOngkir").textContent = rupiah(ongkir);
+    document.getElementById("rataPesanan").textContent = orders.length ? rupiah(pendapatan/orders.length) : rupiah(0);
+
+    const elHari = document.getElementById("pesananHariIni");
+    const elJualHari = document.getElementById("penjualanHariIni");
+    if(elHari) elHari.textContent = hariIni;
+    if(elJualHari) elJualHari.textContent = rupiah(penjualanHariIni);
+
+    const badge = document.getElementById("badgePesanan");
+    if(baru>0){ badge.style.display="inline-block"; badge.textContent=baru; }
+    else { badge.style.display="none"; }
+
+    renderPesananTerbaru();
+    if(typeof renderOperasional === "function") renderOperasional();
+}
+
+
+/* =====================================================
+   PESANAN TERBARU
+===================================================== */
+
+function renderPesananTerbaru(){
+
+    const box =
+        document.getElementById(
+            "pesananTerbaru"
+        );
+
+
+    const orders =
+        getOrders();
+
+
+    if(!orders.length){
+
+        box.innerHTML = `
+            <div class="empty">
+                🛒<br>
+                Belum ada pesanan.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const recent =
+        orders
+        .slice()
+        .reverse()
+        .slice(0,5);
+
+
+    let html = `
+
+        <div class="table-scroll">
+
+        <table>
+
+        <thead>
+
+        <tr>
+
+            <th>Pelanggan</th>
+
+            <th>Total</th>
+
+            <th>Status</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+    `;
+
+
+    recent.forEach(order=>{
+
+        const nama =
+            order.nama ||
+            order.namaPelanggan ||
+            "Pelanggan";
+
+
+        const total =
+            order.total ||
+            order.totalPembayaran ||
+            order.totalBelanja ||
+            0;
+
+
+        html += `
+
+            <tr>
+
+                <td>
+                    ${safe(nama)}
+                </td>
+
+                <td>
+                    <strong>
+                        ${rupiah(total)}
+                    </strong>
+                </td>
+
+                <td>
+                    ${statusHTML(order.status)}
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    html += `
+        </tbody>
+        </table>
+        </div>
+    `;
+
+
+    box.innerHTML =
+        html;
+
+}
+
+
+/* =====================================================
+   PESANAN
+===================================================== */
+
+function renderPesanan(){
+
+    const tbody =
+        document.getElementById(
+            "tabelPesanan"
+        );
+
+
+    const orders =
+        getOrders();
+
+
+    const keyword =
+        (
+            document.getElementById(
+                "searchPesanan"
+            )?.value || ""
+        )
+        .toLowerCase();
+
+
+    const filter =
+        document.getElementById(
+            "filterStatus"
+        )?.value ||
+        "semua";
+
+
+    const filtered =
+        orders
+        .map(
+            (order,index)=>({
+                order,
+                index
+            })
+        )
+        .filter(item=>{
+
+            const order =
+                item.order;
+
+
+            const nama =
+                String(
+                    order.nama ||
+                    order.namaPelanggan ||
+                    ""
+                ).toLowerCase();
+
+
+            const wa =
+                String(
+                    order.whatsapp ||
+                    order.noWhatsapp ||
+                    order.nomorWhatsApp ||
+                    ""
+                ).toLowerCase();
+
+
+            const status =
+                String(
+                    order.status ||
+                    "baru"
+                ).toLowerCase();
+
+
+            return (
+
+                (
+                    nama.includes(keyword) ||
+                    wa.includes(keyword)
+                )
+
+                &&
+
+                (
+                    filter==="semua" ||
+                    status===filter
+                )
+
+            );
+
+        });
+
+
+    if(!filtered.length){
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td colspan="6">
+
+                    <div class="empty">
+
+                        🛒<br>
+                        Belum ada pesanan.
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    tbody.innerHTML =
+        filtered
+        .map(
+            (item,index)=>{
+
+                const order =
+                    item.order;
+
+
+                const nama =
+                    order.nama ||
+                    order.namaPelanggan ||
+                    "Pelanggan";
+
+
+                const wa =
+                    order.whatsapp ||
+                    order.noWhatsapp ||
+                    order.nomorWhatsApp ||
+                    "-";
+
+
+                const total =
+                    order.total ||
+                    order.totalPembayaran ||
+                    order.totalBelanja ||
+                    0;
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            ${index+1}
+                        </td>
+
+                        <td>
+                            <strong>
+                                ${safe(nama)}
+                            </strong>
+                        </td>
+
+                        <td>
+                            ${safe(wa)}
+                        </td>
+
+                        <td>
+                            <strong>
+                                ${rupiah(total)}
+                            </strong>
+                        </td>
+
+                        <td>
+                            ${statusHTML(order.status)}
+                        </td>
+
+                        <td>
+
+                            <button
+                                class="btn btn-blue btn-small"
+                                onclick="detailPesanan(${item.index})">
+
+                                👁 Detail
+
+                            </button>
+
+                            <button
+                                class="btn btn-danger btn-small"
+                                onclick="hapusPesanan(${item.index})">
+
+                                🗑
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        )
+        .join("");
+
+}
+
+
+/* =====================================================
+   DETAIL PESANAN
+===================================================== */
+
+function detailPesanan(index){
+
+    const orders =
+        getOrders();
+
+
+    const order =
+        orders[index];
+
+
+    if(!order){
+        return;
+    }
+
+
+    const nama =
+        order.nama ||
+        order.namaPelanggan ||
+        "Pelanggan";
+
+
+    const wa =
+        order.whatsapp ||
+        order.noWhatsapp ||
+        order.nomorWhatsApp ||
+        "-";
+
+
+    const alamat =
+        order.alamat ||
+        order.alamatPengantaran ||
+        "-";
+
+
+    const catatan =
+        order.catatan ||
+        "-";
+
+
+    const totalBelanja =
+        Number(
+            order.totalBelanja ||
+            0
+        );
+
+
+    const ongkir =
+        Number(
+            order.ongkir ||
+            order.biayaKirim ||
+            0
+        );
+
+
+    const total =
+        Number(
+            order.total ||
+            order.totalPembayaran ||
+            order.totalBelanja ||
+            0
+        );
+
+
+    const items =
+        order.items ||
+        order.keranjang ||
+        order.detailPesanan ||
+        [];
+
+
+    let itemHTML = "";
+
+
+    if(
+        Array.isArray(items) &&
+        items.length
+    ){
+
+        itemHTML = `
+
+            <hr style="margin:16px 0">
+
+            <h4>
+                🛒 Item Pesanan
+            </h4>
+
+            <div style="margin-top:9px">
+
+        `;
+
+
+        items.forEach(item=>{
+
+            const namaItem =
+                item.nama ||
+                item.name ||
+                "Produk";
+
+
+            const qty =
+                Number(
+                    item.jumlah ||
+                    item.qty ||
+                    1
+                );
+
+
+            const harga =
+                Number(
+                    item.harga ||
+                    item.price ||
+                    0
+                );
+
+
+            itemHTML += `
+
+                <div
+                    style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:10px;
+                    padding:8px 0;
+                    border-bottom:1px solid #eee;
+                    ">
+
+                    <span>
+                        ${safe(namaItem)}
+                        × ${qty}
+                    </span>
+
+                    <strong>
+                        ${rupiah(harga*qty)}
+                    </strong>
+
+                </div>
+
+            `;
+
+        });
+
+
+        itemHTML += `</div>`;
+
+    }
+
+
+    document.getElementById(
+        "detailPesanan"
+    ).innerHTML = `
+
+        <div style="line-height:1.9">
+
+            <p>
+                <strong>Nama:</strong>
+                ${safe(nama)}
+            </p>
+
+            <p>
+                <strong>WhatsApp:</strong>
+                ${safe(wa)}
+            </p>
+
+            <p>
+                <strong>Alamat:</strong>
+                ${safe(alamat)}
+            </p>
+
+            <p>
+                <strong>Catatan:</strong>
+                ${safe(catatan)}
+            </p>
+
+        </div>
+
+        ${itemHTML}
+
+        <hr style="margin:16px 0">
+
+        <p>
+            <strong>
+                Total Belanja:
+            </strong>
+            ${rupiah(totalBelanja)}
+        </p>
+
+        <p>
+            <strong>
+                Ongkir:
+            </strong>
+            ${rupiah(ongkir)}
+        </p>
+
+        <h3
+            style="
+            color:#ff5722;
+            margin-top:8px;
+            ">
+
+            Total Pembayaran:
+            ${rupiah(total)}
+
+        </h3>
+
+
+        <div
+            class="form-buttons"
+            style="margin-top:20px">
+
+            <button
+                class="btn btn-warning"
+                onclick="ubahStatus(${index},'diproses')">
+
+                🔄 Diproses
+
+            </button>
+
+
+            <button
+                class="btn btn-success"
+                onclick="ubahStatus(${index},'selesai')">
+
+                ✅ Selesai
+
+            </button>
+
+
+            <button
+                class="btn btn-blue"
+                onclick="ubahStatus(${index},'diantar')">
+
+                🛵 Diantar
+
+            </button>
+
+
+            <button
+                class="btn btn-danger"
+                onclick="ubahStatus(${index},'batal')">
+
+                ❌ Batal
+
+            </button>
+
+
+            <button
+                class="btn btn-blue"
+                onclick="cetakPesanan(${index})">
+
+                🖨️ Cetak
+
+            </button>
+
+
+            <button
+                class="btn btn-purple"
+                onclick="cetakStruk(${index})">
+
+                🧾 Struk
+
+            </button>
+
+
+            ${
+                wa!=="-"
+                ?
+                `
+                <button
+                    class="btn btn-success"
+                    onclick="whatsappPesanan('${safe(wa)}')">
+
+                    📱 WhatsApp
+
+                </button>
+                `
+                :
+                ""
+            }
+
+        </div>
+
+    `;
+
+
+    document.getElementById(
+        "modalPesanan"
+    ).classList.add(
+        "show"
+    );
+
+}
+
+
+/* =====================================================
+   UBAH STATUS
+===================================================== */
+
+function ubahStatus(index,status){
+
+    const orders =
+        getOrders();
+
+
+    if(!orders[index]){
+        return;
+    }
+
+
+    orders[index].status =
+        status;
+
+    orders[index].statusUpdatedAt = new Date().toISOString();
+
+
+    localStorage.setItem(
+        ORDER_KEY,
+        JSON.stringify(orders)
+    );
+
+
+    closeModal(
+        "modalPesanan"
+    );
+
+
+    renderPesanan();
+
+    renderRiwayat();
+
+    renderLaporan();
+
+    updateDashboard();
+
+
+    toast(
+        "Status pesanan berhasil diubah."
+    );
+
+}
+
+
+/* =====================================================
+   HAPUS PESANAN
+===================================================== */
+
+function hapusPesanan(index){
+
+    if(
+        !confirm(
+            "Yakin ingin menghapus pesanan ini?"
+        )
+    ){
+        return;
+    }
+
+
+    const orders =
+        getOrders();
+
+
+    orders.splice(
+        index,
+        1
+    );
+
+
+    localStorage.setItem(
+        ORDER_KEY,
+        JSON.stringify(orders)
+    );
+
+
+    renderPesanan();
+
+    renderRiwayat();
+
+    updateDashboard();
+
+
+    toast(
+        "Pesanan berhasil dihapus."
+    );
+
+}
+
+
+/* =====================================================
+   WHATSAPP
+===================================================== */
+
+function whatsappPesanan(number){
+
+    let phone =
+        String(number)
+        .replace(/\D/g,"");
+
+
+    if(
+        phone.startsWith("0")
+    ){
+
+        phone =
+            "62" +
+            phone.substring(1);
+
+    }
+
+
+    window.open(
+        "https://wa.me/" +
+        phone,
+        "_blank"
+    );
+
+}
+
+
+/* =====================================================
+   CETAK PESANAN
+===================================================== */
+
+function cetakPesanan(index){
+
+    const order =
+        getOrders()[index];
+
+
+    if(!order){
+        return;
+    }
+
+
+    const nama =
+        order.nama ||
+        order.namaPelanggan ||
+        "Pelanggan";
+
+
+    const wa =
+        order.whatsapp ||
+        order.noWhatsapp ||
+        order.nomorWhatsApp ||
+        "-";
+
+
+    const alamat =
+        order.alamat ||
+        order.alamatPengantaran ||
+        "-";
+
+
+    const catatan =
+        order.catatan ||
+        "-";
+
+
+    const items =
+        order.items ||
+        order.keranjang ||
+        order.detailPesanan ||
+        [];
+
+
+    const totalBelanja =
+        Number(
+            order.totalBelanja ||
+            0
+        );
+
+
+    const ongkir =
+        Number(
+            order.ongkir ||
+            order.biayaKirim ||
+            0
+        );
+
+
+    const total =
+        Number(
+            order.total ||
+            order.totalPembayaran ||
+            order.totalBelanja ||
+            0
+        );
+
+
+    let itemRows = "";
+
+
+    if(
+        Array.isArray(items)
+    ){
+
+        items.forEach(item=>{
+
+            const namaItem =
+                item.nama ||
+                item.name ||
+                "Produk";
+
+
+            const qty =
+                Number(
+                    item.jumlah ||
+                    item.qty ||
+                    1
+                );
+
+
+            const harga =
+                Number(
+                    item.harga ||
+                    item.price ||
+                    0
+                );
+
+
+            itemRows += `
+
+                <tr>
+
+                    <td>
+                        ${safe(namaItem)}
+                    </td>
+
+                    <td>
+                        ${qty}
+                    </td>
+
+                    <td>
+                        ${rupiah(harga)}
+                    </td>
+
+                    <td>
+                        ${rupiah(harga*qty)}
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+    }
+
+
+    const print =
+        document.getElementById(
+            "printArea"
+        );
+
+
+    print.innerHTML = `
+
+        <div
+            style="
+            font-family:Arial;
+            max-width:800px;
+            margin:auto;
+            ">
+
+            <h1
+                style="
+                text-align:center;
+                color:#ff5722;
+                ">
+
+                PAYA RENGAS DELIVERY
+
+            </h1>
+
+
+            <p
+                style="
+                text-align:center;
+                margin-bottom:20px;
+                ">
+
+                Detail Pesanan
+
+            </p>
+
+
+            <hr>
+
+
+            <p>
+                <strong>
+                    Pelanggan:
+                </strong>
+                ${safe(nama)}
+            </p>
+
+            <p>
+                <strong>
+                    WhatsApp:
+                </strong>
+                ${safe(wa)}
+            </p>
+
+            <p>
+                <strong>
+                    Alamat:
+                </strong>
+                ${safe(alamat)}
+            </p>
+
+            <p>
+                <strong>
+                    Catatan:
+                </strong>
+                ${safe(catatan)}
+            </p>
+
+
+            <br>
+
+
+            <table
+                style="
+                width:100%;
+                border-collapse:collapse;
+                ">
+
+                <thead>
+
+                    <tr>
+
+                        <th
+                            style="
+                            border:1px solid #333;
+                            padding:8px;
+                            ">
+
+                            Produk
+
+                        </th>
+
+                        <th
+                            style="
+                            border:1px solid #333;
+                            padding:8px;
+                            ">
+
+                            Qty
+
+                        </th>
+
+                        <th
+                            style="
+                            border:1px solid #333;
+                            padding:8px;
+                            ">
+
+                            Harga
+
+                        </th>
+
+                        <th
+                            style="
+                            border:1px solid #333;
+                            padding:8px;
+                            ">
+
+                            Jumlah
+
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    ${itemRows}
+
+                </tbody>
+
+            </table>
+
+
+            <br>
+
+
+            <p>
+                Total Belanja:
+                <strong>
+                    ${rupiah(totalBelanja)}
+                </strong>
+            </p>
+
+            <p>
+                Ongkir:
+                <strong>
+                    ${rupiah(ongkir)}
+                </strong>
+            </p>
+
+            <h2
+                style="color:#ff5722">
+
+                Total:
+                ${rupiah(total)}
+
+            </h2>
+
+
+            <br><br>
+
+            <p
+                style="text-align:center">
+
+                Terima kasih sudah berbelanja
+                di Paya Rengas Delivery.
+
+            </p>
+
+        </div>
+
+    `;
+
+
+    window.print();
+
+}
+
+
+/* =====================================================
+   CETAK STRUK
+===================================================== */
+
+function cetakStruk(index){
+
+    const order =
+        getOrders()[index];
+
+
+    if(!order){
+        return;
+    }
+
+
+    const nama =
+        order.nama ||
+        order.namaPelanggan ||
+        "Pelanggan";
+
+
+    const wa =
+        order.whatsapp ||
+        order.noWhatsapp ||
+        order.nomorWhatsApp ||
+        "-";
+
+
+    const items =
+        order.items ||
+        order.keranjang ||
+        order.detailPesanan ||
+        [];
+
+
+    const ongkir =
+        Number(
+            order.ongkir ||
+            order.biayaKirim ||
+            0
+        );
+
+
+    const total =
+        Number(
+            order.total ||
+            order.totalPembayaran ||
+            order.totalBelanja ||
+            0
+        );
+
+
+    let itemHTML = "";
+
+
+    if(Array.isArray(items)){
+
+        items.forEach(item=>{
+
+            const namaItem =
+                item.nama ||
+                item.name ||
+                "Produk";
+
+
+            const qty =
+                Number(
+                    item.jumlah ||
+                    item.qty ||
+                    1
+                );
+
+
+            const harga =
+                Number(
+                    item.harga ||
+                    item.price ||
+                    0
+                );
+
+
+            itemHTML += `
+
+                <div
+                    style="
+                    display:flex;
+                    justify-content:space-between;
+                    margin-bottom:6px;
+                    ">
+
+                    <span>
+                        ${safe(namaItem)}
+                        x${qty}
+                    </span>
+
+                    <span>
+                        ${rupiah(harga*qty)}
+                    </span>
+
+                </div>
+
+            `;
+
+        });
+
+    }
+
+
+    const print =
+        document.getElementById(
+            "printArea"
+        );
+
+
+    print.innerHTML = `
+
+        <div
+            style="
+            width:320px;
+            margin:auto;
+            font-family:Arial;
+            font-size:13px;
+            ">
+
+            <div
+                style="
+                text-align:center;
+                ">
+
+                <h2>
+                    PAYA RENGAS
+                </h2>
+
+                <h3>
+                    DELIVERY
+                </h3>
+
+                <p>
+                    Struk Pesanan
+                </p>
+
+            </div>
+
+
+            <hr>
+
+
+            <p>
+                Pelanggan:
+                ${safe(nama)}
+            </p>
+
+            <p>
+                WhatsApp:
+                ${safe(wa)}
+            </p>
+
+
+            <hr>
+
+
+            ${itemHTML}
+
+
+            <hr>
+
+
+            <div
+                style="
+                display:flex;
+                justify-content:space-between;
+                ">
+
+                <span>
+                    Ongkir
+                </span>
+
+                <strong>
+                    ${rupiah(ongkir)}
+                </strong>
+
+            </div>
+
+
+            <div
+                style="
+                display:flex;
+                justify-content:space-between;
+                margin-top:7px;
+                font-size:17px;
+                ">
+
+                <strong>
+                    TOTAL
+                </strong>
+
+                <strong>
+                    ${rupiah(total)}
+                </strong>
+
+            </div>
+
+
+            <hr>
+
+
+            <p
+                style="text-align:center">
+
+                Terima kasih 🙏
+
+            </p>
+
+        </div>
+
+    `;
+
+
+    window.print();
+
+}
+
+
+/* =====================================================
+   PRODUK
+===================================================== */
+
+function renderProducts(){
+
+    const grid =
+        document.getElementById(
+            "produkGrid"
+        );
+
+
+    const keyword =
+        (
+            document.getElementById(
+                "searchProduk"
+            )?.value || ""
+        )
+        .toLowerCase()
+        .trim();
+
+
+    const products =
+        getProducts()
+        .filter(product=>{
+
+            return String(
+                product.nama || ""
+            )
+            .toLowerCase()
+            .includes(keyword);
+
+        });
+
+
+    if(!products.length){
+
+        grid.innerHTML = `
+
+            <div class="empty">
+
+                🍔<br>
+                Produk tidak ditemukan.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    grid.innerHTML =
+        products
+        .map(product=>{
+
+            const status =
+                String(
+                    product.status ||
+                    "tersedia"
+                ).toLowerCase();
+
+
+            const stars =
+                "⭐".repeat(
+                    Number(
+                        product.rating ||
+                        0
+                    )
+                );
+
+
+            return `
+
+                <div class="product-card">
+
+                    <div
+                        class="product-image">
+
+                        <img
+                            src="${imagePath(product.gambar)}"
+                            alt="${safe(product.nama)}"
+                            onerror="this.onerror=null;this.src='images/banner.jpg';">
+
+                    </div>
+
+
+                    <div
+                        class="product-body">
+
+                        <h3>
+                            ${safe(product.nama)}
+                        </h3>
+
+
+                        <div
+                            class="product-description">
+
+                            ${safe(
+                                product.deskripsi ||
+                                ""
+                            )}
+
+                        </div>
+
+
+                        <span
+                            class="category">
+
+                            ${safe(
+                                product.kategori ||
+                                "Produk"
+                            )}
+
+                        </span>
+
+
+                        <div
+                            class="rating">
+
+                            ${stars}
+
+                        </div>
+
+
+                        <div class="price">
+
+                            ${rupiah(
+                                product.harga
+                            )}
+
+                        </div>
+
+
+                        <div style="margin:8px 0;font-size:13px;font-weight:700;">📦 Stok: ${Number(product.stok ?? 0)} &nbsp; • &nbsp; Modal: ${rupiah(Number(product.modal ?? 0))}</div>
+                        <button class="btn btn-blue btn-small" onclick="setModalProdukV22(${Number(product.id)})">💰 Set Modal</button>
+
+                        <div>
+
+                            ${
+                                status==="habis"
+
+                                ?
+
+                                `
+                                <span
+                                    class="status status-batal">
+
+                                    ❌ Habis
+
+                                </span>
+                                `
+
+                                :
+
+                                `
+                                <span
+                                    class="status status-selesai">
+
+                                    ✅ Tersedia
+
+                                </span>
+                                `
+
+                            }
+
+                        </div>
+
+
+                        <div
+                            class="product-actions"
+                            style="margin-top:10px">
+
+                            <button
+                                class="btn btn-warning"
+                                onclick="editProduct(${product.id})">
+
+                                ✏️ Edit
+
+                            </button>
+
+
+                            <button
+                                class="btn btn-danger"
+                                onclick="deleteProduct(${product.id})">
+
+                                🗑 Hapus
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        })
+        .join("");
+
+}
+
+
+/* =====================================================
+   TAMBAH PRODUK
+===================================================== */
+
+function previewTambah(event){
+
+    const file =
+        event.target.files?.[0];
+
+
+    if(!file){
+        return;
+    }
+
+
+    if(
+        !file.type.startsWith("image/")
+    ){
+
+        alert(
+            "File harus berupa gambar."
+        );
+
+        event.target.value =
+            "";
+
+        return;
+
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e){
+
+            selectedNewImage =
+                e.target.result;
+
+
+            document.getElementById(
+                "previewTambahImg"
+            ).src =
+                selectedNewImage;
+
+
+            document.getElementById(
+                "previewTambahBox"
+            ).style.display =
+                "block";
+
+        };
+
+
+    reader.readAsDataURL(file);
+
+}
+
+
+function simpanProduk(event){
+
+    event.preventDefault();
+
+
+    const nama =
+        document.getElementById(
+            "namaProduk"
+        ).value.trim();
+
+
+    const harga =
+        Number(
+            document.getElementById(
+                "hargaProduk"
+            ).value
+        );
+
+
+    const deskripsi =
+        document.getElementById(
+            "deskripsiProduk"
+        ).value.trim();
+
+
+    if(!nama){
+
+        alert(
+            "Nama produk wajib diisi."
+        );
+
+        return;
+
+    }
+
+
+    if(harga<=0){
+
+        alert(
+            "Harga produk harus diisi."
+        );
+
+        return;
+
+    }
+
+
+    if(!deskripsi){
+
+        alert(
+            "Deskripsi produk wajib diisi."
+        );
+
+        return;
+
+    }
+
+
+    const products =
+        getProducts();
+
+
+    products.push({
+
+        id:
+            Date.now(),
+
+        nama:
+            nama,
+
+        harga:
+            harga,
+
+        kategori:
+            document.getElementById(
+                "kategoriProduk"
+            ).value,
+
+        rating:
+            Number(
+                document.getElementById(
+                    "ratingProduk"
+                ).value
+            ),
+
+        status:
+            document.getElementById(
+                "statusProduk"
+            ).value,
+
+        stok:
+            Math.max(0, Number(document.getElementById("stokProduk")?.value || 0)),
+
+        deskripsi:
+            deskripsi,
+
+        gambar:
+            selectedNewImage ||
+            "banner.jpg"
+
+    });
+
+
+    saveProducts(
+        products
+    );
+
+
+    resetForm();
+
+    renderProducts();
+
+    updateDashboard();
+
+
+    toast(
+        "Produk berhasil ditambahkan."
+    );
+
+
+    showPageById(
+        "produk"
+    );
+
+}
+
+
+function resetForm(){
+
+    const form =
+        document.querySelector(
+            "#tambah form"
+        );
+
+
+    if(form){
+        form.reset();
+    }
+
+
+    selectedNewImage =
+        "";
+
+
+    document.getElementById(
+        "previewTambahBox"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "previewTambahImg"
+    ).src =
+        "";
+
+}
+
+
+/* =====================================================
+   EDIT PRODUK
+===================================================== */
+
+function editProduct(id){
+
+    const products =
+        getProducts();
+
+
+    const product =
+        products.find(
+            p =>
+            Number(p.id) ===
+            Number(id)
+        );
+
+
+    if(!product){
+        return;
+    }
+
+
+    document.getElementById(
+        "editId"
+    ).value =
+        product.id;
+
+
+    document.getElementById(
+        "editNama"
+    ).value =
+        product.nama || "";
+
+
+    document.getElementById(
+        "editHarga"
+    ).value =
+        product.harga || 0;
+
+
+    document.getElementById(
+        "editKategori"
+    ).value =
+        product.kategori ||
+        "Makanan";
+
+
+    document.getElementById(
+        "editRating"
+    ).value =
+        product.rating ||
+        5;
+
+
+    document.getElementById(
+        "editStatus"
+    ).value =
+        product.status ||
+        "tersedia";
+
+    const editStok = document.getElementById("editStok");
+    if(editStok) editStok.value = Number(product.stok ?? 0);
+
+
+    document.getElementById(
+        "editDeskripsi"
+    ).value =
+        product.deskripsi ||
+        "";
+
+
+    selectedEditImage =
+        "";
+
+
+    document.getElementById(
+        "editFile"
+    ).value =
+        "";
+
+
+    document.getElementById(
+        "previewEditImg"
+    ).src =
+        imagePath(
+            product.gambar
+        );
+
+
+    document.getElementById(
+        "modalEdit"
+    ).classList.add(
+        "show"
+    );
+
+}
+
+
+function previewEdit(event){
+
+    const file =
+        event.target.files?.[0];
+
+
+    if(!file){
+        return;
+    }
+
+
+    if(
+        !file.type.startsWith("image/")
+    ){
+
+        alert(
+            "File harus berupa gambar."
+        );
+
+        event.target.value =
+            "";
+
+        return;
+
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e){
+
+            selectedEditImage =
+                e.target.result;
+
+
+            document.getElementById(
+                "previewEditImg"
+            ).src =
+                selectedEditImage;
+
+        };
+
+
+    reader.readAsDataURL(file);
+
+}
+
+
+function simpanEdit(event){
+
+    event.preventDefault();
+
+
+    const id =
+        Number(
+            document.getElementById(
+                "editId"
+            ).value
+        );
+
+
+    const products =
+        getProducts();
+
+
+    const index =
+        products.findIndex(
+            p =>
+            Number(p.id) ===
+            id
+        );
+
+
+    if(index<0){
+
+        alert(
+            "Produk tidak ditemukan."
+        );
+
+        return;
+
+    }
+
+
+    /*
+      PENTING:
+      FOTO LAMA DISIMPAN.
+      FOTO HANYA DIGANTI JIKA
+      USER MEMILIH FOTO BARU.
+    */
+
+    const fotoLama =
+        products[index].gambar;
+
+
+    products[index].nama =
+        document.getElementById(
+            "editNama"
+        ).value.trim();
+
+
+    products[index].harga =
+        Number(
+            document.getElementById(
+                "editHarga"
+            ).value
+        );
+
+
+    products[index].kategori =
+        document.getElementById(
+            "editKategori"
+        ).value;
+
+
+    products[index].rating =
+        Number(
+            document.getElementById(
+                "editRating"
+            ).value
+        );
+
+
+    products[index].status =
+        document.getElementById(
+            "editStatus"
+        ).value;
+
+    products[index].stok =
+        Math.max(0, Number(document.getElementById("editStok")?.value || 0));
+
+
+    products[index].deskripsi =
+        document.getElementById(
+            "editDeskripsi"
+        ).value.trim();
+
+
+    products[index].gambar =
+        selectedEditImage ||
+        fotoLama;
+
+
+    saveProducts(
+        products
+    );
+
+
+    selectedEditImage =
+        "";
+
+
+    closeModal(
+        "modalEdit"
+    );
+
+
+    renderProducts();
+
+    updateDashboard();
+
+
+    toast(
+        "Produk berhasil diperbarui."
+    );
+
+}
+
+
+/* =====================================================
+   HAPUS PRODUK
+===================================================== */
+
+function deleteProduct(id){
+
+    const products =
+        getProducts();
+
+
+    const product =
+        products.find(
+            p =>
+            Number(p.id) ===
+            Number(id)
+        );
+
+
+    if(!product){
+        return;
+    }
+
+
+    if(
+        !confirm(
+            "Hapus produk \"" +
+            product.nama +
+            "\"?"
+        )
+    ){
+        return;
+    }
+
+
+    const newProducts =
+        products.filter(
+            p =>
+            Number(p.id) !==
+            Number(id)
+        );
+
+
+    saveProducts(
+        newProducts
+    );
+
+
+    renderProducts();
+
+    updateDashboard();
+
+
+    toast(
+        "Produk berhasil dihapus."
+    );
+
+}
+
+
+/* =====================================================
+   RIWAYAT
+===================================================== */
+
+function renderRiwayat(){
+
+    const tbody =
+        document.getElementById(
+            "tabelRiwayat"
+        );
+
+
+    const keyword =
+        (
+            document.getElementById(
+                "searchRiwayat"
+            )?.value || ""
+        )
+        .toLowerCase()
+        .trim();
+
+
+    const tanggal =
+        document.getElementById(
+            "tanggalRiwayat"
+        )?.value ||
+        "";
+
+
+    const filter =
+        document.getElementById(
+            "filterRiwayat"
+        )?.value ||
+        "semua";
+
+
+    const orders =
+        getOrders();
+
+
+    const filtered =
+        orders
+        .map(
+            (order,index)=>({
+                order,
+                index
+            })
+        )
+        .filter(item=>{
+
+            const order =
+                item.order;
+
+
+            const nama =
+                String(
+                    order.nama ||
+                    order.namaPelanggan ||
+                    ""
+                ).toLowerCase();
+
+
+            const status =
+                String(
+                    order.status ||
+                    "baru"
+                ).toLowerCase();
+
+
+            const tanggalOrder =
+                getOrderDate(
+                    order
+                );
+
+
+            return (
+
+                nama.includes(keyword)
+
+                &&
+
+                (
+                    filter==="semua" ||
+                    status===filter
+                )
+
+                &&
+
+                (
+                    !tanggal ||
+                    tanggalOrder===tanggal
+                )
+
+            );
+
+        });
+
+
+    if(!filtered.length){
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td colspan="6">
+
+                    <div class="empty">
+
+                        📜<br>
+                        Tidak ada riwayat ditemukan.
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    tbody.innerHTML =
+        filtered
+        .slice()
+        .reverse()
+        .map(
+            (item,index)=>{
+
+                const order =
+                    item.order;
+
+
+                const nama =
+                    order.nama ||
+                    order.namaPelanggan ||
+                    "Pelanggan";
+
+
+                const total =
+                    order.total ||
+                    order.totalPembayaran ||
+                    order.totalBelanja ||
+                    0;
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            ${index+1}
+                        </td>
+
+                        <td>
+                            <strong>
+                                ${safe(nama)}
+                            </strong>
+                        </td>
+
+                        <td>
+                            ${formatTanggal(
+                                getOrderDate(order)
+                            )}
+                        </td>
+
+                        <td>
+                            ${rupiah(total)}
+                        </td>
+
+                        <td>
+                            ${statusHTML(
+                                order.status
+                            )}
+                        </td>
+
+                        <td>
+
+                            <button
+                                class="btn btn-blue btn-small"
+                                onclick="detailPesanan(${item.index})">
+
+                                👁 Detail
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        )
+        .join("");
+
+}
+
+
+function getOrderDate(order){
+
+    const raw =
+        order.tanggal ||
+        order.date ||
+        order.createdAt ||
+        order.waktu ||
+        order.created_at ||
+        "";
+
+
+    if(!raw){
+        return "";
+    }
+
+
+    const date =
+        new Date(raw);
+
+
+    if(
+        isNaN(
+            date.getTime()
+        )
+    ){
+
+        return String(raw).slice(0,10);
+
+    }
+
+
+    const year =
+        date.getFullYear();
+
+
+    const month =
+        String(
+            date.getMonth()+1
+        ).padStart(2,"0");
+
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(2,"0");
+
+
+    return (
+        year +
+        "-" +
+        month +
+        "-" +
+        day
+    );
+
+}
+
+
+function formatTanggal(date){
+
+    if(!date){
+        return "-";
+    }
+
+
+    const parts =
+        date.split("-");
+
+
+    if(parts.length!==3){
+        return date;
+    }
+
+
+    return (
+        parts[2] +
+        "/" +
+        parts[1] +
+        "/" +
+        parts[0]
+    );
+
+}
+
+
+/* =====================================================
+   LAPORAN V17
+===================================================== */
+
+function renderLaporan(){
+
+    const tbody =
+        document.getElementById("tabelLaporan");
+
+    if(!tbody){
+        return;
+    }
+
+    const tanggal =
+        document.getElementById("tanggalLaporan")?.value || "";
+
+    const statusFilter =
+        document.getElementById("statusLaporan")?.value || "semua";
+
+    const orders = getOrders();
+
+    const filtered = orders.filter(order=>{
+
+        const status = String(order.status || "baru").toLowerCase();
+
+        const tanggalOrder = getOrderDate(order);
+
+        return (
+            (!tanggal || tanggalOrder === tanggal) &&
+            (statusFilter === "semua" || status === statusFilter)
+        );
+
+    });
+
+    let pendapatan = 0;
+    let ongkir = 0;
+    let selesai = 0;
+
+    filtered.forEach(order=>{
+
+        pendapatan += Number(
+            order.total ||
+            order.totalPembayaran ||
+            order.totalBelanja ||
+            0
+        );
+
+        ongkir += Number(
+            order.ongkir ||
+            order.biayaKirim ||
+            0
+        );
+
+        if(String(order.status || "baru").toLowerCase() === "selesai"){
+            selesai++;
+        }
+
+    });
+
+    document.getElementById("lapTotalPesanan").textContent = filtered.length;
+    document.getElementById("lapPendapatan").textContent = rupiah(pendapatan);
+    document.getElementById("lapOngkir").textContent = rupiah(ongkir);
+    document.getElementById("lapSelesai").textContent = selesai;
+
+    if(!filtered.length){
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6">
+                    <div class="empty">
+                        📊<br>
+                        Tidak ada data untuk filter yang dipilih.
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    tbody.innerHTML = filtered.slice().reverse().map((order,index)=>{
+
+        const nama = order.nama || order.namaPelanggan || "Pelanggan";
+        const total = order.total || order.totalPembayaran || order.totalBelanja || 0;
+        const ong = order.ongkir || order.biayaKirim || 0;
+
+        return `
+            <tr>
+                <td>${index+1}</td>
+                <td><strong>${safe(nama)}</strong></td>
+                <td>${formatTanggal(getOrderDate(order))}</td>
+                <td><strong>${rupiah(total)}</strong></td>
+                <td>${rupiah(ong)}</td>
+                <td>${statusHTML(order.status)}</td>
+            </tr>
+        `;
+
+    }).join("");
+
+}
+
+function cetakLaporan(){
+
+    const area = document.getElementById("printLaporan");
+
+    if(!area){
+        return;
+    }
+
+    const tanggal = document.getElementById("tanggalLaporan")?.value || "Semua tanggal";
+    const oldTitle = document.title;
+
+    document.title = "Laporan Paya Rengas Delivery - " + tanggal;
+    window.print();
+    document.title = oldTitle;
+
+}
+
+
+/* =====================================================
+   BACKUP
+===================================================== */
+
+function backupData(){
+
+    const data = {
+
+        versi:
+            "Paya Rengas Delivery V25",
+
+        tanggalBackup:
+            new Date().toISOString(),
+
+        produk:
+            getProducts(),
+
+        pesanan:
+            getOrders()
+
+    };
+
+
+    const blob =
+        new Blob(
+            [
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            ],
+            {
+                type:"application/json"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.href =
+        url;
+
+
+    link.download =
+        "backup-paya-rengas-delivery-v25.json";
+
+
+    document.body.appendChild(
+        link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    URL.revokeObjectURL(
+        url
+    );
+
+
+    toast(
+        "Backup berhasil dibuat."
+    );
+
+}
+
+
+/* =====================================================
+   RESTORE
+===================================================== */
+
+function restoreData(){
+
+    const input =
+        document.getElementById(
+            "restoreFile"
+        );
+
+
+    const file =
+        input.files?.[0];
+
+
+    if(!file){
+
+        alert(
+            "Pilih file backup terlebih dahulu."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !confirm(
+            "Restore akan mengganti data saat ini. Lanjutkan?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(event){
+
+            try{
+
+                const data =
+                    JSON.parse(
+                        event.target.result
+                    );
+
+
+                if(
+                    !Array.isArray(
+                        data.produk
+                    ) ||
+                    !Array.isArray(
+                        data.pesanan
+                    )
+                ){
+
+                    throw new Error(
+                        "Backup tidak valid"
+                    );
+
+                }
+
+
+                localStorage.setItem(
+                    PRODUCT_KEY,
+                    JSON.stringify(
+                        data.produk
+                    )
+                );
+
+
+                localStorage.setItem(
+                    ORDER_KEY,
+                    JSON.stringify(
+                        data.pesanan
+                    )
+                );
+
+                if(Array.isArray(data.kategoriV22)){
+                    localStorage.setItem("payaRengasKategoriV22",JSON.stringify(data.kategoriV22));
+                }
+
+
+                renderProducts();
+
+                renderPesanan();
+
+                renderRiwayat();
+
+                updateDashboard();
+
+
+                toast(
+                    "Data berhasil direstore."
+                );
+
+
+                input.value =
+                    "";
+
+            }catch(error){
+
+                alert(
+                    "File backup tidak valid atau rusak."
+                );
+
+            }
+
+        };
+
+
+    reader.readAsText(
+        file
+    );
+
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+function closeModal(id){
+
+    const modal =
+        document.getElementById(id);
+
+
+    if(modal){
+
+        modal.classList.remove(
+            "show"
+        );
+
+    }
+
+}
+
+
+document
+    .querySelectorAll(".modal")
+    .forEach(modal=>{
+
+        modal.addEventListener(
+            "click",
+            function(event){
+
+                if(
+                    event.target ===
+                    this
+                ){
+
+                    closeModal(
+                        this.id
+                    );
+
+                }
+
+            }
+        );
+
+    });
+
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+let toastTimer;
+
+
+function toast(message){
+
+    const box =
+        document.getElementById(
+            "toast"
+        );
+
+
+    box.textContent =
+        message;
+
+
+    box.classList.add(
+        "show"
+    );
+
+
+    clearTimeout(
+        toastTimer
+    );
+
+
+    toastTimer =
+        setTimeout(
+            function(){
+
+                box.classList.remove(
+                    "show"
+                );
+
+            },
+            2500
+        );
+
+}
+
+
+/* =====================================================
+   TOKO
+===================================================== */
+
+function keToko(){
+
+    window.location.href =
+        "index.html";
+
+}
+
+
+/* =====================================================
+   CEK PESANAN BARU
+===================================================== */
+
+function checkNewOrders(){
+
+    const count =
+        getOrders().length;
+
+
+    if(
+        lastOrderCount !== 0 &&
+        count > lastOrderCount
+    ){
+
+        toast(
+            "🔔 Ada pesanan baru!"
+        );
+
+    }
+
+
+    lastOrderCount =
+        count;
+
+
+    updateDashboard();
+
+}
+
+
+/* =====================================================
+   V21 OPERASIONAL
+===================================================== */
+function getStock(product){
+    const n=Number(product?.stok);
+    return Number.isFinite(n)&&n>=0?n:0;
+}
+function isLowStock(product){return getStock(product)<=5;}
+function orderName(o){return o?.nama||o?.namaPelanggan||o?.customerName||"Pelanggan";}
+function orderPhone(o){return o?.whatsapp||o?.nomorWA||o?.noWa||o?.phone||o?.telepon||"-";}
+function orderAddress(o){return o?.alamat||o?.alamatPengantaran||o?.address||"-";}
+function orderTotal(o){return Number(o?.total||o?.totalPembayaran||o?.totalBelanja||0);}
+function buildCustomers(orders){
+    const map=new Map();
+    orders.forEach(o=>{
+        const nama=orderName(o),wa=orderPhone(o),key=(wa!=="-"?wa:nama).toLowerCase();
+        const old=map.get(key)||{nama,wa,jumlah:0,total:0,terakhir:"-",_date:""};
+        old.nama=nama;if(wa!=="-")old.wa=wa;old.jumlah++;old.total+=orderTotal(o);
+        const d=getOrderDate(o)||"";if(d>=old._date){old._date=d;old.terakhir=d||"-";}map.set(key,old);
+    });
+    return Array.from(map.values()).sort((a,b)=>b.total-a.total);
+}
+function renderOperasional(){
+    const products=getProducts(),orders=getOrders(),low=products.filter(isLowStock);
+    const customers=buildCustomers(orders);
+    const antar=orders.filter(o=>String(o.status||"").toLowerCase()==="diantar");
+    const active=orders.filter(o=>["baru","diproses","diantar"].includes(String(o.status||"baru").toLowerCase()));
+    [["opTotalProduk",products.length],["opStokMenipis",low.length],["opPelanggan",customers.length],["opAntar",antar.length],['stokMenipis',low.length],['totalPelanggan',customers.length],['perluDiantar',antar.length],['pesananAktif',active.length]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
+    const stok=document.getElementById("tabelStok");
+    if(stok)stok.innerHTML=products.length?products.map(p=>{const n=getStock(p),l=isLowStock(p);return `<tr><td><strong>${safe(p.nama||"Produk")}</strong></td><td>${safe(p.kategori||"-")}</td><td><strong>${n}</strong></td><td><span class="status ${n<=0?'status-batal':(l?'status-proses':'status-selesai')}">${n<=0?'Habis':(l?'Menipis':'Aman')}</span></td><td><button class="btn btn-warning btn-small" onclick="ubahStok(${Number(p.id)},-1)">−</button> <button class="btn btn-success btn-small" onclick="ubahStok(${Number(p.id)},1)">+</button> <button class="btn btn-blue btn-small" onclick="setStok(${Number(p.id)})">Set</button></td></tr>`;}).join(""): `<tr><td colspan="5" class="empty">Belum ada produk.</td></tr>`;
+    const cp=document.getElementById("tabelPelanggan");
+    if(cp)cp.innerHTML=customers.length?customers.map((c,i)=>`<tr><td>${i+1}</td><td><strong>${safe(c.nama)}</strong></td><td>${safe(c.wa)}</td><td>${c.jumlah}</td><td><strong>${rupiah(c.total)}</strong></td><td>${safe(c.terakhir)}</td></tr>`).join(""):`<tr><td colspan="6" class="empty">Belum ada data pelanggan.</td></tr>`;
+    const ap=document.getElementById("tabelAntar");
+    if(ap)ap.innerHTML=antar.length?antar.slice().reverse().map(o=>{const idx=orders.indexOf(o);return `<tr><td><strong>${safe(orderName(o))}</strong></td><td>${safe(orderAddress(o))}</td><td>${safe(orderPhone(o))}</td><td>${rupiah(orderTotal(o))}</td><td>${statusHTML(o.status)}</td><td><button class="btn btn-success btn-small" onclick="ubahStatusByObject(${idx},'selesai')">✅ Selesai</button></td></tr>`;}).join(""):`<tr><td colspan="6" class="empty">Tidak ada pesanan yang sedang diantar.</td></tr>`;
+}
+function ubahStok(id,delta){
+    const products=getProducts(),p=products.find(x=>Number(x.id)===Number(id));if(!p)return;
+    p.stok=Math.max(0,getStock(p)+Number(delta||0));if(p.stok===0)p.status="habis";else if(p.status==="habis")p.status="tersedia";
+    saveProducts(products);renderProducts();renderOperasional();updateDashboard();
+}
+function setStok(id){
+    const products=getProducts(),p=products.find(x=>Number(x.id)===Number(id));if(!p)return;
+    const val=prompt("Masukkan jumlah stok untuk "+(p.nama||"produk")+":",getStock(p));if(val===null)return;
+    const n=Number(val);if(!Number.isFinite(n)||n<0){alert("Stok harus berupa angka 0 atau lebih.");return;}
+    p.stok=Math.floor(n);p.status=p.stok>0?"tersedia":"habis";saveProducts(products);renderProducts();renderOperasional();updateDashboard();toast("Stok berhasil diperbarui.");
+}
+function ubahStatusByObject(index,status){ubahStatus(index,status);renderOperasional();}
+
+/* =====================================================
+   INIT
+===================================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        lastOrderCount =
+            getOrders().length;
+
+
+        updateDashboard();
+
+        renderProducts();
+
+        renderPesanan();
+
+        renderRiwayat();
+        renderOperasional();
+
+    }
+);
+
+
+/* =====================================================
+   V17 AUTO REFRESH - dashboard & order status
+===================================================== */
+
+/* =====================================================
+   AUTO REFRESH
+===================================================== */
+
+setInterval(
+    checkNewOrders,
+    5000
+);
+
+</script>
+
+
+<!-- =====================================================
+     PRINT AREA STYLE
+===================================================== -->
+
+<style>
+
+#printArea{
+    display:none;
+}
+
+@media print{
+
+    #printArea{
+        display:block !important;
+    }
+
+}
+
+</style>
+
+
+<script>
+/* =========================
+   V22 ENHANCEMENT PACK
+========================= */
+(function(){
+  const money=n=>typeof rupiah==='function'?rupiah(Number(n)||0):('Rp'+(Number(n)||0).toLocaleString('id-ID'));
+  function dateKey(d){const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
+  function itemsOf(o){return Array.isArray(o?.items)?o.items:(Array.isArray(o?.keranjang)?o.keranjang:(Array.isArray(o?.detailPesanan)?o.detailPesanan:[]));}
+  function qtyOf(i){return Math.max(1,Number(i?.jumlah??i?.qty??i?.quantity??1));}
+  function nameOf(i){return i?.nama||i?.name||i?.produk||'Produk';}
+
+  window.setModalProdukV22=function(id){
+    const ps=getProducts(); const p=ps.find(x=>Number(x.id)===Number(id)); if(!p)return;
+    const v=prompt('Masukkan modal/HPP per unit untuk '+(p.nama||'produk')+':',Number(p.modal||0));
+    if(v===null)return; const n=Number(v); if(!Number.isFinite(n)||n<0){alert('Modal harus angka 0 atau lebih.');return;}
+    p.modal=Math.round(n); saveProducts(ps); renderProducts(); renderOperasional(); renderKeuanganV22(); toast('Modal produk diperbarui.');
+  };
+
+  window.tambahKategoriV22=function(){
+    const ps=getProducts(); const cats=[...new Set(ps.map(p=>String(p.kategori||'Produk').trim()).filter(Boolean))];
+    const v=prompt('Nama kategori baru:'); if(v===null)return; const c=v.trim(); if(!c)return;
+    if(cats.some(x=>x.toLowerCase()===c.toLowerCase())){alert('Kategori sudah ada.');return;}
+    // Simpan daftar kategori terpisah agar tersedia untuk pengembangan berikutnya.
+    const saved=JSON.parse(localStorage.getItem('payaRengasKategoriV22')||'[]'); if(!saved.some(x=>x.toLowerCase()===c.toLowerCase())) saved.push(c);
+    localStorage.setItem('payaRengasKategoriV22',JSON.stringify(saved)); renderKategoriV22(); toast('Kategori ditambahkan.');
+  };
+
+  window.renderKategoriV22=function(){
+    const el=document.getElementById('daftarKategoriV22'); if(!el)return;
+    const ps=getProducts(); const base=[...new Set(ps.map(p=>String(p.kategori||'Produk').trim()).filter(Boolean))];
+    const saved=JSON.parse(localStorage.getItem('payaRengasKategoriV22')||'[]'); const cats=[...new Set(base.concat(saved))];
+    el.innerHTML=cats.length?cats.map(c=>`<span class="status status-selesai" style="padding:10px 14px">🏷️ ${safe(c)}</span>`).join(''):'<div class="empty">Belum ada kategori.</div>';
+  };
+
+  window.renderNotifikasiV22=function(){
+    const el=document.getElementById('daftarNotifikasiV22'); if(!el)return;
+    const orders=getOrders(); const ps=getProducts(); const baru=orders.filter(o=>String(o.status||'baru').toLowerCase()==='baru');
+    const low=ps.filter(p=>Number(p.stok??0)<=5);
+    let html='';
+    baru.slice().reverse().slice(0,20).forEach(o=>{html+=`<div class="card" style="margin-bottom:10px;border-left:4px solid #f59e0b"><b>🔔 Pesanan baru</b><br>${safe(o.nama||o.namaPelanggan||'Pelanggan')} — ${money(o.total||o.totalPembayaran||0)}<br><small>${safe(getOrderDate(o)||'')}</small></div>`});
+    low.forEach(p=>{html+=`<div class="card" style="margin-bottom:10px;border-left:4px solid #dc2626"><b>⚠️ Stok menipis</b><br>${safe(p.nama||'Produk')} — stok ${Number(p.stok??0)}</div>`});
+    if(!html)html='<div class="empty">✅ Tidak ada notifikasi baru.</div>';
+    el.innerHTML=html;
+    const badge=document.getElementById('badgeNotifikasi'); const n=baru.length+low.length;
+    if(badge){badge.textContent=n;badge.style.display=n?'inline-block':'none';}
+  };
+
+  window.renderKeuanganV22=function(){
+    const orders=getOrders(), ps=getProducts(); let omzet=0,ongkir=0,laba=0; const sold={};
+    orders.forEach(o=>{const t=Number(o.total||o.totalPembayaran||o.totalBelanja||0); const og=Number(o.ongkir||o.biayaKirim||0); omzet+=t;ongkir+=og; itemsOf(o).forEach(i=>{const q=qtyOf(i),name=nameOf(i); const price=Number(i.harga||i.price||0); const p=ps.find(x=>String(x.nama).toLowerCase()===String(name).toLowerCase() || Number(x.id)===Number(i.id||i.productId)); const modal=Number(p?.modal||0); sold[name]=(sold[name]||{q:0,omzet:0}); sold[name].q+=q;sold[name].omzet+=price*q;laba+=(price-modal)*q;});});
+    const ids=[['v22Omzet',money(omzet)],['v22Ongkir',money(ongkir)],['v22Laba',money(laba)],['v22Rata',money(orders.length?omzet/orders.length:0)]];ids.forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
+    const tbody=document.getElementById('produkTerlarisV22'); if(tbody){const arr=Object.entries(sold).sort((a,b)=>b[1].q-a[1].q).slice(0,10);tbody.innerHTML=arr.length?arr.map((x,i)=>`<tr><td>${i+1}</td><td><strong>${safe(x[0])}</strong></td><td>${x[1].q}</td><td>${money(x[1].omzet)}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">Belum ada data penjualan.</td></tr>';}
+    const canvas=document.getElementById('grafikPenjualan'); if(!canvas)return; const ctx=canvas.getContext('2d'); const w=canvas.width=canvas.clientWidth||700,h=canvas.height=220;ctx.clearRect(0,0,w,h);
+    const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d)} const vals=days.map(d=>orders.filter(o=>getOrderDate(o)===dateKey(d)).reduce((s,o)=>s+Number(o.total||o.totalPembayaran||o.totalBelanja||0),0));const max=Math.max(1,...vals);ctx.strokeStyle='#f97316';ctx.lineWidth=3;ctx.beginPath();vals.forEach((v,i)=>{const x=30+i*((w-50)/6),y=h-30-(v/max)*(h-60);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();ctx.fillStyle='#333';ctx.font='12px Arial';vals.forEach((v,i)=>{const x=30+i*((w-50)/6),y=h-30-(v/max)*(h-60);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();ctx.fillText(days[i].getDate()+'/'+(days[i].getMonth()+1),x-12,h-10);if(v)ctx.fillText((v/1000).toFixed(0)+'k',x-12,y-10)});
+  };
+
+  // Otomatis kurangi stok satu kali ketika pesanan pertama kali masuk proses.
+  window.deductStockV22=function(order){
+    if(!order||order.stockDeducted)return;
+    const items=itemsOf(order); if(!items.length)return;
+    const ps=getProducts(); let changed=false;
+    items.forEach(i=>{const q=qtyOf(i);const p=ps.find(x=>Number(x.id)===Number(i.id||i.productId)||String(x.nama).toLowerCase()===String(nameOf(i)).toLowerCase());if(p){p.stok=Math.max(0,Number(p.stok||0)-q);p.status=p.stok>0?'tersedia':'habis';changed=true;}});
+    if(changed){saveProducts(ps);order.stockDeducted=true;}
+  };
+
+  // Bungkus perubahan status tanpa menghilangkan fungsi V21.
+  const originalUbahStatus=window.ubahStatus;
+  window.ubahStatus=function(index,status){
+    const orders=getOrders(); const order=orders[index];
+    if(order && String(status).toLowerCase()==='diproses') deductStockV22(order);
+    if(typeof originalUbahStatus==='function') originalUbahStatus(index,status);
+    else {orders[index].status=status;localStorage.setItem(ORDER_KEY,JSON.stringify(orders));}
+    renderKeuanganV22(); renderNotifikasiV22(); renderOperasional();
+  };
+
+  function refreshV22(){try{renderKeuanganV22();renderKategoriV22();renderNotifikasiV22();}catch(e){console.warn('V22 refresh',e)}}
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(refreshV22,100);});
+  setInterval(refreshV22,5000);
+})();
+</script>
+<script>
+/* =====================================================
+   V23 ENHANCEMENT PACK
+===================================================== */
+(function(){
+  function v23Money(n){return typeof rupiah==='function'?rupiah(Number(n)||0):('Rp'+(Number(n)||0).toLocaleString('id-ID'));}
+  function v23Status(o){return String(o?.status||'baru').toLowerCase();}
+  function v23Name(o){return o?.nama||o?.namaPelanggan||o?.customerName||'Pelanggan';}
+  function v23Phone(o){return o?.whatsapp||o?.nomorWA||o?.noWa||o?.phone||o?.telepon||'-';}
+  function v23Address(o){return o?.alamat||o?.alamatPengantaran||o?.address||'-';}
+  function v23Total(o){return Number(o?.total||o?.totalPembayaran||o?.totalBelanja||0);}
+  function v23Text(v){return String(v??'').toLowerCase();}
+
+  window.renderPusatKontrolV23=function(){
+    const orders=getOrders(), products=getProducts();
+    const customers=typeof buildCustomers==='function'?buildCustomers(orders):[];
+    const counts={baru:0,diproses:0,diantar:0,selesai:0,batal:0}; let omzet=0;
+    orders.forEach(o=>{const st=v23Status(o);if(counts[st]!==undefined)counts[st]++;omzet+=v23Total(o);});
+    const vals=[['v23Pesanan',orders.length],['v23Pelanggan',customers.length],['v23Produk',products.length],['v23Stok',products.filter(p=>Number(p?.stok??0)<=5).length],['v23Baru',counts.baru],['v23Proses',counts.diproses],['v23Diantar',counts.diantar],['v23Selesai',counts.selesai],['v23Batal',counts.batal],['v23Omzet',v23Money(omzet)]];
+    vals.forEach(([id,val])=>{const e=document.getElementById(id);if(e)e.textContent=val;});
+
+    const q=v23Text(document.getElementById('v23CariPesanan')?.value).trim();
+    const sf=document.getElementById('v23StatusPesanan')?.value||'semua';
+    const filtered=orders.map((o,i)=>({o,i})).filter(({o})=>{
+      const st=v23Status(o);
+      if(sf!=='semua'&&st!==sf)return false;
+      if(!q)return true;
+      const hay=[o.id,o.orderId,v23Name(o),v23Phone(o),v23Address(o),o.catatan,o.notes].map(v23Text).join(' ');
+      return hay.includes(q);
+    }).reverse();
+    const tbody=document.getElementById('tabelPusatPesananV23');
+    if(tbody){
+      tbody.innerHTML=filtered.length?filtered.slice(0,100).map(({o,i},n)=>`<tr><td>${n+1}</td><td><strong>${safe(v23Name(o))}</strong></td><td>${safe(v23Phone(o))}</td><td>${safe(typeof formatTanggal==='function'?formatTanggal(getOrderDate(o)):getOrderDate(o)||'-')}</td><td><strong>${v23Money(v23Total(o))}</strong></td><td>${typeof statusHTML==='function'?statusHTML(o.status):safe(o.status||'baru')}</td></tr>`).join(''):`<tr><td colspan="6"><div class="empty">🔎 Tidak ada pesanan yang cocok.</div></td></tr>`;
+    }
+  };
+
+  window.resetPusatKontrolV23=function(){
+    const a=document.getElementById('v23CariPesanan'),b=document.getElementById('v23StatusPesanan');
+    if(a)a.value=''; if(b)b.value='semua';
+    renderPusatKontrolV23();
+    if(typeof updateDashboard==='function')updateDashboard();
+    if(typeof renderOperasional==='function')renderOperasional();
+    if(typeof renderProducts==='function')renderProducts();
+    if(typeof renderPesanan==='function')renderPesanan();
+    if(typeof renderRiwayat==='function')renderRiwayat();
+    toast('Data V23 berhasil diperbarui.');
+  };
+
+  function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"';}
+  function downloadCSV(filename,rows){
+    const csv='\uFEFF'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  }
+  window.exportPesananCSVV23=function(){
+    const orders=getOrders();
+    const rows=[['No','ID Pesanan','Tanggal','Pelanggan','WhatsApp','Alamat','Total','Ongkir','Status']];
+    orders.forEach((o,i)=>rows.push([i+1,o.id||o.orderId||'',getOrderDate(o)||'',v23Name(o),v23Phone(o),v23Address(o),v23Total(o),Number(o.ongkir||o.biayaKirim||0),o.status||'baru']));
+    downloadCSV('pesanan-paya-rengas-delivery-v24.csv',rows);toast('Data pesanan berhasil diekspor.');
+  };
+  window.exportProdukCSVV23=function(){
+    const products=getProducts();
+    const rows=[['No','ID','Nama Produk','Kategori','Harga','Modal/HPP','Stok','Status']];
+    products.forEach((p,i)=>rows.push([i+1,p.id||'',p.nama||'',p.kategori||'',Number(p.harga||0),Number(p.modal||0),Number(p.stok||0),p.status||'']));
+    downloadCSV('produk-paya-rengas-delivery-v24.csv',rows);toast('Data produk berhasil diekspor.');
+  };
+  window.printPusatKontrolV23=function(){
+    const old=document.title;document.title='Paya Rengas Delivery - Ringkasan V23';window.print();document.title=old;
+  };
+
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(renderPusatKontrolV23,250);});
+  setInterval(function(){try{renderPusatKontrolV23();}catch(e){console.warn('V23 refresh',e)}},5000);
+})();
+</script>
+<script>
+/* =====================================================
+   V24 ENHANCEMENT PACK - DRIVER & DELIVERY
+===================================================== */
+(function(){
+  const DRIVER_KEY='payaRengasDriverV24';
+  const getDriversV24=()=>{try{const d=JSON.parse(localStorage.getItem(DRIVER_KEY)||'[]');return Array.isArray(d)?d:[]}catch(e){return[]}};
+  const saveDriversV24=d=>localStorage.setItem(DRIVER_KEY,JSON.stringify(d));
+  const name=o=>o?.nama||o?.namaPelanggan||o?.customerName||'Pelanggan';
+  const phone=o=>o?.whatsapp||o?.nomorWA||o?.noWa||o?.phone||o?.telepon||'-';
+  const address=o=>o?.alamat||o?.alamatPengantaran||o?.address||'-';
+  const total=o=>Number(o?.total||o?.totalPembayaran||o?.totalBelanja||0);
+  const status=o=>String(o?.status||'baru').toLowerCase();
+  const money=n=>typeof rupiah==='function'?rupiah(Number(n)||0):'Rp'+(Number(n)||0).toLocaleString('id-ID');
+  const esc=v=>typeof safe==='function'?safe(v):String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+  window.tambahDriverV24=function(){
+    const nama=prompt('Nama driver:'); if(!nama||!nama.trim())return;
+    const wa=prompt('Nomor WhatsApp driver:'); if(!wa||!wa.trim())return;
+    const d=getDriversV24(); d.push({id:'DRV'+Date.now(),nama:nama.trim(),whatsapp:wa.trim(),aktif:true}); saveDriversV24(d); renderPengantaranV24(); toast('Driver berhasil ditambahkan.');
+  };
+  window.hapusDriverV24=function(id){
+    const d=getDriversV24(); const x=d.find(v=>v.id===id); if(!x)return;
+    if(!confirm('Hapus driver '+x.nama+'?'))return;
+    const orders=getOrders(); orders.forEach(o=>{if(o.driverId===id){delete o.driverId;delete o.driverNama;delete o.driverWhatsApp;}}); localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+    saveDriversV24(d.filter(v=>v.id!==id)); renderPengantaranV24(); if(typeof renderPesanan==='function')renderPesanan(); toast('Driver dihapus.');
+  };
+  window.toggleDriverV24=function(id){const d=getDriversV24();const x=d.find(v=>v.id===id);if(!x)return;x.aktif=!x.aktif;saveDriversV24(d);renderPengantaranV24();};
+
+  window.tugaskanDriverV24=function(orderIndex){
+    const d=getDriversV24().filter(x=>x.aktif!==false); if(!d.length){alert('Belum ada driver aktif. Tambahkan driver terlebih dahulu.');return;}
+    const orders=getOrders(), o=orders[orderIndex]; if(!o)return;
+    const pilihan=d.map((x,i)=>`${i+1}. ${x.nama} (${x.whatsapp})`).join('\n');
+    const raw=prompt('Pilih nomor driver:\n\n'+pilihan); const n=Number(raw)-1; if(!Number.isInteger(n)||!d[n])return;
+    const x=d[n]; o.driverId=x.id;o.driverNama=x.nama;o.driverWhatsApp=x.whatsapp;
+    if(status(o)==='baru'||status(o)==='diproses')o.status='diantar';
+    localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+    renderPengantaranV24(); if(typeof renderPesanan==='function')renderPesanan(); if(typeof updateDashboard==='function')updateDashboard(); toast('Pesanan ditugaskan ke '+x.nama+'.');
+  };
+  window.lepasDriverV24=function(orderIndex){const orders=getOrders(),o=orders[orderIndex];if(!o)return;delete o.driverId;delete o.driverNama;delete o.driverWhatsApp;localStorage.setItem(ORDER_KEY,JSON.stringify(orders));renderPengantaranV24();toast('Driver dilepas dari pesanan.');};
+  window.selesaikanAntarV24=function(orderIndex){const orders=getOrders(),o=orders[orderIndex];if(!o)return;o.status='selesai';o.deliveryCompletedAt=new Date().toISOString();localStorage.setItem(ORDER_KEY,JSON.stringify(orders));renderPengantaranV24();if(typeof renderPesanan==='function')renderPesanan();if(typeof renderRiwayat==='function')renderRiwayat();if(typeof updateDashboard==='function')updateDashboard();toast('Pesanan ditandai selesai.');};
+
+  window.renderPengantaranV24=function(){
+    const drivers=getDriversV24(), orders=getOrders();
+    const aktif=orders.filter(o=>['diantar','diproses'].includes(status(o))&&o.driverId).length;
+    const selesai=orders.filter(o=>status(o)==='selesai'&&o.driverId).length;
+    const belum=orders.filter(o=>!o.driverId&&!['selesai','batal'].includes(status(o))).length;
+    [['v24DriverCount',drivers.length],['v24Aktif',aktif],['v24Selesai',selesai],['v24Belum',belum]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
+    const q=String(document.getElementById('v24CariDriver')?.value||'').toLowerCase().trim();
+    const td=document.getElementById('tabelDriverV24');
+    if(td){td.innerHTML=drivers.filter(d=>!q||(`${d.nama} ${d.whatsapp}`).toLowerCase().includes(q)).map((d,i)=>{const c=orders.filter(o=>o.driverId===d.id&&!['selesai','batal'].includes(status(o))).length;return `<tr><td>${i+1}</td><td><strong>${esc(d.nama)}</strong></td><td>${esc(d.whatsapp)}</td><td>${d.aktif?'<span class="status status-selesai">Aktif</span>':'<span class="status status-batal">Nonaktif</span>'}</td><td>${c}</td><td><button class="btn btn-small ${d.aktif?'btn-warning':'btn-success'}" onclick="toggleDriverV24('${d.id}')">${d.aktif?'Nonaktifkan':'Aktifkan'}</button> <button class="btn btn-danger btn-small" onclick="hapusDriverV24('${d.id}')">Hapus</button></td></tr>`}).join('')||'<tr><td colspan="6"><div class="empty">🚚 Belum ada driver.</div></td></tr>';}
+    const sf=document.getElementById('v24FilterStatus')?.value||'semua', oq=String(document.getElementById('v24CariPesanan')?.value||'').toLowerCase().trim();
+    const tp=document.getElementById('tabelPengantaranV24'); if(!tp)return;
+    const rows=orders.map((o,i)=>({o,i})).filter(({o})=>{const st=status(o);if(sf!=='semua'&&st!==sf)return false;if(!oq)return true;return `${o.id||o.orderId||''} ${name(o)} ${address(o)} ${phone(o)} ${o.driverNama||''}`.toLowerCase().includes(oq)}).reverse();
+    tp.innerHTML=rows.slice(0,150).map(({o,i},n)=>{const assigned=o.driverId?`<strong>${esc(o.driverNama||'Driver')}</strong><br><small>${esc(o.driverWhatsApp||'')}</small>`:'<span style="color:#999">Belum ditugaskan</span>';let act=o.driverId?`<button class="btn btn-gray btn-small" onclick="lepasDriverV24(${i})">Lepas</button>`:`<button class="btn btn-primary btn-small" onclick="tugaskanDriverV24(${i})">Tugaskan</button>`;if(o.driverId&&!['selesai','batal'].includes(status(o)))act+=` <button class="btn btn-success btn-small" onclick="selesaikanAntarV24(${i})">Selesai</button>`;return `<tr><td>${n+1}</td><td><strong>${esc(name(o))}</strong><br><small>${esc(phone(o))}</small></td><td>${esc(address(o))}</td><td><strong>${money(total(o))}</strong></td><td>${typeof statusHTML==='function'?statusHTML(o.status):esc(o.status||'baru')}</td><td>${assigned}</td><td>${act}</td></tr>`}).join('')||'<tr><td colspan="7"><div class="empty">📦 Tidak ada pesanan sesuai filter.</div></td></tr>';
+  };
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(renderPengantaranV24,200));
+  setInterval(()=>{try{renderPengantaranV24()}catch(e){}},5000);
+})();
+</script>
+
+<script>
+/* =====================================================
+   V25 ENHANCEMENT PACK - CRM PELANGGAN
+===================================================== */
+(function(){
+  const escV25=v=>typeof safe==='function'?safe(v):String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const moneyV25=n=>typeof rupiah==='function'?rupiah(Number(n)||0):'Rp'+(Number(n)||0).toLocaleString('id-ID');
+  const nameV25=o=>String(o?.nama||o?.namaPelanggan||o?.customerName||'Pelanggan').trim()||'Pelanggan';
+  const phoneV25=o=>String(o?.whatsapp||o?.nomorWA||o?.noWa||o?.phone||o?.telepon||'').trim();
+  const addressV25=o=>String(o?.alamat||o?.alamatPengantaran||o?.address||'-').trim()||'-';
+  const totalV25=o=>Number(o?.total||o?.totalPembayaran||o?.totalBelanja||0)||0;
+  const dateV25=o=>{try{return typeof getOrderDate==='function'?getOrderDate(o):(o?.tanggal||o?.createdAt||'')}catch(e){return o?.tanggal||o?.createdAt||''}};
+  const keyV25=o=>{const ph=phoneV25(o).replace(/\D/g,'');return ph?`wa:${ph}`:`nm:${nameV25(o).toLowerCase()}|al:${addressV25(o).toLowerCase()}`};
+  const normalizeWA=v=>{let n=String(v||'').replace(/\D/g,'');if(n.startsWith('0'))n='62'+n.slice(1);if(n.startsWith('8'))n='62'+n;return n;};
+  function dataV25(){
+    const map=new Map();
+    (typeof getOrders==='function'?getOrders():[]).forEach(o=>{
+      const k=keyV25(o);
+      if(!map.has(k))map.set(k,{nama:nameV25(o),whatsapp:phoneV25(o),alamat:addressV25(o),pesanan:0,total:0,terakhir:'',sortDate:0});
+      const c=map.get(k);c.pesanan++;c.total+=totalV25(o);
+      if(phoneV25(o)&&!c.whatsapp)c.whatsapp=phoneV25(o);
+      const d=dateV25(o),t=Date.parse(d)||0;
+      if(t>=c.sortDate){c.sortDate=t;c.terakhir=d||c.terakhir;c.alamat=addressV25(o)||c.alamat;}
+    });
+    return [...map.values()];
+  }
+  window.bukaWAPelangganV25=function(phone,nama){
+    const n=normalizeWA(phone);if(!n){alert('Nomor WhatsApp pelanggan belum tersedia.');return;}
+    window.open('https://wa.me/'+n+'?text='+encodeURIComponent('Halo '+(nama||'Kak')+', kami dari Paya Rengas Delivery.'),'_blank');
+  };
+  window.renderCRMV25=function(){
+    const all=dataV25(),q=String(document.getElementById('v25CariPelanggan')?.value||'').toLowerCase().trim(),filter=document.getElementById('v25FilterPelanggan')?.value||'semua';
+    const totalBelanja=all.reduce((s,c)=>s+c.total,0),transaksi=all.reduce((s,c)=>s+c.pesanan,0);
+    [['v25TotalPelanggan',all.length],['v25AktifPelanggan',all.filter(c=>c.pesanan>0).length],['v25TotalBelanja',moneyV25(totalBelanja)],['v25TotalTransaksi',transaksi]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v});
+    const sorted=all.slice().sort((a,b)=>b.total-a.total);
+    [1,2,3].forEach((rank,i)=>{const c=sorted[i],e=document.getElementById('v25Top'+rank),d=document.getElementById('v25Top'+rank+'Detail');if(e)e.textContent=c?c.nama:'-';if(d)d.textContent=c?`${c.pesanan} pesanan • ${moneyV25(c.total)}`:'Belum ada data'});
+    let rows=all.filter(c=>!q||`${c.nama} ${c.whatsapp} ${c.alamat}`.toLowerCase().includes(q));
+    if(filter==='besar')rows.sort((a,b)=>b.total-a.total);else rows.sort((a,b)=>(b.sortDate-a.sortDate)||(b.total-a.total));
+    const tbody=document.getElementById('tabelCRMV25');if(!tbody)return;
+    tbody.innerHTML=rows.map((c,i)=>{
+      const tanggal=c.terakhir?(typeof formatTanggal==='function'?formatTanggal(c.terakhir):c.terakhir):'-';
+      const wa=c.whatsapp?`<button class="btn btn-success btn-small" onclick="bukaWAPelangganV25('${escV25(c.whatsapp)}','${escV25(c.nama)}')">💬 ${escV25(c.whatsapp)}</button>`:'-';
+      return `<tr><td>${i+1}</td><td><strong>${escV25(c.nama)}</strong></td><td>${wa}</td><td>${escV25(c.alamat)}</td><td><strong>${c.pesanan}</strong></td><td><strong>${moneyV25(c.total)}</strong></td><td>${escV25(tanggal)}</td><td><button class="btn btn-blue btn-small" onclick="lihatPelangganV25('${encodeURIComponent(c.nama)}')">👁️ Lihat</button></td></tr>`;
+    }).join('')||'<tr><td colspan="8"><div class="empty">👥 Belum ada data pelanggan.</div></td></tr>';
+  };
+  window.lihatPelangganV25=function(encoded){
+    const nama=decodeURIComponent(encoded),orders=(typeof getOrders==='function'?getOrders():[]).filter(o=>nameV25(o).toLowerCase()===nama.toLowerCase()),total=orders.reduce((s,o)=>s+totalV25(o),0);
+    alert('Pelanggan: '+nama+'\nJumlah pesanan: '+orders.length+'\nTotal belanja: '+moneyV25(total));
+  };
+  window.exportPelangganCSVV25=function(){
+    const rows=[['No','Nama Pelanggan','WhatsApp','Alamat Terakhir','Jumlah Pesanan','Total Belanja','Pesanan Terakhir']];
+    dataV25().sort((a,b)=>b.total-a.total).forEach((c,i)=>rows.push([i+1,c.nama,c.whatsapp,c.alamat,c.pesanan,c.total,c.terakhir]));
+    if(typeof downloadCSV==='function')downloadCSV('pelanggan-paya-rengas-delivery-v25.csv',rows);
+    else{
+      const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+      const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='pelanggan-paya-rengas-delivery-v25.csv';a.click();
+    }
+    if(typeof toast==='function')toast('Data pelanggan berhasil diekspor.');
+  };
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(renderCRMV25,250));
+  setInterval(()=>{try{renderCRMV25()}catch(e){}},5000);
+})();
+</script>
+
+</body>
+</html>

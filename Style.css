@@ -1,0 +1,1017 @@
+/* =========================================================
+   PAYA RENGAS DELIVERY V2
+   STYLE CSS FULL - VERSI FINAL
+========================================================= */
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+    background: #f6f7fb;
+    color: #333;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+header {
+    width: 100%;
+    background: linear-gradient(135deg, #ff9800, #ff5722);
+    color: white;
+    padding: 18px 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo img {
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+}
+
+.logo h1 {
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+
+.logo p {
+    font-size: 13px;
+    opacity: 0.95;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    opacity: 0.75;
+}
+
+
+/* =========================================================
+   BANNER
+========================================================= */
+
+.banner {
+    width: 95%;
+    max-width: 1200px;
+    margin: 25px auto;
+    min-height: 330px;
+    border-radius: 22px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.banner-text {
+    padding: 45px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.banner-text h2 {
+    color: #ff5722;
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+
+.banner-text h1 {
+    color: #e64a19;
+    font-size: 36px;
+    margin-bottom: 15px;
+}
+
+.banner-text p {
+    color: #555;
+    max-width: 500px;
+    margin-bottom: 25px;
+}
+
+.banner-text button {
+    width: fit-content;
+    border: none;
+    background: #ff5722;
+    color: white;
+    padding: 13px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.banner-text button:hover {
+    background: #e64a19;
+    transform: translateY(-2px);
+}
+
+.banner-image {
+    width: 100%;
+    height: 100%;
+}
+
+.banner-image img {
+    width: 100%;
+    height: 100%;
+    min-height: 330px;
+    object-fit: cover;
+    display: block;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.search-area {
+    width: 95%;
+    max-width: 900px;
+    margin: 25px auto;
+    display: flex;
+    gap: 10px;
+}
+
+.search-area input {
+    flex: 1;
+    border: 1px solid #ddd;
+    background: white;
+    padding: 14px 18px;
+    border-radius: 12px;
+    outline: none;
+    font-family: inherit;
+    font-size: 15px;
+}
+
+.search-area input:focus {
+    border-color: #ff9800;
+}
+
+.search-area button {
+    border: none;
+    background: #ff5722;
+    color: white;
+    padding: 0 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+}
+
+.search-area button:hover {
+    background: #e64a19;
+}
+
+
+/* =========================================================
+   KATEGORI
+========================================================= */
+
+.kategori {
+    width: 95%;
+    max-width: 1200px;
+    margin: 10px auto;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 5px 2px 15px;
+}
+
+.kategori::-webkit-scrollbar {
+    height: 5px;
+}
+
+.kategori::-webkit-scrollbar-thumb {
+    background: #ff9800;
+    border-radius: 10px;
+}
+
+.kategori button {
+    border: none;
+    background: white;
+    padding: 11px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: 0.3s;
+}
+
+.kategori button:hover {
+    background: #ff9800;
+    color: white;
+}
+
+.kategori .active {
+    background: #ff5722;
+    color: white;
+}
+
+
+/* =========================================================
+   MENU
+========================================================= */
+
+.menu {
+    width: 95%;
+    max-width: 1200px;
+    margin: 35px auto;
+}
+
+.menu h2 {
+    color: #ff5722;
+    margin-bottom: 20px;
+    font-size: 25px;
+}
+
+.produk {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+
+/* =========================================================
+   CARD PRODUK
+========================================================= */
+
+.card {
+    position: relative;
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.14);
+}
+
+.card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.card h3 {
+    padding: 14px 15px 4px;
+    font-size: 18px;
+    color: #333;
+}
+
+.card p {
+    padding: 0 15px;
+    color: #777;
+    min-height: 45px;
+    font-size: 13px;
+}
+
+.rating {
+    padding: 8px 15px;
+    color: #ffc107;
+    font-size: 17px;
+}
+
+.card h4 {
+    padding: 0 15px;
+    color: #ff5722;
+    font-size: 21px;
+    margin-bottom: 13px;
+}
+
+.card > button:not(.favorite) {
+    width: calc(100% - 30px);
+    margin: 0 15px 18px;
+    border: none;
+    background: #ff5722;
+    color: white;
+    padding: 13px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.card > button:not(.favorite):hover {
+    background: #e64a19;
+}
+
+.promo {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 5;
+    background: #ff5722;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.favorite {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    width: 38px !important;
+    height: 38px;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none;
+    border-radius: 50%;
+    background: white;
+    color: #ff5722;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+
+/* =========================================================
+   KERANJANG
+========================================================= */
+
+.keranjang {
+    width: 95%;
+    max-width: 1200px;
+    margin: 40px auto;
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.keranjang h2 {
+    color: #ff5722;
+    margin-bottom: 15px;
+}
+
+#pesanan {
+    margin: 20px 0;
+    line-height: 1.8;
+}
+
+#total {
+    color: #ff5722;
+    margin-bottom: 20px;
+    font-size: 21px;
+}
+
+.aksi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.aksi button {
+    flex: 1;
+    min-width: 210px;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    transition: 0.3s;
+}
+
+.aksi button:nth-child(1) {
+    background: #2196f3;
+}
+
+.aksi button:nth-child(2) {
+    background: #25d366;
+}
+
+.aksi button:nth-child(3) {
+    background: #f44336;
+}
+
+.aksi button:hover {
+    transform: translateY(-2px);
+    opacity: 0.92;
+}
+
+
+/* =========================================================
+   CHECKOUT
+========================================================= */
+
+.checkout {
+    width: 95%;
+    max-width: 1000px;
+    margin: 45px auto;
+}
+
+.checkout-box {
+    background: white;
+    border-radius: 22px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.09);
+}
+
+.checkout-box h2 {
+    color: #ff5722;
+    font-size: 26px;
+    margin-bottom: 5px;
+}
+
+.checkout-box > p {
+    color: #777;
+    margin-bottom: 25px;
+}
+
+
+/* FORM CHECKOUT */
+
+.checkout-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.checkout-form label {
+    display: block;
+    color: #444;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.checkout-form input,
+.checkout-form textarea,
+.checkout-form select {
+    width: 100%;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    border-radius: 10px;
+    padding: 13px 14px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    color: #333;
+    transition: 0.3s;
+}
+
+.checkout-form input:focus,
+.checkout-form textarea:focus,
+.checkout-form select:focus {
+    border-color: #ff9800;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+}
+
+.checkout-form textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.checkout-form select {
+    cursor: pointer;
+}
+
+
+/* TOMBOL GPS DI CHECKOUT */
+
+.checkout-form button {
+    width: 100%;
+    border: none;
+    background: #2196f3;
+    color: white;
+    padding: 13px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 8px;
+    transition: 0.3s;
+}
+
+.checkout-form button:hover {
+    background: #1976d2;
+}
+
+
+/* STATUS LOKASI */
+
+#statusLokasi,
+#statusLokasiCheckout {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   RINGKASAN PEMBAYARAN
+========================================================= */
+
+.checkout-summary {
+    margin-top: 28px;
+    background: #fff8f2;
+    border: 1px solid #ffe0cc;
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.checkout-summary h3 {
+    color: #e64a19;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.summary-row span {
+    color: #555;
+}
+
+.summary-row strong {
+    color: #333;
+}
+
+.checkout-summary hr {
+    border: none;
+    border-top: 1px solid #ead8ca;
+    margin: 12px 0;
+}
+
+.total-row {
+    font-size: 18px;
+    padding-top: 12px;
+}
+
+.total-row span {
+    color: #333;
+    font-weight: 700;
+}
+
+.total-row strong {
+    color: #ff5722;
+    font-size: 22px;
+}
+
+
+/* =========================================================
+   TOMBOL KONFIRMASI
+========================================================= */
+
+.btn-konfirmasi {
+    width: 100%;
+    border: none;
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #25d366;
+    color: white;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    transition: 0.3s;
+}
+
+.btn-konfirmasi:hover {
+    background: #1da851;
+    transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   PROMO
+========================================================= */
+
+#promo {
+    background: white;
+    border-radius: 18px;
+    padding: 25px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+#promo h2 {
+    color: #ff5722;
+    margin-bottom: 8px;
+}
+
+#promo p {
+    color: #777;
+}
+
+
+/* =========================================================
+   TAMPILAN ITEM KERANJANG
+========================================================= */
+
+.item-keranjang {
+    padding: 14px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.nama-produk {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.harga-produk {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.jumlah-produk {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    margin: 8px 0;
+}
+
+.jumlah-produk button {
+    width: 38px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: #ff5722;
+    color: white;
+    font-size: 19px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.jumlah-produk button:hover {
+    background: #e64a19;
+}
+
+.jumlah-produk span {
+    min-width: 30px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.subtotal {
+    font-weight: bold;
+    color: #333;
+    margin-top: 5px;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer {
+    margin-top: 60px;
+    background: #222;
+    color: white;
+    padding: 40px 20px;
+}
+
+.footer-logo {
+    text-align: center;
+}
+
+.footer-logo h2 {
+    color: #ff9800;
+    margin-bottom: 8px;
+}
+
+.footer-logo p {
+    color: #ccc;
+}
+
+.footer-menu {
+    margin: 25px 0;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.footer-menu a {
+    color: white;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.footer-menu a:hover {
+    color: #ff9800;
+}
+
+.footer-copy {
+    text-align: center;
+    color: #aaa;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+
+/* =========================================================
+   RESPONSIVE TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    nav {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .banner {
+        grid-template-columns: 1fr;
+    }
+
+    .banner-text {
+        padding: 35px;
+    }
+
+    .banner-image {
+        max-height: 300px;
+    }
+
+    .banner-image img {
+        min-height: 250px;
+        max-height: 300px;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE HP
+========================================================= */
+
+@media (max-width: 600px) {
+
+    header {
+        padding: 15px;
+    }
+
+    .logo {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .logo img {
+        width: 48px;
+        height: 48px;
+    }
+
+    .logo h1 {
+        font-size: 19px;
+    }
+
+    .logo p {
+        font-size: 11px;
+    }
+
+    nav {
+        gap: 14px;
+    }
+
+    nav a {
+        font-size: 12px;
+    }
+
+
+    .banner {
+        width: 94%;
+        margin: 15px auto;
+        border-radius: 16px;
+    }
+
+    .banner-text {
+        padding: 25px;
+    }
+
+    .banner-text h2 {
+        font-size: 18px;
+    }
+
+    .banner-text h1 {
+        font-size: 27px;
+    }
+
+    .banner-text p {
+        font-size: 13px;
+    }
+
+
+    .search-area {
+        width: 94%;
+    }
+
+    .search-area input {
+        min-width: 0;
+    }
+
+    .search-area button {
+        padding: 0 17px;
+    }
+
+
+    .menu {
+        width: 94%;
+    }
+
+    .produk {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .card {
+        border-radius: 14px;
+    }
+
+    .card img {
+        height: 145px;
+    }
+
+    .card h3 {
+        font-size: 15px;
+        padding: 11px 10px 3px;
+    }
+
+    .card p {
+        padding: 0 10px;
+        font-size: 11px;
+        min-height: 42px;
+    }
+
+    .rating {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .card h4 {
+        padding: 0 10px;
+        font-size: 17px;
+    }
+
+    .card > button:not(.favorite) {
+        width: calc(100% - 20px);
+        margin: 0 10px 12px;
+        padding: 10px 5px;
+        font-size: 12px;
+    }
+
+    .promo {
+        top: 8px;
+        left: 8px;
+        font-size: 9px;
+        padding: 4px 7px;
+    }
+
+    .favorite {
+        width: 32px !important;
+        height: 32px;
+        font-size: 15px;
+    }
+
+
+    .keranjang {
+        width: 94%;
+        padding: 20px;
+    }
+
+    .aksi {
+        flex-direction: column;
+    }
+
+    .aksi button {
+        width: 100%;
+        min-width: 0;
+    }
+
+
+    /* CHECKOUT HP */
+
+    .checkout {
+        width: 94%;
+        margin: 30px auto;
+    }
+
+    .checkout-box {
+        padding: 20px;
+        border-radius: 17px;
+    }
+
+    .checkout-box h2 {
+        font-size: 21px;
+    }
+
+    .checkout-form input,
+    .checkout-form textarea,
+    .checkout-form select {
+        font-size: 13px;
+        padding: 12px;
+    }
+
+    .summary-row {
+        font-size: 13px;
+    }
+
+    .total-row {
+        font-size: 16px;
+    }
+
+    .total-row strong {
+        font-size: 19px;
+    }
+
+
+    footer {
+        padding: 30px 15px;
+    }
+
+    .footer-menu {
+        gap: 18px;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE HP KECIL
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .produk {
+        grid-template-columns: 1fr;
+    }
+
+    .card img {
+        height: 190px;
+    }
+
+    .banner-text h1 {
+        font-size: 24px;
+    }
+
+}
