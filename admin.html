@@ -968,6 +968,9 @@ tr:hover td{
         <button onclick="showPage('pusatv23',this)">🧭 Pusat Kontrol V23</button>
         <button onclick="showPage('pengantaranv24',this)">🚚 Pengantaran V24</button>
         <button onclick="showPage('pelangganv25',this)">👥 CRM Pelanggan V26</button>
+        <button onclick="showPage('warung',this)">
+    🏪 Tambah Warung
+</button>
 
         <button
             onclick="showPage('backup',this)">
@@ -2012,6 +2015,42 @@ tr:hover td{
 <!-- =========================
      BACKUP
 ========================= -->
+    <div class="page-title">
+        <h2>🏪 Tambah Warung</h2>
+        <p>Tambah data warung ke Paya Rengas Delivery.</p>
+    </div>
+
+    <div class="panel">
+
+        <input
+            type="text"
+            id="namaWarung"
+            placeholder="Nama Warung">
+
+        <input
+            type="text"
+            id="alamatWarung"
+            placeholder="Alamat Warung">
+
+        <input
+            type="text"
+            id="noWaWarung"
+            placeholder="Nomor WhatsApp Warung">
+
+        <button
+            class="btn btn-primary"
+            onclick="tambahWarung()">
+
+            ➕ Simpan Warung
+
+        </button>
+
+        <div id="hasilWarung"></div>
+
+    </div>
+
+</section>
+
 
 <section
     id="backup"

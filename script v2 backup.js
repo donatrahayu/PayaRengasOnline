@@ -1,24 +1,8 @@
 /* =====================================================
-   PAYA RENGAS DELIVERY
-   SCRIPT.JS - V3 ONLINE SUPABASE
+   PAYA RENGAS DELIVERY V2
+   SCRIPT.JS - FULL FINAL
+   TERHUBUNG DENGAN ADMIN.HTML
    ===================================================== */
-
-
-/* =====================================================
-   SUPABASE
-===================================================== */
-
-const SUPABASE_URL =
-    "https://kktamroqhsheiiifffoo.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_0SQdiECEZD6oNp-bjZcTyg_FJYHeJv8";
-
-const supabaseClient =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-    );
 
 
 /* =====================================================
@@ -27,26 +11,14 @@ const supabaseClient =
 
 const NOMOR_WA = "6283851564958";
 
-/*
-   ID WARUNG
-   Tadi abang sudah membuat data warung
-   dengan kode/id 1.
-*/
-const WARUNG_ID = 1;
+// Ongkir dasar sementara
+// Nanti bisa kita ganti menggunakan GPS
+const ONGKIR_DASAR = 5000;
 
-
-/* =====================================================
-   LOCAL STORAGE
-===================================================== */
-
-const KEY_KERANJANG =
-    "payaRengasKeranjang";
-
-const KEY_LOKASI =
-    "payaRengasLokasi";
-
-const KEY_PESANAN =
-    "payaRengasPesanan";
+// KEY LOCAL STORAGE
+const KEY_KERANJANG = "payaRengasKeranjang";
+const KEY_PESANAN = "payaRengasPesanan";
+const KEY_LOKASI = "payaRengasLokasi";
 
 
 /* =====================================================
@@ -63,19 +35,6 @@ let lokasiPelanggan = null;
 
 
 /* =====================================================
-   FORMAT RUPIAH
-===================================================== */
-
-function rupiah(angka) {
-
-    return "Rp" +
-        Number(angka || 0)
-            .toLocaleString("id-ID");
-
-}
-
-
-/* =====================================================
    SIMPAN KERANJANG
 ===================================================== */
 
@@ -85,6 +44,19 @@ function simpanKeranjang() {
         KEY_KERANJANG,
         JSON.stringify(keranjang)
     );
+
+}
+
+
+/* =====================================================
+   FORMAT RUPIAH
+===================================================== */
+
+function rupiah(angka) {
+
+    return "Rp" +
+        Number(angka || 0)
+            .toLocaleString("id-ID");
 
 }
 
@@ -134,7 +106,9 @@ function tambahKeranjang(nama, harga) {
 function tambahJumlah(index) {
 
     if (!keranjang[index]) {
+
         return;
+
     }
 
 
@@ -149,13 +123,15 @@ function tambahJumlah(index) {
 
 
 /* =====================================================
-   KURANG JUMLAH
+   KURANGI JUMLAH
 ===================================================== */
 
 function kurangJumlah(index) {
 
     if (!keranjang[index]) {
+
         return;
+
     }
 
 
@@ -208,46 +184,13 @@ function hitungTotalBelanja() {
 function hitungOngkir() {
 
     if (keranjang.length === 0) {
+
         return 0;
+
     }
 
 
-    const pilihan =
-        document.getElementById(
-            "pilihanOngkir"
-        );
-
-
-    if (!pilihan) {
-        return 5000;
-    }
-
-
-    const option =
-        pilihan.options[
-            pilihan.selectedIndex
-        ];
-
-
-    if (!option) {
-        return 5000;
-    }
-
-
-    const ongkir =
-        Number(
-            option.getAttribute(
-                "data-ongkir"
-            )
-        );
-
-
-    if (Number.isNaN(ongkir)) {
-        return 5000;
-    }
-
-
-    return ongkir;
+    return ONGKIR_DASAR;
 
 }
 
@@ -273,15 +216,11 @@ function hitungTotalPembayaran() {
 function tampilkanKeranjang() {
 
     const pesanan =
-        document.getElementById(
-            "pesanan"
-        );
+        document.getElementById("pesanan");
 
 
     const totalElement =
-        document.getElementById(
-            "total"
-        );
+        document.getElementById("total");
 
 
     if (!pesanan) {
@@ -292,6 +231,8 @@ function tampilkanKeranjang() {
 
     }
 
+
+    /* KERANJANG KOSONG */
 
     if (keranjang.length === 0) {
 
@@ -324,6 +265,8 @@ function tampilkanKeranjang() {
 
     }
 
+
+    /* ISI KERANJANG */
 
     let html = "";
 
@@ -359,11 +302,8 @@ function tampilkanKeranjang() {
                     <div class="item-control">
 
                         <button
-                            type="button"
                             onclick="kurangJumlah(${index})">
-
                             −
-
                         </button>
 
 
@@ -373,11 +313,8 @@ function tampilkanKeranjang() {
 
 
                         <button
-                            type="button"
                             onclick="tambahJumlah(${index})">
-
                             +
-
                         </button>
 
                     </div>
@@ -481,6 +418,56 @@ function updateCheckout() {
         hitungTotalPembayaran();
 
 
+    /* TOTAL BELANJA */
+
+    const checkoutTotal =
+        document.getElementById(
+            "checkoutTotal"
+        );
+
+
+    if (checkoutTotal) {
+
+        checkoutTotal.innerText =
+            rupiah(totalBelanja);
+
+    }
+
+
+    /* ONGKIR */
+
+    const checkoutOngkir =
+        document.getElementById(
+            "checkoutOngkir"
+        );
+
+
+    if (checkoutOngkir) {
+
+        checkoutOngkir.innerText =
+            rupiah(ongkir);
+
+    }
+
+
+    /* TOTAL PEMBAYARAN */
+
+    const checkoutBayar =
+        document.getElementById(
+            "checkoutBayar"
+        );
+
+
+    if (checkoutBayar) {
+
+        checkoutBayar.innerText =
+            rupiah(totalBayar);
+
+    }
+
+
+    /* ID ALTERNATIF */
+
     const totalBelanjaElement =
         document.getElementById(
             "totalBelanja"
@@ -522,52 +509,6 @@ function updateCheckout() {
 
     }
 
-
-    /*
-       ID lama jika masih digunakan
-    */
-
-    const checkoutTotal =
-        document.getElementById(
-            "checkoutTotal"
-        );
-
-
-    if (checkoutTotal) {
-
-        checkoutTotal.innerText =
-            rupiah(totalBelanja);
-
-    }
-
-
-    const checkoutOngkir =
-        document.getElementById(
-            "checkoutOngkir"
-        );
-
-
-    if (checkoutOngkir) {
-
-        checkoutOngkir.innerText =
-            rupiah(ongkir);
-
-    }
-
-
-    const checkoutBayar =
-        document.getElementById(
-            "checkoutBayar"
-        );
-
-
-    if (checkoutBayar) {
-
-        checkoutBayar.innerText =
-            rupiah(totalBayar);
-
-    }
-
 }
 
 
@@ -578,7 +519,9 @@ function updateCheckout() {
 function kosongkanKeranjang() {
 
     if (keranjang.length === 0) {
+
         return;
+
     }
 
 
@@ -589,7 +532,9 @@ function kosongkanKeranjang() {
 
 
     if (!yakin) {
+
         return;
+
     }
 
 
@@ -627,23 +572,9 @@ function ambilLokasi() {
         );
 
 
-    const statusCheckout =
-        document.getElementById(
-            "statusLokasiCheckout"
-        );
-
-
     if (status) {
 
         status.innerHTML =
-            "📍 Sedang mengambil lokasi...";
-
-    }
-
-
-    if (statusCheckout) {
-
-        statusCheckout.innerHTML =
             "📍 Sedang mengambil lokasi...";
 
     }
@@ -685,34 +616,23 @@ function ambilLokasi() {
                 `https://www.google.com/maps?q=${latitude},${longitude}`;
 
 
-            const teks = `
-
-                📍 Lokasi berhasil diambil.
-
-                <br>
-
-                <a
-                    href="${linkGoogleMaps}"
-                    target="_blank">
-
-                    Lihat Lokasi di Google Maps
-
-                </a>
-
-            `;
-
-
             if (status) {
 
-                status.innerHTML = teks;
+                status.innerHTML = `
 
-            }
+                    📍 Lokasi berhasil diambil.
 
+                    <br>
 
-            if (statusCheckout) {
+                    <a
+                        href="${linkGoogleMaps}"
+                        target="_blank">
 
-                statusCheckout.innerHTML =
-                    teks;
+                        Lihat Lokasi di Google Maps
+
+                    </a>
+
+                `;
 
             }
 
@@ -726,30 +646,19 @@ function ambilLokasi() {
 
         function(error) {
 
-            console.log(
-                "GPS Error:",
-                error
-            );
+            console.log(error);
 
 
             if (status) {
 
                 status.innerHTML =
-                    "📍 Lokasi belum berhasil diambil.";
-
-            }
-
-
-            if (statusCheckout) {
-
-                statusCheckout.innerHTML =
-                    "📍 Lokasi belum berhasil diambil.";
+                    "📍 Lokasi belum diambil.";
 
             }
 
 
             alert(
-                "Lokasi belum berhasil diambil. Pastikan izin lokasi diberikan."
+                "Lokasi belum berhasil diambil. Pastikan izin lokasi sudah diberikan."
             );
 
         },
@@ -783,7 +692,9 @@ function muatLokasi() {
 
 
     if (!data) {
+
         return;
+
     }
 
 
@@ -793,55 +704,36 @@ function muatLokasi() {
             JSON.parse(data);
 
 
-        if (!lokasiPelanggan) {
-            return;
-        }
-
-
-        const linkGoogleMaps =
-            `https://www.google.com/maps?q=${lokasiPelanggan.latitude},${lokasiPelanggan.longitude}`;
-
-
-        const teks = `
-
-            📍 Lokasi tersimpan.
-
-            <br>
-
-            <a
-                href="${linkGoogleMaps}"
-                target="_blank">
-
-                Lihat Lokasi
-
-            </a>
-
-        `;
-
-
         const status =
             document.getElementById(
                 "statusLokasi"
             );
 
 
-        const statusCheckout =
-            document.getElementById(
-                "statusLokasiCheckout"
-            );
+        if (
+            status &&
+            lokasiPelanggan
+        ) {
+
+            const linkGoogleMaps =
+                `https://www.google.com/maps?q=${lokasiPelanggan.latitude},${lokasiPelanggan.longitude}`;
 
 
-        if (status) {
+            status.innerHTML = `
 
-            status.innerHTML = teks;
+                📍 Lokasi tersimpan.
 
-        }
+                <br>
 
+                <a
+                    href="${linkGoogleMaps}"
+                    target="_blank">
 
-        if (statusCheckout) {
+                    Lihat Lokasi
 
-            statusCheckout.innerHTML =
-                teks;
+                </a>
+
+            `;
 
         }
 
@@ -849,10 +741,7 @@ function muatLokasi() {
 
     catch(error) {
 
-        console.log(
-            "Gagal memuat lokasi:",
-            error
-        );
+        console.log(error);
 
     }
 
@@ -889,51 +778,30 @@ function ambilDataPelanggan() {
         );
 
 
-    const pilihanOngkir =
-        document.getElementById(
-            "pilihanOngkir"
-        );
-
-
-    let pilihanPengantaran = "";
-
-
-    if (pilihanOngkir) {
-
-        pilihanPengantaran =
-            pilihanOngkir.value;
-
-    }
-
-
     return {
 
         nama:
-            namaElement
-                ? namaElement.value.trim()
-                : "",
+            namaElement ?
+            namaElement.value.trim() :
+            "",
 
 
         whatsapp:
-            waElement
-                ? waElement.value.trim()
-                : "",
+            waElement ?
+            waElement.value.trim() :
+            "",
 
 
         alamat:
-            alamatElement
-                ? alamatElement.value.trim()
-                : "",
+            alamatElement ?
+            alamatElement.value.trim() :
+            "",
 
 
         catatan:
-            catatanElement
-                ? catatanElement.value.trim()
-                : "",
-
-
-        pilihanPengantaran:
-            pilihanPengantaran
+            catatanElement ?
+            catatanElement.value.trim() :
+            ""
 
     };
 
@@ -975,7 +843,9 @@ function validasiCheckout() {
 
 
         if (input) {
+
             input.focus();
+
         }
 
 
@@ -998,7 +868,9 @@ function validasiCheckout() {
 
 
         if (input) {
+
             input.focus();
+
         }
 
 
@@ -1021,30 +893,9 @@ function validasiCheckout() {
 
 
         if (input) {
+
             input.focus();
-        }
 
-
-        return false;
-
-    }
-
-
-    if (!data.pilihanPengantaran) {
-
-        alert(
-            "Silakan pilih pengantaran."
-        );
-
-
-        const input =
-            document.getElementById(
-                "pilihanOngkir"
-            );
-
-
-        if (input) {
-            input.focus();
         }
 
 
@@ -1059,7 +910,7 @@ function validasiCheckout() {
 
 
 /* =====================================================
-   DETAIL ITEM
+   BUAT DETAIL ITEM PESANAN
 ===================================================== */
 
 function buatDetailItemPesanan() {
@@ -1070,14 +921,11 @@ function buatDetailItemPesanan() {
 
             return {
 
-                nama:
-                    item.nama,
+                nama: item.nama,
 
-                harga:
-                    Number(item.harga),
+                harga: Number(item.harga),
 
-                jumlah:
-                    Number(item.jumlah),
+                jumlah: Number(item.jumlah),
 
                 subtotal:
                     Number(item.harga) *
@@ -1093,41 +941,46 @@ function buatDetailItemPesanan() {
 
 
 /* =====================================================
-   SIMPAN PESANAN LOKAL
-   SEBAGAI BACKUP
+   AMBIL SEMUA PESANAN
 ===================================================== */
 
-function simpanPesananLokal(pesanan) {
+function ambilSemuaPesanan() {
+
+    const data =
+        localStorage.getItem(
+            KEY_PESANAN
+        );
+
+
+    if (!data) {
+
+        return [];
+
+    }
+
 
     try {
 
-        const data =
-            JSON.parse(
-                localStorage.getItem(
-                    KEY_PESANAN
-                )
-            ) || [];
+        const hasil =
+            JSON.parse(data);
 
 
-        data.push(pesanan);
+        if (Array.isArray(hasil)) {
+
+            return hasil;
+
+        }
 
 
-        localStorage.setItem(
-
-            KEY_PESANAN,
-
-            JSON.stringify(data)
-
-        );
+        return [];
 
     }
 
     catch(error) {
 
-        console.log(
-            "Backup lokal gagal:",
-            error
-        );
+        console.log(error);
+
+        return [];
 
     }
 
@@ -1135,101 +988,27 @@ function simpanPesananLokal(pesanan) {
 
 
 /* =====================================================
-   CARI / BUAT PELANGGAN SUPABASE
+   SIMPAN SEMUA PESANAN
 ===================================================== */
 
-async function cariAtauBuatPelanggan(data) {
+function simpanSemuaPesanan(pesanan) {
 
-    /*
-       Cari berdasarkan nomor WhatsApp
-    */
+    localStorage.setItem(
 
-    const hasilCari =
-        await supabaseClient
-            .from("pelanggan")
-            .select("id")
-            .eq("no_wa", data.whatsapp)
-            .limit(1);
+        KEY_PESANAN,
 
+        JSON.stringify(pesanan)
 
-    if (
-        hasilCari.error
-    ) {
-
-        throw new Error(
-            "Gagal mencari pelanggan: " +
-            hasilCari.error.message
-        );
-
-    }
-
-
-    if (
-        hasilCari.data &&
-        hasilCari.data.length > 0
-    ) {
-
-        return hasilCari.data[0].id;
-
-    }
-
-
-    /*
-       Kalau belum ada,
-       buat pelanggan baru
-    */
-
-    const pelangganBaru =
-        await supabaseClient
-            .from("pelanggan")
-            .insert({
-
-                nama:
-                    data.nama,
-
-                no_wa:
-                    data.whatsapp,
-
-                alamat:
-                    data.alamat,
-
-                latitude:
-                    lokasiPelanggan
-                        ? lokasiPelanggan.latitude
-                        : null,
-
-                longitude:
-                    lokasiPelanggan
-                        ? lokasiPelanggan.longitude
-                        : null
-
-            })
-            .select("id")
-            .single();
-
-
-    if (
-        pelangganBaru.error
-    ) {
-
-        throw new Error(
-            "Gagal menyimpan pelanggan: " +
-            pelangganBaru.error.message
-        );
-
-    }
-
-
-    return pelangganBaru.data.id;
+    );
 
 }
 
 
 /* =====================================================
-   SIMPAN PESANAN KE SUPABASE
+   SIMPAN PESANAN KE ADMIN
 ===================================================== */
 
-async function simpanPesananKeSupabase() {
+function simpanPesananKeAdmin() {
 
     const data =
         ambilDataPelanggan();
@@ -1243,97 +1022,156 @@ async function simpanPesananKeSupabase() {
         hitungOngkir();
 
 
-    const totalPembayaran =
+    const totalBayar =
         hitungTotalPembayaran();
 
 
-    /*
-       1. Cari / buat pelanggan
-    */
-
-    const pelangganId =
-        await cariAtauBuatPelanggan(data);
+    const daftarPesanan =
+        ambilSemuaPesanan();
 
 
-    /*
-       2. Buat pesanan
-    */
+    const waktu =
+        new Date();
 
-    const pesananData = {
 
-        pelanggan_id:
-            pelangganId,
+    const pesananBaru = {
 
-        warung_id:
-            WARUNG_ID,
+        id:
+            "PRD-" +
+            Date.now(),
 
-        nama_pelanggan:
+
+        tanggal:
+            waktu.toLocaleDateString(
+                "id-ID"
+            ),
+
+
+        waktu:
+            waktu.toLocaleString(
+                "id-ID"
+            ),
+
+
+        timestamp:
+            Date.now(),
+
+
+        nama:
             data.nama,
 
-        no_wa:
+
+        namaPelanggan:
+            data.nama,
+
+
+        whatsapp:
             data.whatsapp,
 
-        "alamat pengantara":
+
+        noWhatsapp:
+            data.whatsapp,
+
+
+        nomorWhatsApp:
+            data.whatsapp,
+
+
+        alamat:
             data.alamat,
+
+
+        alamatPengantaran:
+            data.alamat,
+
 
         catatan:
             data.catatan,
 
-        total_belanja:
+
+        catatanPesanan:
+            data.catatan,
+
+
+        items:
+            buatDetailItemPesanan(),
+
+
+        pesanan:
+            buatDetailItemPesanan(),
+
+
+        totalBelanja:
             totalBelanja,
+
 
         ongkir:
             ongkir,
 
-        total_pembayaran:
-            totalPembayaran,
+
+        biayaKirim:
+            ongkir,
+
+
+        total:
+            totalBayar,
+
+
+        totalPembayaran:
+            totalBayar,
+
 
         status:
             "baru",
 
-        metode_pembayaran:
-            "WhatsApp",
 
-        latitude:
-            lokasiPelanggan
-                ? lokasiPelanggan.latitude
-                : null,
+        lokasi:
+            lokasiPelanggan ?
+            {
 
-        longitude:
-            lokasiPelanggan
-                ? lokasiPelanggan.longitude
-                : null
+                latitude:
+                    lokasiPelanggan.latitude,
+
+                longitude:
+                    lokasiPelanggan.longitude
+
+            } :
+            null,
+
+
+        lokasiGPS:
+            lokasiPelanggan ?
+            {
+
+                latitude:
+                    lokasiPelanggan.latitude,
+
+                longitude:
+                    lokasiPelanggan.longitude
+
+            } :
+            null
 
     };
 
 
-    const hasil =
-        await supabaseClient
-            .from("pesanan")
-            .insert(
-                pesananData
-            )
-            .select()
-            .single();
+    daftarPesanan.push(
+        pesananBaru
+    );
 
 
-    if (hasil.error) {
-
-        throw new Error(
-            "Gagal menyimpan pesanan: " +
-            hasil.error.message
-        );
-
-    }
+    simpanSemuaPesanan(
+        daftarPesanan
+    );
 
 
-    return hasil.data;
+    return pesananBaru;
 
 }
 
 
 /* =====================================================
-   PESAN WHATSAPP
+   BUAT PESAN WHATSAPP
 ===================================================== */
 
 function buatPesanWhatsApp() {
@@ -1399,18 +1237,6 @@ function buatPesanWhatsApp() {
 
     const totalBayar =
         hitungTotalPembayaran();
-
-
-    pesan += "\n";
-
-
-    pesan +=
-        "*Pengantaran*\n";
-
-
-    pesan +=
-        data.pilihanPengantaran +
-        "\n";
 
 
     pesan += "\n";
@@ -1491,53 +1317,17 @@ function buatPesanWhatsApp() {
 
 
 /* =====================================================
-   KIRIM WA
-===================================================== */
-
-function kirimWA() {
-
-    if (keranjang.length === 0) {
-
-        alert(
-            "Keranjang masih kosong."
-        );
-
-        return;
-
-    }
-
-
-    const pesan =
-        buatPesanKeranjang();
-
-
-    const url =
-        "https://wa.me/" +
-        NOMOR_WA +
-        "?text=" +
-        encodeURIComponent(pesan);
-
-
-    window.open(
-        url,
-        "_blank"
-    );
-
-}
-
-
-/* =====================================================
-   PESAN KERANJANG
+   BUAT PESAN KERANJANG
 ===================================================== */
 
 function buatPesanKeranjang() {
 
     let pesan =
-        "*PAYA RENGAS DELIVERY*\n\n";
+        "PAYA RENGAS DELIVERY\n\n";
 
 
     pesan +=
-        "*Pesanan:*\n";
+        "Pesanan:\n";
 
 
     keranjang.forEach(
@@ -1589,7 +1379,7 @@ function buatPesanKeranjang() {
 
 
         pesan +=
-            "Lokasi GPS: " +
+            "Lokasi: " +
             `https://www.google.com/maps?q=${lokasiPelanggan.latitude},${lokasiPelanggan.longitude}`;
 
     }
@@ -1601,181 +1391,125 @@ function buatPesanKeranjang() {
 
 
 /* =====================================================
-   KONFIRMASI PESAN
+   KIRIM WA DARI KERANJANG
 ===================================================== */
 
-async function konfirmasiPesan() {
+function kirimWA() {
 
-    /*
-       VALIDASI
-    */
+    if (keranjang.length === 0) {
 
-    if (!validasiCheckout()) {
+        alert(
+            "Keranjang masih kosong."
+        );
+
         return;
-    }
-
-
-    /*
-       Tombol dibuat tidak aktif
-       sementara proses berlangsung
-    */
-
-    const tombol =
-        document.getElementById(
-            "konfirmasiPesan"
-        );
-
-
-    if (tombol) {
-
-        tombol.disabled = true;
-
-        tombol.innerText =
-            "⏳ Menyimpan Pesanan...";
 
     }
 
 
-    try {
-
-        /*
-           SIMPAN KE SUPABASE
-        */
-
-        const pesanan =
-            await simpanPesananKeSupabase();
+    const pesan =
+        buatPesanKeranjang();
 
 
-        /*
-           BACKUP LOKAL
-        */
-
-        const data =
-            ambilDataPelanggan();
-
-
-        simpanPesananLokal({
-
-            id:
-                pesanan.id,
-
-            created_at:
-                pesanan.created_at,
-
-            nama:
-                data.nama,
-
-            whatsapp:
-                data.whatsapp,
-
-            alamat:
-                data.alamat,
-
-            catatan:
-                data.catatan,
-
-            items:
-                buatDetailItemPesanan(),
-
-            totalBelanja:
-                hitungTotalBelanja(),
-
-            ongkir:
-                hitungOngkir(),
-
-            totalPembayaran:
-                hitungTotalPembayaran(),
-
-            status:
-                "baru"
-
-        });
+    const url =
+        "https://wa.me/" +
+        NOMOR_WA +
+        "?text=" +
+        encodeURIComponent(pesan);
 
 
-        /*
-           BUAT WA
-        */
-
-        const pesan =
-            buatPesanWhatsApp();
-
-
-        const url =
-            "https://wa.me/" +
-            NOMOR_WA +
-            "?text=" +
-            encodeURIComponent(
-                pesan
-            );
-
-
-        /*
-           BUKA WA
-        */
-
-        window.open(
-            url,
-            "_blank"
-        );
-
-
-        /*
-           KOSONGKAN KERANJANG
-        */
-
-        keranjang = [];
-
-
-        simpanKeranjang();
-
-
-        tampilkanKeranjang();
-
-
-        /*
-           BERHASIL
-        */
-
-        alert(
-            "✅ Pesanan berhasil disimpan ke Paya Rengas Delivery."
-        );
-
-    }
-
-    catch(error) {
-
-        console.error(
-            "ERROR PESANAN:",
-            error
-        );
-
-
-        alert(
-            "❌ Pesanan belum berhasil disimpan ke server.\n\n" +
-            error.message +
-            "\n\nSilakan cek koneksi internet."
-        );
-
-    }
-
-    finally {
-
-        if (tombol) {
-
-            tombol.disabled = false;
-
-            tombol.innerText =
-                "💬 Konfirmasi & Pesan Sekarang";
-
-        }
-
-    }
+    window.open(
+        url,
+        "_blank"
+    );
 
 }
 
 
 /* =====================================================
-   ALTERNATIF TOMBOL
+   KONFIRMASI & PESAN SEKARANG
+===================================================== */
+
+function konfirmasiPesan() {
+
+    /* VALIDASI */
+
+    if (!validasiCheckout()) {
+
+        return;
+
+    }
+
+
+    /*
+       SIMPAN PESANAN TERLEBIH DAHULU
+       AGAR MASUK KE ADMIN
+    */
+
+    const pesananBaru =
+        simpanPesananKeAdmin();
+
+
+    if (!pesananBaru) {
+
+        alert(
+            "Pesanan gagal disimpan."
+        );
+
+        return;
+
+    }
+
+
+    /* BUAT PESAN WA */
+
+    const pesan =
+        buatPesanWhatsApp();
+
+
+    const url =
+        "https://wa.me/" +
+        NOMOR_WA +
+        "?text=" +
+        encodeURIComponent(pesan);
+
+
+    /*
+       BUKA WHATSAPP
+    */
+
+    window.open(
+        url,
+        "_blank"
+    );
+
+
+    /*
+       KOSONGKAN KERANJANG
+    */
+
+    keranjang = [];
+
+
+    simpanKeranjang();
+
+
+    tampilkanKeranjang();
+
+
+    /*
+       PESAN BERHASIL
+    */
+
+    alert(
+        "Pesanan berhasil dibuat dan sudah masuk ke Admin Paya Rengas Delivery."
+    );
+
+}
+
+
+/* =====================================================
+   FUNGSI ALTERNATIF TOMBOL CHECKOUT
 ===================================================== */
 
 function konfirmasiDanPesan() {
@@ -1798,6 +1532,10 @@ function checkoutPesanan() {
 
 }
 
+
+/* =====================================================
+   UPDATE CHECKOUT
+===================================================== */
 
 function isiDataCheckout() {
 
@@ -1843,7 +1581,7 @@ function escapeHTML(text) {
 
 
 /* =====================================================
-   EVENT HALAMAN
+   EVENT SAAT HALAMAN SELESAI DIMUAT
 ===================================================== */
 
 document.addEventListener(
@@ -1852,59 +1590,22 @@ document.addEventListener(
 
     function() {
 
-        /*
-           TAMPILKAN KERANJANG
-        */
+        /* MUAT KERANJANG */
 
         tampilkanKeranjang();
 
 
-        /*
-           MUAT GPS
-        */
+        /* MUAT GPS */
 
         muatLokasi();
 
 
-        /*
-           UPDATE CHECKOUT
-        */
+        /* UPDATE CHECKOUT */
 
         updateCheckout();
 
 
-        /*
-           PERUBAHAN ONGKIR
-        */
-
-        const pilihanOngkir =
-            document.getElementById(
-                "pilihanOngkir"
-            );
-
-
-        if (pilihanOngkir) {
-
-            pilihanOngkir.addEventListener(
-
-                "change",
-
-                function() {
-
-                    updateCheckout();
-
-                    tampilkanKeranjang();
-
-                }
-
-            );
-
-        }
-
-
-        /*
-           TOMBOL KONFIRMASI
-        */
+        /* TOMBOL KONFIRMASI */
 
         const tombolCheckout =
             document.getElementById(
@@ -1951,70 +1652,7 @@ document.addEventListener(
 
 );
 
-/* =====================================================
-   TAMBAH WARUNG SUPABASE
-===================================================== */
 
-async function tambahWarung() {
-
-    const nama =
-        document.getElementById("namaWarung").value.trim();
-
-    const alamat =
-        document.getElementById("alamatWarung").value.trim();
-
-    const noWa =
-        document.getElementById("noWaWarung").value.trim();
-
-    if (!nama) {
-        alert("Silakan isi nama warung.");
-        return;
-    }
-
-    if (!alamat) {
-        alert("Silakan isi alamat warung.");
-        return;
-    }
-
-    try {
-
-        const hasil =
-            await supabaseClient
-                .from("warung")
-                .insert({
-                    nama: nama,
-                    alamat: alamat,
-                    no_wa: noWa || null
-                })
-                .select()
-                .single();
-
-        if (hasil.error) {
-            throw new Error(hasil.error.message);
-        }
-
-        document.getElementById("hasilWarung").innerHTML =
-            "✅ Warung berhasil disimpan. ID Warung: " +
-            hasil.data.id;
-
-        document.getElementById("namaWarung").value = "";
-        document.getElementById("alamatWarung").value = "";
-        document.getElementById("noWaWarung").value = "";
-
-        alert("✅ Warung berhasil disimpan ke Supabase.");
-
-    } catch (error) {
-
-        console.error("ERROR TAMBAH WARUNG:", error);
-
-        alert(
-            "❌ Gagal menyimpan warung:\n\n" +
-            error.message
-        );
-
-    }
-
-}
 /* =====================================================
    SELESAI
 ===================================================== */

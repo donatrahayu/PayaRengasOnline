@@ -1951,70 +1951,7 @@ document.addEventListener(
 
 );
 
-/* =====================================================
-   TAMBAH WARUNG SUPABASE
-===================================================== */
 
-async function tambahWarung() {
-
-    const nama =
-        document.getElementById("namaWarung").value.trim();
-
-    const alamat =
-        document.getElementById("alamatWarung").value.trim();
-
-    const noWa =
-        document.getElementById("noWaWarung").value.trim();
-
-    if (!nama) {
-        alert("Silakan isi nama warung.");
-        return;
-    }
-
-    if (!alamat) {
-        alert("Silakan isi alamat warung.");
-        return;
-    }
-
-    try {
-
-        const hasil =
-            await supabaseClient
-                .from("warung")
-                .insert({
-                    nama: nama,
-                    alamat: alamat,
-                    no_wa: noWa || null
-                })
-                .select()
-                .single();
-
-        if (hasil.error) {
-            throw new Error(hasil.error.message);
-        }
-
-        document.getElementById("hasilWarung").innerHTML =
-            "✅ Warung berhasil disimpan. ID Warung: " +
-            hasil.data.id;
-
-        document.getElementById("namaWarung").value = "";
-        document.getElementById("alamatWarung").value = "";
-        document.getElementById("noWaWarung").value = "";
-
-        alert("✅ Warung berhasil disimpan ke Supabase.");
-
-    } catch (error) {
-
-        console.error("ERROR TAMBAH WARUNG:", error);
-
-        alert(
-            "❌ Gagal menyimpan warung:\n\n" +
-            error.message
-        );
-
-    }
-
-}
 /* =====================================================
    SELESAI
 ===================================================== */
