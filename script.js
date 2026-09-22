@@ -2264,6 +2264,20 @@ function renderProdukMitra(products) {
     }
 
 
+    /* =====================================================
+       TAMPILAN KARTU PRODUK MITRA
+       Dibuat grid dan ukuran gambar tetap supaya kartu
+       tidak memanjang/goyang walaupun gambar produk kosong.
+    ====================================================== */
+
+    container.style.display = "grid";
+    container.style.gridTemplateColumns =
+        "repeat(auto-fit, minmax(230px, 1fr))";
+    container.style.gap = "20px";
+    container.style.alignItems = "stretch";
+    container.style.width = "100%";
+    container.style.boxSizing = "border-box";
+
     container.innerHTML =
         products.map(function(product) {
 
@@ -2288,27 +2302,73 @@ function renderProdukMitra(products) {
 
             return `
 
-                <div class="card" data-kategori="${escapeHTML(kategori)}" data-nama="${escapeHTML(product.nama || "")}">
+                <div
+                    class="card"
+                    data-kategori="${escapeHTML(kategori)}"
+                    data-nama="${escapeHTML(product.nama || "")}"
+                    style="
+                        width:100%;
+                        min-width:0;
+                        box-sizing:border-box;
+                        display:flex;
+                        flex-direction:column;
+                        height:100%;
+                        margin:0;
+                        overflow:hidden;
+                    ">
 
                     <img
                         src="${gambar}"
                         alt="${nama}"
-                        onerror="this.src='images/banner.jpg'">
+                        style="
+                            display:block;
+                            width:100%;
+                            height:190px;
+                            min-height:190px;
+                            max-height:190px;
+                            object-fit:cover;
+                            object-position:center;
+                            border-radius:12px;
+                            margin:0 0 14px 0;
+                            background:#f1f1f1;
+                        "
+                        onerror="
+                            this.onerror=null;
+                            this.src='images/banner.jpg';
+                        ">
 
-                    <h3>${nama}</h3>
+                    <h3 style="margin:0 0 8px 0;">
+                        ${nama}
+                    </h3>
 
-                    <p>${deskripsi}</p>
+                    <p style="
+                        margin:0 0 10px 0;
+                        min-height:42px;
+                        line-height:1.5;
+                    ">
+                        ${deskripsi}
+                    </p>
 
-                    <div class="rating">
+                    <div
+                        class="rating"
+                        style="margin-bottom:8px;">
                         ${bintangProduk(rating)}
                     </div>
 
-                    <h4>
+                    <h4 style="
+                        margin:0 0 14px 0;
+                        font-size:20px;
+                    ">
                         ${rupiah(harga)}
                     </h4>
 
                     <button
                         type="button"
+                        style="
+                            width:100%;
+                            margin-top:auto;
+                            min-height:44px;
+                        "
                         onclick="tambahProdukMitra(${Number(product.id)})">
 
                         🛒 Pesan
