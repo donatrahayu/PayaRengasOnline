@@ -1277,6 +1277,17 @@ tr:hover td{
 
             </select>
 
+            <select
+                id="filterWarung"
+                class="filter"
+                onchange="renderPesanan()">
+
+                <option value="semua">
+                    🏪 Semua Warung Mitra
+                </option>
+
+            </select>
+
         </div>
 
 
@@ -1291,6 +1302,8 @@ tr:hover td{
                         <th>No</th>
 
                         <th>Pelanggan</th>
+
+                        <th>Warung Mitra</th>
 
                         <th>WhatsApp</th>
 
@@ -2506,6 +2519,21 @@ let selectedEditImage = "";
 
 let lastOrderCount = 0;
 
+let warungMitraMap = {};
+
+
+function getWarungNama(warungId){
+
+    const id = String(warungId || "").trim();
+
+    if(!id){
+        return "-";
+    }
+
+    return warungMitraMap[id] || (id === "1" ? "Donat Rahayu" : "Warung #" + id);
+
+}
+
 
 /* =====================================================
    DEFAULT PRODUCT
@@ -3074,6 +3102,13 @@ function renderPesanan(){
         "semua";
 
 
+    const filterWarung =
+        document.getElementById(
+            "filterWarung"
+        )?.value ||
+        "semua";
+
+
     const filtered =
         orders
         .map(
@@ -3126,6 +3161,13 @@ function renderPesanan(){
                     status===filter
                 )
 
+                &&
+
+                (
+                    filterWarung==="semua" ||
+                    String(order.warung_id || "") === String(filterWarung)
+                )
+
             );
 
         });
@@ -3137,7 +3179,7 @@ function renderPesanan(){
 
             <tr>
 
-                <td colspan="6">
+                <td colspan="7">
 
                     <div class="empty">
 
@@ -3172,6 +3214,12 @@ function renderPesanan(){
                     "Pelanggan";
 
 
+                const warungNama =
+                    order.warung_nama ||
+                    order.warungNama ||
+                    getWarungNama(order.warung_id);
+
+
                 const wa =
                     order.whatsapp ||
                     order.noWhatsapp ||
@@ -3197,6 +3245,12 @@ function renderPesanan(){
                         <td>
                             <strong>
                                 ${safe(nama)}
+                            </strong>
+                        </td>
+
+                        <td>
+                            <strong>
+                                ${safe(warungNama)}
                             </strong>
                         </td>
 
@@ -5866,6 +5920,69 @@ function setStok(id){
 function ubahStatusByObject(index,status){ubahStatus(index,status);renderOperasional();}
 
 /* =====================================================
+   FILTER WARUNG MITRA PESANAN
+===================================================== */
+
+async function loadWarungFilterPesanan(){
+
+    const select =
+        document.getElementById("filterWarung");
+
+    if(!select){
+        return;
+    }
+
+    try {
+
+        const hasil =
+            await supabaseClient
+                .from("warung")
+                .select("id,nama,alamat")
+                .order("id", { ascending: true });
+
+        if(hasil.error){
+            throw new Error(hasil.error.message);
+        }
+
+        warungMitraMap = {};
+
+        select.innerHTML =
+            '<option value="semua">🏪 Semua Warung Mitra</option>';
+
+        (hasil.data || []).forEach(function(warung){
+
+            warungMitraMap[String(warung.id)] =
+                warung.nama || ("Warung #" + warung.id);
+
+            const option =
+                document.createElement("option");
+
+            option.value = warung.id;
+
+            option.textContent =
+                "🏪 " +
+                (warung.nama || ("Warung #" + warung.id)) +
+                (warung.alamat ? " — " + warung.alamat : "");
+
+            select.appendChild(option);
+
+        });
+
+        renderPesanan();
+
+    } catch(error) {
+
+        console.error("ERROR LOAD FILTER WARUNG:", error);
+
+        select.innerHTML =
+            '<option value="semua">🏪 Semua Warung Mitra</option>';
+
+    }
+
+}
+
+
+/* =====================================================
    INIT
 ===================================================== */
 
@@ -5962,6 +6079,8 @@ document.addEventListener(
 
 
         loadWarungMitraProduk();
+
+        loadWarungFilterPesanan();
 
 
         updateDashboard();
