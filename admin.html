@@ -409,6 +409,16 @@ tr:hover td{
     color:#084298;
 }
 
+.status-siap-diantar{
+    background:#e0cffc;
+    color:#4b1d95;
+}
+
+.status-diantar{
+    background:#cff4fc;
+    color:#055160;
+}
+
 .status-selesai{
     background:#d1e7dd;
     color:#0f5132;
@@ -1263,6 +1273,10 @@ tr:hover td{
                     Diproses
                 </option>
 
+                <option value="siap_diantar">
+                    Siap Diantar
+                </option>
+
                 <option value="diantar">
                     Diantar
                 </option>
@@ -1273,17 +1287,6 @@ tr:hover td{
 
                 <option value="batal">
                     Batal
-                </option>
-
-            </select>
-
-            <select
-                id="filterWarung"
-                class="filter"
-                onchange="renderPesanan()">
-
-                <option value="semua">
-                    🏪 Semua Warung Mitra
                 </option>
 
             </select>
@@ -1302,8 +1305,6 @@ tr:hover td{
                         <th>No</th>
 
                         <th>Pelanggan</th>
-
-                        <th>Warung Mitra</th>
 
                         <th>WhatsApp</th>
 
@@ -2003,7 +2004,7 @@ tr:hover td{
     <div class="toolbar">
       <input id="v24CariPesanan" class="search" placeholder="Cari pelanggan, alamat, atau nomor pesanan..." oninput="renderPengantaranV24()">
       <select id="v24FilterStatus" class="filter" onchange="renderPengantaranV24()">
-        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
+        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option><option value="siap_diantar">Siap Diantar</option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
       </select>
     </div>
     <div class="table-scroll"><table style="min-width:1100px"><thead><tr><th>#</th><th>Pelanggan</th><th>Alamat</th><th>Total</th><th>Status</th><th>Driver</th><th>Aksi</th></tr></thead><tbody id="tabelPengantaranV24"></tbody></table></div>
@@ -2109,19 +2110,6 @@ tr:hover td{
         </button>
 
         <div id="hasilWarung"></div>
-
-        <div class="panel" style="margin-top:18px;">
-            <div class="panel-header">
-                <h3>✏️ Kelola Warung Mitra</h3>
-                <button type="button" class="btn btn-blue btn-small" onclick="renderWarungMitraAdmin()">🔄 Refresh</button>
-            </div>
-            <div class="table-scroll">
-                <table style="min-width:850px;">
-                    <thead><tr><th>ID</th><th>Warung</th><th>Alamat</th><th>WhatsApp</th><th>GPS</th><th>Status</th><th>Aksi</th></tr></thead>
-                    <tbody id="tabelWarungMitra"></tbody>
-                </table>
-            </div>
-        </div>
 
     </div>
 
@@ -2243,28 +2231,6 @@ tr:hover td{
 
 </div>
 
-
-<!-- =========================
-     MODAL EDIT WARUNG MITRA
-========================= -->
-<div id="modalEditWarung" class="modal">
-    <div class="modal-box">
-        <div class="modal-head"><h3>✏️ Edit Warung Mitra</h3><button class="close" type="button" onclick="closeModal('modalEditWarung')">×</button></div>
-        <form onsubmit="simpanEditWarung(event)">
-            <input id="editWarungId" type="hidden">
-            <div class="form-grid">
-                <div class="form-group full"><label>Nama Warung</label><input id="editWarungNama" required></div>
-                <div class="form-group full"><label>Alamat</label><input id="editWarungAlamat" required></div>
-                <div class="form-group"><label>Nomor WhatsApp</label><input id="editWarungWa" type="text"></div>
-                <div class="form-group"><label>Status</label><select id="editWarungStatus"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select></div>
-                <div class="form-group"><label>Latitude</label><input id="editWarungLat" type="text" readonly></div>
-                <div class="form-group"><label>Longitude</label><input id="editWarungLon" type="text" readonly></div>
-                <div class="form-group full"><button type="button" class="btn btn-primary" onclick="ambilGPSEditWarung()">📍 Ambil Ulang GPS</button><div id="statusGPSEditWarung" style="margin-top:8px;font-size:13px;color:#666;"></div></div>
-            </div>
-            <div class="form-buttons"><button type="button" class="btn btn-gray" onclick="closeModal('modalEditWarung')">Batal</button><button type="submit" class="btn btn-success">💾 Simpan Perubahan</button></div>
-        </form>
-    </div>
-</div>
 
 <!-- =========================
      MODAL EDIT PRODUK
@@ -2553,21 +2519,6 @@ let selectedNewImage = "";
 let selectedEditImage = "";
 
 let lastOrderCount = 0;
-
-let warungMitraMap = {};
-
-
-function getWarungNama(warungId){
-
-    const id = String(warungId || "").trim();
-
-    if(!id){
-        return "-";
-    }
-
-    return warungMitraMap[id] || (id === "1" ? "Donat Rahayu" : "Warung #" + id);
-
-}
 
 
 /* =====================================================
@@ -2908,6 +2859,17 @@ function statusHTML(status){
 
     }
 
+    if(s==="siap_diantar" || s==="siap diantar"){
+
+        return `
+            <span class="status status-siap-diantar">
+                Siap Diantar
+            </span>
+        `;
+
+    }
+
+
     if(s==="diantar"){
 
         return `
@@ -3137,13 +3099,6 @@ function renderPesanan(){
         "semua";
 
 
-    const filterWarung =
-        document.getElementById(
-            "filterWarung"
-        )?.value ||
-        "semua";
-
-
     const filtered =
         orders
         .map(
@@ -3196,13 +3151,6 @@ function renderPesanan(){
                     status===filter
                 )
 
-                &&
-
-                (
-                    filterWarung==="semua" ||
-                    String(order.warung_id || "") === String(filterWarung)
-                )
-
             );
 
         });
@@ -3214,7 +3162,7 @@ function renderPesanan(){
 
             <tr>
 
-                <td colspan="7">
+                <td colspan="6">
 
                     <div class="empty">
 
@@ -3249,12 +3197,6 @@ function renderPesanan(){
                     "Pelanggan";
 
 
-                const warungNama =
-                    order.warung_nama ||
-                    order.warungNama ||
-                    getWarungNama(order.warung_id);
-
-
                 const wa =
                     order.whatsapp ||
                     order.noWhatsapp ||
@@ -3280,12 +3222,6 @@ function renderPesanan(){
                         <td>
                             <strong>
                                 ${safe(nama)}
-                            </strong>
-                        </td>
-
-                        <td>
-                            <strong>
-                                ${safe(warungNama)}
                             </strong>
                         </td>
 
@@ -3548,10 +3484,28 @@ function detailPesanan(index){
             style="margin-top:20px">
 
             <button
+                class="btn btn-gray"
+                onclick="ubahStatus(${index},'baru')">
+
+                🆕 Baru
+
+            </button>
+
+
+            <button
                 class="btn btn-warning"
                 onclick="ubahStatus(${index},'diproses')">
 
-                🔄 Diproses
+                ⚙️ Diproses
+
+            </button>
+
+
+            <button
+                class="btn btn-purple"
+                onclick="ubahStatus(${index},'siap_diantar')">
+
+                📦 Siap Diantar
 
             </button>
 
@@ -4696,9 +4650,7 @@ async function simpanProduk(event){
                     harga: harga,
                     deskripsi: deskripsi,
                     gambar: gambar,
-                    status: status,
-                    rating: rating,
-                    stok: stok
+                    status: status
                 })
                 .select()
                 .single();
@@ -4985,56 +4937,123 @@ function previewEdit(event){
 }
 
 
-async function simpanEdit(event){
+function simpanEdit(event){
 
     event.preventDefault();
-    const id = Number(document.getElementById("editId").value);
-    const products = getProducts();
-    const index = products.findIndex(p => Number(p.id) === id);
 
-    if(index < 0){ alert("Produk tidak ditemukan."); return; }
 
-    const nama = document.getElementById("editNama").value.trim();
-    const harga = Number(document.getElementById("editHarga").value);
-    const kategori = document.getElementById("editKategori").value;
-    const rating = Number(document.getElementById("editRating").value);
-    const stok = Math.max(0, Number(document.getElementById("editStok")?.value || 0));
-    const status = document.getElementById("editStatus").value;
-    const deskripsi = document.getElementById("editDeskripsi").value.trim();
-    const fotoLama = products[index].gambar || "banner.jpg";
-    const gambar = selectedEditImage || fotoLama;
+    const id =
+        Number(
+            document.getElementById(
+                "editId"
+            ).value
+        );
 
-    if(!nama){ alert("Nama produk wajib diisi."); return; }
-    if(!Number.isFinite(harga) || harga <= 0){ alert("Harga produk harus diisi dengan benar."); return; }
-    if(!deskripsi){ alert("Deskripsi produk wajib diisi."); return; }
 
-    try {
-        const hasil = await supabaseClient.from("produk").update({
-            nama, harga, kategori, deskripsi, gambar, status, rating, stok
-        }).eq("id", id).select().single();
+    const products =
+        getProducts();
 
-        if(hasil.error) throw new Error(hasil.error.message);
 
-        products[index].nama = nama;
-        products[index].harga = harga;
-        products[index].kategori = kategori;
-        products[index].rating = rating;
-        products[index].stok = stok;
-        products[index].status = status;
-        products[index].deskripsi = deskripsi;
-        products[index].gambar = gambar;
-        saveProducts(products);
+    const index =
+        products.findIndex(
+            p =>
+            Number(p.id) ===
+            id
+        );
 
-        selectedEditImage = "";
-        const fileEl = document.getElementById("editFile");
-        if(fileEl) fileEl.value = "";
-        closeModal("modalEdit");
-        renderProducts(); renderOperasional(); updateDashboard();
-        toast("✅ Produk berhasil diperbarui di Supabase.");
-    } catch(error) {
-        console.error("ERROR EDIT PRODUK:", error);
-        alert("❌ Produk gagal diperbarui di Supabase.\n\n" + error.message);
+
+    if(index<0){
+
+        alert(
+            "Produk tidak ditemukan."
+        );
+
+        return;
+
     }
+
+
+    /*
+      PENTING:
+      FOTO LAMA DISIMPAN.
+      FOTO HANYA DIGANTI JIKA
+      USER MEMILIH FOTO BARU.
+    */
+
+    const fotoLama =
+        products[index].gambar;
+
+
+    products[index].nama =
+        document.getElementById(
+            "editNama"
+        ).value.trim();
+
+
+    products[index].harga =
+        Number(
+            document.getElementById(
+                "editHarga"
+            ).value
+        );
+
+
+    products[index].kategori =
+        document.getElementById(
+            "editKategori"
+        ).value;
+
+
+    products[index].rating =
+        Number(
+            document.getElementById(
+                "editRating"
+            ).value
+        );
+
+
+    products[index].status =
+        document.getElementById(
+            "editStatus"
+        ).value;
+
+    products[index].stok =
+        Math.max(0, Number(document.getElementById("editStok")?.value || 0));
+
+
+    products[index].deskripsi =
+        document.getElementById(
+            "editDeskripsi"
+        ).value.trim();
+
+
+    products[index].gambar =
+        selectedEditImage ||
+        fotoLama;
+
+
+    saveProducts(
+        products
+    );
+
+
+    selectedEditImage =
+        "";
+
+
+    closeModal(
+        "modalEdit"
+    );
+
+
+    renderProducts();
+
+    updateDashboard();
+
+
+    toast(
+        "Produk berhasil diperbarui."
+    );
 
 }
 
@@ -5890,106 +5909,6 @@ function setStok(id){
 function ubahStatusByObject(index,status){ubahStatus(index,status);renderOperasional();}
 
 /* =====================================================
-   FILTER WARUNG MITRA PESANAN
-===================================================== */
-
-async function loadWarungFilterPesanan(){
-
-    const select =
-        document.getElementById("filterWarung");
-
-    if(!select){
-        return;
-    }
-
-    try {
-
-        const hasil =
-            await supabaseClient
-                .from("warung")
-                .select("id,nama,alamat")
-                .order("id", { ascending: true });
-
-        if(hasil.error){
-            throw new Error(hasil.error.message);
-        }
-
-        warungMitraMap = {};
-
-        select.innerHTML =
-            '<option value="semua">🏪 Semua Warung Mitra</option>';
-
-        (hasil.data || []).forEach(function(warung){
-
-            warungMitraMap[String(warung.id)] =
-                warung.nama || ("Warung #" + warung.id);
-
-            const option =
-                document.createElement("option");
-
-            option.value = warung.id;
-
-            option.textContent =
-                "🏪 " +
-                (warung.nama || ("Warung #" + warung.id)) +
-                (warung.alamat ? " — " + warung.alamat : "");
-
-            select.appendChild(option);
-
-        });
-
-        renderPesanan();
-
-    } catch(error) {
-
-        console.error("ERROR LOAD FILTER WARUNG:", error);
-
-        select.innerHTML =
-            '<option value="semua">🏪 Semua Warung Mitra</option>';
-
-    }
-
-}
-
-
-/* =====================================================
-   EDIT WARUNG MITRA
-===================================================== */
-
-async function renderWarungMitraAdmin(){
-    const tbody=document.getElementById("tabelWarungMitra"); if(!tbody)return;
-    tbody.innerHTML='<tr><td colspan="7" class="empty">⏳ Memuat warung mitra...</td></tr>';
-    try{
-        const hasil=await supabaseClient.from("warung").select("id,nama,alamat,no_wa,status,latitude,longitude").order("id",{ascending:true});
-        if(hasil.error)throw new Error(hasil.error.message);
-        const data=hasil.data||[];
-        if(!data.length){tbody.innerHTML='<tr><td colspan="7" class="empty">Belum ada Warung Mitra.</td></tr>';return;}
-        tbody.innerHTML=data.map(w=>`<tr><td>${Number(w.id)}</td><td><strong>${safe(w.nama||"-")}</strong></td><td>${safe(w.alamat||"-")}</td><td>${safe(w.no_wa||"-")}</td><td>${w.latitude!=null&&w.longitude!=null?safe(Number(w.latitude).toFixed(7))+", "+safe(Number(w.longitude).toFixed(7)):"-"}</td><td>${statusWarungHTML(w.status)}</td><td><button type="button" class="btn btn-blue btn-small" onclick="bukaEditWarung(${Number(w.id)})">✏️ Edit</button></td></tr>`).join("");
-    }catch(error){console.error("ERROR LOAD WARUNG MITRA ADMIN:",error);tbody.innerHTML=`<tr><td colspan="7" class="empty">❌ ${safe(error.message)}</td></tr>`;}
-}
-
-function statusWarungHTML(status){const s=String(status||"Aktif").toLowerCase();return (s==="nonaktif"||s==="non-aktif")?'<span class="status status-batal">Nonaktif</span>':'<span class="status status-selesai">Aktif</span>';}
-
-async function bukaEditWarung(id){
-    try{
-        const hasil=await supabaseClient.from("warung").select("id,nama,alamat,no_wa,status,latitude,longitude").eq("id",Number(id)).single();
-        if(hasil.error)throw new Error(hasil.error.message); const w=hasil.data;
-        document.getElementById("editWarungId").value=w.id; document.getElementById("editWarungNama").value=w.nama||""; document.getElementById("editWarungAlamat").value=w.alamat||""; document.getElementById("editWarungWa").value=w.no_wa||""; document.getElementById("editWarungStatus").value=String(w.status||"Aktif").toLowerCase()==="nonaktif"?"Nonaktif":"Aktif"; document.getElementById("editWarungLat").value=w.latitude??""; document.getElementById("editWarungLon").value=w.longitude??""; document.getElementById("statusGPSEditWarung").textContent=""; document.getElementById("modalEditWarung").classList.add("show");
-    }catch(error){alert("❌ Gagal memuat data warung.\n\n"+error.message);}
-}
-
-function ambilGPSEditWarung(){
-    const status=document.getElementById("statusGPSEditWarung"); if(!navigator.geolocation){status.textContent="❌ Browser tidak mendukung GPS.";return;} status.textContent="⏳ Mengambil lokasi GPS...";
-    navigator.geolocation.getCurrentPosition(function(position){document.getElementById("editWarungLat").value=position.coords.latitude.toFixed(7);document.getElementById("editWarungLon").value=position.coords.longitude.toFixed(7);status.textContent="✅ Lokasi GPS berhasil diperbarui.";},function(error){let msg="❌ Gagal mengambil lokasi GPS.";if(error.code===1)msg="❌ Izin lokasi ditolak.";if(error.code===2)msg="❌ Lokasi tidak tersedia.";if(error.code===3)msg="❌ Pengambilan lokasi terlalu lama.";status.textContent=msg;},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
-}
-
-async function simpanEditWarung(event){
-    event.preventDefault(); const id=Number(document.getElementById("editWarungId").value); const nama=document.getElementById("editWarungNama").value.trim(); const alamat=document.getElementById("editWarungAlamat").value.trim(); const noWa=document.getElementById("editWarungWa").value.trim(); const status=document.getElementById("editWarungStatus").value; const latText=document.getElementById("editWarungLat").value.trim(); const lonText=document.getElementById("editWarungLon").value.trim(); const latitude=latText?Number(latText):null; const longitude=lonText?Number(lonText):null;
-    if(!nama||!alamat){alert("Nama warung dan alamat wajib diisi.");return;} if((latText&&!Number.isFinite(latitude))||(lonText&&!Number.isFinite(longitude))){alert("Koordinat GPS tidak valid.");return;}
-    try{const hasil=await supabaseClient.from("warung").update({nama,alamat,no_wa:noWa||null,status,latitude,longitude}).eq("id",id).select().single();if(hasil.error)throw new Error(hasil.error.message);closeModal("modalEditWarung");await renderWarungMitraAdmin();await loadWarungFilterPesanan();await loadWarungMitraProduk();toast("✅ Data Warung Mitra berhasil diperbarui.");}catch(error){console.error("ERROR EDIT WARUNG:",error);alert("❌ Warung gagal diperbarui.\n\n"+error.message);}
-}
-
-/* =====================================================
    INIT
 ===================================================== */
 
@@ -6086,9 +6005,6 @@ document.addEventListener(
 
 
         loadWarungMitraProduk();
-        renderWarungMitraAdmin();
-
-        loadWarungFilterPesanan();
 
 
         updateDashboard();
@@ -6506,9 +6422,6 @@ setInterval(
         document.getElementById("statusGPSWarung").textContent = "";
 
         alert("✅ Warung berhasil disimpan ke Supabase.");
-        await renderWarungMitraAdmin();
-        await loadWarungFilterPesanan();
-        await loadWarungMitraProduk();
 
     } catch (error) {
 
