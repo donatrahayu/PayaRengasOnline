@@ -5920,6 +5920,69 @@ function setStok(id){
 function ubahStatusByObject(index,status){ubahStatus(index,status);renderOperasional();}
 
 /* =====================================================
+   SINKRONISASI WARUNG_ID PESANAN DARI SUPABASE
+===================================================== */
+
+async function sinkronisasiWarungIdPesanan(){
+
+    try {
+
+        const hasil =
+            await supabaseClient
+                .from("pesanan")
+                .select("id,warung_id");
+
+        if(hasil.error){
+            throw new Error(hasil.error.message);
+        }
+
+        const serverOrders = hasil.data || [];
+
+        if(!serverOrders.length){
+            return;
+        }
+
+        const orders = getOrders();
+        let berubah = false;
+
+        orders.forEach(function(order){
+
+            const serverOrder =
+                serverOrders.find(function(item){
+                    return String(item.id) === String(order.id);
+                });
+
+            if(serverOrder && serverOrder.warung_id != null){
+
+                if(String(order.warung_id || "") !== String(serverOrder.warung_id)){
+                    order.warung_id = serverOrder.warung_id;
+                    berubah = true;
+                }
+
+            }
+
+        });
+
+        if(berubah){
+            localStorage.setItem(
+                ORDER_KEY,
+                JSON.stringify(orders)
+            );
+        }
+
+    } catch(error) {
+
+        console.error(
+            "ERROR SINKRON WARUNG PESANAN:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =====================================================
    FILTER WARUNG MITRA PESANAN
 ===================================================== */
 
@@ -5967,6 +6030,8 @@ async function loadWarungFilterPesanan(){
             select.appendChild(option);
 
         });
+
+        await sinkronisasiWarungIdPesanan();
 
         renderPesanan();
 
