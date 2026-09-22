@@ -210,441 +210,48 @@
     id="menu">
 
     <h2>
-        🍽 Menu Pilihan
+        🍽 Menu Warung Mitra
     </h2>
 
+    <div style="max-width:1200px;margin:0 auto 20px;padding:16px;border-radius:14px;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.06);">
 
-    <div class="produk">
+        <label for="pilihWarungMitra" style="display:block;font-weight:600;margin-bottom:8px;">
+            🏪 Pilih Warung Mitra
+        </label>
 
+        <select
+            id="pilihWarungMitra"
+            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:15px;">
 
+            <option value="">⏳ Memuat Warung Mitra...</option>
 
-        <!-- DONAT -->
+        </select>
 
-        <div class="card">
+        <div
+            id="infoWarungMitra"
+            style="margin-top:8px;color:#666;font-size:13px;">
 
-            <span class="promo">
-                Promo
-            </span>
-
-
-            <button
-                type="button"
-                class="favorite">
-
-                ❤
-
-            </button>
-
-
-            <img
-                src="images/donat.jpg"
-                alt="Donat Rahayu">
-
-
-            <h3>
-                Donat Rahayu
-            </h3>
-
-
-            <p>
-                Donat lembut topping melimpah.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐⭐
-            </div>
-
-
-            <h4>
-                Rp10.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Donat Rahayu',10000)">
-
-                🛒 Pesan
-
-            </button>
+            Produk akan tampil sesuai Warung Mitra yang dipilih.
 
         </div>
 
+    </div>
 
+    <div
+        id="statusMenuSupabase"
+        style="max-width:1200px;margin:0 auto 15px;text-align:center;color:#666;font-size:14px;">
 
-        <!-- MIE AYAM -->
+        ⏳ Memuat menu...
 
-        <div class="card">
+    </div>
 
-            <img
-                src="images/mieayam.jpg"
-                alt="Mie Ayam">
+    <div
+        class="produk"
+        id="daftarProdukSupabase">
 
-
-            <h3>
-                Mie Ayam
-            </h3>
-
-
-            <p>
-                Mie ayam spesial.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐☆
-            </div>
-
-
-            <h4>
-                Rp12.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Mie Ayam',12000)">
-
-                🛒 Pesan
-
-            </button>
-
+        <div style="grid-column:1/-1;text-align:center;padding:30px;">
+            ⏳ Memuat produk Warung Mitra...
         </div>
-
-
-
-        <!-- BURGER -->
-
-        <div class="card">
-
-            <img
-                src="images/burger.jpg"
-                alt="Burger Spesial">
-
-
-            <h3>
-                Burger Spesial
-            </h3>
-
-
-            <p>
-                Burger daging sapi.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐⭐
-            </div>
-
-
-            <h4>
-                Rp15.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Burger',15000)">
-
-                🛒 Pesan
-
-            </button>
-
-        </div>
-
-
-
-        <!-- MINUMAN -->
-
-        <div class="card">
-
-            <img
-                src="images/minuman.jpg"
-                alt="Es Teh Manis">
-
-
-            <h3>
-                Es Teh Manis
-            </h3>
-
-
-            <p>
-                Segar dan dingin.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐☆
-            </div>
-
-
-            <h4>
-                Rp5.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Es Teh Manis',5000)">
-
-                🛒 Pesan
-
-            </button>
-
-        </div>
-
-
-
-        <!-- AYAM GEPREK -->
-
-        <div class="card">
-
-            <span class="promo">
-                Best Seller
-            </span>
-
-
-            <img
-                src="images/ayamgeprek.jpg"
-                alt="Ayam Geprek">
-
-
-            <h3>
-                Ayam Geprek
-            </h3>
-
-
-            <p>
-                Ayam geprek pedas level 1-5.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐⭐
-            </div>
-
-
-            <h4>
-                Rp18.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Ayam Geprek',18000)">
-
-                🛒 Pesan
-
-            </button>
-
-        </div>
-
-
-
-        <!-- NASI GORENG -->
-
-        <div class="card">
-
-            <img
-                src="images/nasigoreng.jpg"
-                alt="Nasi Goreng">
-
-
-            <h3>
-                Nasi Goreng
-            </h3>
-
-
-            <p>
-                Nasi goreng spesial telur.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐☆
-            </div>
-
-
-            <h4>
-                Rp20.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Nasi Goreng',20000)">
-
-                🛒 Pesan
-
-            </button>
-
-        </div>
-
-
-
-        <!-- PIZZA -->
-
-        <div class="card">
-
-            <img
-                src="images/pizza.jpg"
-                alt="Pizza Mini">
-
-
-            <h3>
-                Pizza Mini
-            </h3>
-
-
-            <p>
-                Pizza keju dengan sosis.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐⭐
-            </div>
-
-
-            <h4>
-                Rp25.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Pizza Mini',25000)">
-
-                🛒 Pesan
-
-            </button>
-
-        </div>
-
-
-
-        <!-- HOTDOG -->
-
-        <div class="card">
-
-            <img
-                src="images/hotdog.jpg"
-                alt="Hotdog">
-
-
-            <h3>
-                Hotdog
-            </h3>
-
-
-            <p>
-                Hotdog isi sosis jumbo.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐☆
-            </div>
-
-
-            <h4>
-                Rp15.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Hotdog',15000)">
-
-                🛒 Pesan
-
-            </button>
-
-        </div>
-
-
-
-        <!-- BOBA -->
-
-        <div class="card">
-
-            <img
-                src="images/boba.jpg"
-                alt="Boba Brown Sugar">
-
-
-            <h3>
-                Boba Brown Sugar
-            </h3>
-
-
-            <p>
-                Minuman boba favorit.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐⭐
-            </div>
-
-
-            <h4>
-                Rp12.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Boba Brown Sugar',12000)">
-
-                🛒 Pesan
-
-            </button>
-
-        </div>
-
-
-
-        <!-- KENTANG -->
-
-        <div class="card">
-
-            <img
-                src="images/kentang.jpg"
-                alt="Kentang Goreng">
-
-
-            <h3>
-                Kentang Goreng
-            </h3>
-
-
-            <p>
-                Renyah dengan saus sambal.
-            </p>
-
-
-            <div class="rating">
-                ⭐⭐⭐⭐☆
-            </div>
-
-
-            <h4>
-                Rp10.000
-            </h4>
-
-
-            <button
-                type="button"
-                onclick="tambahKeranjang('Kentang Goreng',10000)">
-
-                🛒 Pesan
-
-            </button>
-
-        </div>
-
 
     </div>
 
