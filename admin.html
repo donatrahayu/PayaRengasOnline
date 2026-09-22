@@ -1404,6 +1404,28 @@ tr:hover td{
             <div class="form-grid">
 
 
+                <div class="form-group full">
+
+                    <label>
+                        🏪 Pilih Warung Mitra
+                    </label>
+
+                    <select
+                        id="warungProduk"
+                        required>
+
+                        <option value="">⏳ Memuat warung mitra...</option>
+
+                    </select>
+
+                    <div
+                        id="statusWarungProduk"
+                        style="margin-top:7px;font-size:13px;color:#666;">
+                    </div>
+
+                </div>
+
+
                 <div class="form-group">
 
                     <label>
@@ -4445,9 +4467,24 @@ function previewTambah(event){
 }
 
 
-function simpanProduk(event){
+async function simpanProduk(event){
 
     event.preventDefault();
+
+
+    const tombol =
+        event.submitter ||
+        document.querySelector('#tambah form button[type="submit"]');
+
+
+    const warungSelect =
+        document.getElementById("warungProduk");
+
+    const warungId =
+        Number(warungSelect?.value || 0);
+
+    const warungNama =
+        warungSelect?.selectedOptions?.[0]?.textContent?.trim() || "";
 
 
     const nama =
@@ -4468,6 +4505,49 @@ function simpanProduk(event){
         document.getElementById(
             "deskripsiProduk"
         ).value.trim();
+
+
+    const kategori =
+        document.getElementById(
+            "kategoriProduk"
+        ).value;
+
+
+    const status =
+        document.getElementById(
+            "statusProduk"
+        ).value;
+
+
+    const rating =
+        Number(
+            document.getElementById(
+                "ratingProduk"
+            ).value
+        );
+
+
+    const stok =
+        Math.max(
+            0,
+            Number(
+                document.getElementById(
+                    "stokProduk"
+                )?.value || 0
+            )
+        );
+
+
+    if(!warungId){
+
+        alert(
+            "Silakan pilih Warung Mitra terlebih dahulu."
+        );
+
+        warungSelect?.focus();
+        return;
+
+    }
 
 
     if(!nama){
@@ -4503,71 +4583,132 @@ function simpanProduk(event){
     }
 
 
-    const products =
-        getProducts();
+    if(tombol){
+        tombol.disabled = true;
+        tombol.dataset.oldText = tombol.innerHTML;
+        tombol.innerHTML = "⏳ Menyimpan...";
+    }
 
 
-    products.push({
+    try {
 
-        id:
-            Date.now(),
-
-        nama:
-            nama,
-
-        harga:
-            harga,
-
-        kategori:
-            document.getElementById(
-                "kategoriProduk"
-            ).value,
-
-        rating:
-            Number(
-                document.getElementById(
-                    "ratingProduk"
-                ).value
-            ),
-
-        status:
-            document.getElementById(
-                "statusProduk"
-            ).value,
-
-        stok:
-            Math.max(0, Number(document.getElementById("stokProduk")?.value || 0)),
-
-        deskripsi:
-            deskripsi,
-
-        gambar:
+        const gambar =
             selectedNewImage ||
-            "banner.jpg"
-
-    });
+            "banner.jpg";
 
 
-    saveProducts(
-        products
-    );
+        const hasil =
+            await supabaseClient
+                .from("produk")
+                .insert({
+                    warung_id: warungId,
+                    nama: nama,
+                    kategori: kategori,
+                    harga: harga,
+                    deskripsi: deskripsi,
+                    gambar: gambar,
+                    status: status
+                })
+                .select()
+                .single();
 
 
-    resetForm();
-
-    renderProducts();
-
-    updateDashboard();
+        if(hasil.error){
+            throw new Error(hasil.error.message);
+        }
 
 
-    toast(
-        "Produk berhasil ditambahkan."
-    );
+        const products =
+            getProducts();
 
 
-    showPageById(
-        "produk"
-    );
+        products.push({
+
+            id:
+                hasil.data.id,
+
+            warung_id:
+                warungId,
+
+            warung_nama:
+                warungNama,
+
+            nama:
+                nama,
+
+            harga:
+                harga,
+
+            kategori:
+                kategori,
+
+            rating:
+                rating,
+
+            status:
+                status,
+
+            stok:
+                stok,
+
+            deskripsi:
+                deskripsi,
+
+            gambar:
+                gambar
+
+        });
+
+
+        saveProducts(
+            products
+        );
+
+
+        resetForm();
+
+        renderProducts();
+
+        updateDashboard();
+
+
+        toast(
+            "Produk berhasil disimpan ke Supabase."
+        );
+
+        alert(
+            "✅ Produk berhasil disimpan untuk " +
+            warungNama +
+            ".\n\nID Produk: " +
+            hasil.data.id
+        );
+
+
+        showPageById(
+            "produk"
+        );
+
+    } catch(error) {
+
+        console.error(
+            "ERROR SIMPAN PRODUK:",
+            error
+        );
+
+        alert(
+            "❌ Gagal menyimpan produk ke Supabase:\n\n" +
+            error.message
+        );
+
+    } finally {
+
+        if(tombol){
+            tombol.disabled = false;
+            tombol.innerHTML =
+                tombol.dataset.oldText || "💾 Simpan Produk";
+        }
+
+    }
 
 }
 
@@ -5728,12 +5869,99 @@ function ubahStatusByObject(index,status){ubahStatus(index,status);renderOperasi
    INIT
 ===================================================== */
 
+async function loadWarungMitraProduk(){
+
+    const select =
+        document.getElementById("warungProduk");
+
+    const status =
+        document.getElementById("statusWarungProduk");
+
+    if(!select){
+        return;
+    }
+
+    try {
+
+        const hasil =
+            await supabaseClient
+                .from("warung")
+                .select("id,nama,alamat")
+                .order("id", { ascending: true });
+
+        if(hasil.error){
+            throw new Error(hasil.error.message);
+        }
+
+        select.innerHTML =
+            '<option value="">-- Pilih Warung Mitra --</option>';
+
+        if(!hasil.data || hasil.data.length === 0){
+            select.innerHTML =
+                '<option value="">Belum ada Warung Mitra</option>';
+
+            if(status){
+                status.textContent =
+                    "⚠️ Tambahkan Warung Mitra terlebih dahulu.";
+            }
+
+            return;
+        }
+
+        hasil.data.forEach(function(warung){
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                warung.id;
+
+            option.textContent =
+                warung.nama +
+                (warung.alamat ? " — " + warung.alamat : "");
+
+            select.appendChild(option);
+
+        });
+
+        if(status){
+            status.textContent =
+                "✅ " + hasil.data.length + " Warung Mitra tersedia.";
+        }
+
+    } catch(error) {
+
+        console.error(
+            "ERROR LOAD WARUNG MITRA:",
+            error
+        );
+
+        select.innerHTML =
+            '<option value="">❌ Gagal memuat warung</option>';
+
+        if(status){
+            status.textContent =
+                "❌ " + error.message;
+        }
+
+    }
+
+}
+
+
+window.loadWarungMitraProduk =
+    loadWarungMitraProduk;
+
+
 document.addEventListener(
     "DOMContentLoaded",
     function(){
 
         lastOrderCount =
             getOrders().length;
+
+
+        loadWarungMitraProduk();
 
 
         updateDashboard();
