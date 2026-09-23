@@ -1263,10 +1263,6 @@ tr:hover td{
                     Diproses
                 </option>
 
-                <option value="siapdiantar">
-                    Siap Diantar
-                </option>
-
                 <option value="diantar">
                     Diantar
                 </option>
@@ -1360,23 +1356,11 @@ tr:hover td{
         </div>
 
 
-        <div class="toolbar" style="margin-top:12px;align-items:center;">
-
-            <input
-                id="searchProduk"
-                class="search"
-                placeholder="Cari nama produk..."
-                oninput="renderProducts()">
-
-            <select
-                id="filterWarungProduk"
-                class="filter"
-                onchange="renderProducts()"
-                style="min-width:260px;">
-                <option value="semua">🏪 Semua Warung Mitra</option>
-            </select>
-
-        </div>
+        <input
+            id="searchProduk"
+            class="search"
+            placeholder="Cari nama produk..."
+            oninput="renderProducts()">
 
 
         <br><br>
@@ -1418,28 +1402,6 @@ tr:hover td{
             onsubmit="simpanProduk(event)">
 
             <div class="form-grid">
-
-
-                <div class="form-group full">
-
-                    <label>
-                        🏪 Pilih Warung Mitra
-                    </label>
-
-                    <select
-                        id="warungProduk"
-                        required>
-
-                        <option value="">⏳ Memuat warung mitra...</option>
-
-                    </select>
-
-                    <div
-                        id="statusWarungProduk"
-                        style="margin-top:7px;font-size:13px;color:#666;">
-                    </div>
-
-                </div>
 
 
                 <div class="form-group">
@@ -1775,7 +1737,6 @@ tr:hover td{
                 <option value="semua">Semua Status</option>
                 <option value="baru">Baru</option>
                 <option value="diproses">Diproses</option>
-                <option value="siapdiantar">Siap Diantar</option>
                 <option value="diantar">Diantar</option>
                 <option value="selesai">Selesai</option>
                 <option value="batal">Batal</option>
@@ -1940,7 +1901,6 @@ tr:hover td{
         <option value="semua">Semua Status</option>
         <option value="baru">Baru</option>
         <option value="diproses">Diproses</option>
-        <option value="siapdiantar">Siap Diantar</option>
         <option value="diantar">Diantar</option>
         <option value="selesai">Selesai</option>
         <option value="batal">Batal</option>
@@ -2008,7 +1968,7 @@ tr:hover td{
     <div class="toolbar">
       <input id="v24CariPesanan" class="search" placeholder="Cari pelanggan, alamat, atau nomor pesanan..." oninput="renderPengantaranV24()">
       <select id="v24FilterStatus" class="filter" onchange="renderPengantaranV24()">
-        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option><option value="siapdiantar">Siap Diantar</option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
+        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
       </select>
     </div>
     <div class="table-scroll"><table style="min-width:1100px"><thead><tr><th>#</th><th>Pelanggan</th><th>Alamat</th><th>Total</th><th>Status</th><th>Driver</th><th>Aksi</th></tr></thead><tbody id="tabelPengantaranV24"></tbody></table></div>
@@ -2077,37 +2037,9 @@ tr:hover td{
             id="noWaWarung"
             placeholder="Nomor WhatsApp Warung">
 
-        <div style="margin-top:12px;padding:14px;border:1px solid #ddd;border-radius:12px;background:#f8fafc;">
-            <div style="font-weight:700;margin-bottom:6px;">📍 Lokasi GPS Warung</div>
-            <div style="font-size:13px;color:#666;margin-bottom:10px;">Tekan tombol untuk mengambil titik lokasi warung saat berada di tempat warung.</div>
-
-            <button
-                type="button"
-                class="btn btn-primary"
-                onclick="ambilGPSWarung()">
-                📍 Ambil Lokasi GPS
-            </button>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
-                <input
-                    type="text"
-                    id="latitudeWarung"
-                    placeholder="Latitude"
-                    readonly>
-                <input
-                    type="text"
-                    id="longitudeWarung"
-                    placeholder="Longitude"
-                    readonly>
-            </div>
-
-            <div id="statusGPSWarung" style="margin-top:8px;font-size:13px;"></div>
-        </div>
-
         <button
             class="btn btn-primary"
-            onclick="tambahWarung()"
-            style="margin-top:12px;">
+            onclick="tambahWarung()">
 
             ➕ Simpan Warung
 
@@ -2863,17 +2795,6 @@ function statusHTML(status){
 
     }
 
-    if(s==="siapdiantar"){
-
-        return `
-            <span class="status status-proses">
-                Siap Diantar
-            </span>
-        `;
-
-    }
-
-
     if(s==="diantar"){
 
         return `
@@ -3501,15 +3422,6 @@ function detailPesanan(index){
                 onclick="ubahStatus(${index},'selesai')">
 
                 ✅ Selesai
-
-            </button>
-
-
-            <button
-                class="btn btn-blue"
-                onclick="ubahStatus(${index},'siapdiantar')">
-
-                📦 Siap Diantar
 
             </button>
 
@@ -4246,142 +4158,200 @@ function cetakStruk(index){
 function renderProducts(){
 
     const grid =
-        document.getElementById("produkGrid");
+        document.getElementById(
+            "produkGrid"
+        );
 
-    if(!grid){
-        return;
-    }
 
     const keyword =
-        String(document.getElementById("searchProduk")?.value || "")
+        (
+            document.getElementById(
+                "searchProduk"
+            )?.value || ""
+        )
         .toLowerCase()
         .trim();
 
-    const filterWarung =
-        String(document.getElementById("filterWarungProduk")?.value || "semua");
-
-    const allProducts = getProducts();
-
-    /*
-       Produk yang dibuat melalui Tambah Produk sudah menyimpan
-       warung_id dan warung_nama. Untuk produk lama, tetap tampil,
-       tetapi ditandai belum terhubung agar data lama tidak hilang.
-    */
-    const warungMap = new Map();
-    allProducts.forEach(p=>{
-        const id = Number(p.warung_id || 0);
-        const nama = String(p.warung_nama || p.warungNama || "").trim();
-        if(id && nama) warungMap.set(String(id), nama);
-    });
-
-    const filterSelect = document.getElementById("filterWarungProduk");
-    if(filterSelect){
-        const current = filterSelect.value || "semua";
-        const options = [...warungMap.entries()]
-            .sort((a,b)=>a[1].localeCompare(b[1],'id'))
-            .map(([id,nama])=>`<option value="${safe(id)}">🏪 ${safe(nama)}</option>`)
-            .join("");
-        filterSelect.innerHTML =
-            `<option value="semua">🏪 Semua Warung Mitra</option>` +
-            options +
-            `<option value="tanpawaru">⚠️ Belum Terhubung Warung</option>`;
-        filterSelect.value = [...filterSelect.options].some(o=>o.value===current) ? current : "semua";
-    }
 
     const products =
-        allProducts.filter(product=>{
-            const nama = String(product.nama || "").toLowerCase();
-            const warungId = String(product.warung_id || "");
-            const warungNama = String(product.warung_nama || product.warungNama || "").toLowerCase();
+        getProducts()
+        .filter(product=>{
 
-            const cocokCari =
-                !keyword ||
-                nama.includes(keyword) ||
-                warungNama.includes(keyword);
+            return String(
+                product.nama || ""
+            )
+            .toLowerCase()
+            .includes(keyword);
 
-            const cocokWarung =
-                filterWarung === "semua" ||
-                (filterWarung === "tanpawaru" && !warungId) ||
-                (warungId === filterWarung);
-
-            return cocokCari && cocokWarung;
         });
 
+
     if(!products.length){
+
         grid.innerHTML = `
-            <div class="empty" style="grid-column:1/-1;">
+
+            <div class="empty">
+
                 🍔<br>
                 Produk tidak ditemukan.
+
             </div>
+
         `;
+
         return;
+
     }
 
-    grid.innerHTML = products.map(product=>{
 
-        const status =
-            String(product.status || "tersedia").toLowerCase();
+    grid.innerHTML =
+        products
+        .map(product=>{
 
-        const stars =
-            "⭐".repeat(Number(product.rating || 0));
+            const status =
+                String(
+                    product.status ||
+                    "tersedia"
+                ).toLowerCase();
 
-        const warungNama =
-            String(product.warung_nama || product.warungNama || "").trim();
 
-        const warungLabel =
-            warungNama ||
-            (product.warung_id
-                ? "Warung Mitra ID " + product.warung_id
-                : "Belum terhubung ke Warung Mitra");
+            const stars =
+                "⭐".repeat(
+                    Number(
+                        product.rating ||
+                        0
+                    )
+                );
 
-        return `
-            <div class="product-card">
-                <div class="product-image">
-                    <img
-                        src="${imagePath(product.gambar)}"
-                        alt="${safe(product.nama)}"
-                        onerror="this.onerror=null;this.src='images/banner.jpg';">
+
+            return `
+
+                <div class="product-card">
+
+                    <div
+                        class="product-image">
+
+                        <img
+                            src="${imagePath(product.gambar)}"
+                            alt="${safe(product.nama)}"
+                            onerror="this.onerror=null;this.src='images/banner.jpg';">
+
+                    </div>
+
+
+                    <div
+                        class="product-body">
+
+                        <h3>
+                            ${safe(product.nama)}
+                        </h3>
+
+
+                        <div
+                            class="product-description">
+
+                            ${safe(
+                                product.deskripsi ||
+                                ""
+                            )}
+
+                        </div>
+
+
+                        <span
+                            class="category">
+
+                            ${safe(
+                                product.kategori ||
+                                "Produk"
+                            )}
+
+                        </span>
+
+
+                        <div
+                            class="rating">
+
+                            ${stars}
+
+                        </div>
+
+
+                        <div class="price">
+
+                            ${rupiah(
+                                product.harga
+                            )}
+
+                        </div>
+
+
+                        <div style="margin:8px 0;font-size:13px;font-weight:700;">📦 Stok: ${Number(product.stok ?? 0)} &nbsp; • &nbsp; Modal: ${rupiah(Number(product.modal ?? 0))}</div>
+                        <button class="btn btn-blue btn-small" onclick="setModalProdukV22(${Number(product.id)})">💰 Set Modal</button>
+
+                        <div>
+
+                            ${
+                                status==="habis"
+
+                                ?
+
+                                `
+                                <span
+                                    class="status status-batal">
+
+                                    ❌ Habis
+
+                                </span>
+                                `
+
+                                :
+
+                                `
+                                <span
+                                    class="status status-selesai">
+
+                                    ✅ Tersedia
+
+                                </span>
+                                `
+
+                            }
+
+                        </div>
+
+
+                        <div
+                            class="product-actions"
+                            style="margin-top:10px">
+
+                            <button
+                                class="btn btn-warning"
+                                onclick="editProduct(${product.id})">
+
+                                ✏️ Edit
+
+                            </button>
+
+
+                            <button
+                                class="btn btn-danger"
+                                onclick="deleteProduct(${product.id})">
+
+                                🗑 Hapus
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <div class="product-body">
-                    <h3>${safe(product.nama)}</h3>
+            `;
 
-                    <div style="margin:6px 0 10px;padding:7px 9px;border-radius:8px;background:#fff7e8;font-size:12px;font-weight:700;color:#8a5a00;">
-                        🏪 ${safe(warungLabel)}
-                    </div>
-
-                    <div class="product-description">
-                        ${safe(product.deskripsi || "")}
-                    </div>
-
-                    <span class="category">
-                        ${safe(product.kategori || "Produk")}
-                    </span>
-
-                    <div class="rating">${stars}</div>
-
-                    <div class="price">${rupiah(product.harga)}</div>
-
-                    <div style="margin:8px 0;font-size:13px;font-weight:700;">
-                        📦 Stok: ${Number(product.stok ?? 0)} &nbsp; • &nbsp; Modal: ${rupiah(Number(product.modal ?? 0))}
-                    </div>
-
-                    <button class="btn btn-blue btn-small" onclick="setModalProdukV22(${Number(product.id)})">💰 Set Modal</button>
-
-                    <div style="margin-top:8px;">
-                        ${status==="habis"
-                            ? `<span class="status status-batal">❌ Habis</span>`
-                            : `<span class="status status-selesai">✅ Tersedia</span>`}
-                    </div>
-
-                    <div class="product-actions" style="margin-top:10px">
-                        <button class="btn btn-warning" onclick="editProduct(${product.id})">✏️ Edit</button>
-                        <button class="btn btn-danger" onclick="deleteProduct(${product.id})">🗑 Hapus</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join("");
+        })
+        .join("");
 
 }
 
@@ -4447,24 +4417,9 @@ function previewTambah(event){
 }
 
 
-async function simpanProduk(event){
+function simpanProduk(event){
 
     event.preventDefault();
-
-
-    const tombol =
-        event.submitter ||
-        document.querySelector('#tambah form button[type="submit"]');
-
-
-    const warungSelect =
-        document.getElementById("warungProduk");
-
-    const warungId =
-        Number(warungSelect?.value || 0);
-
-    const warungNama =
-        warungSelect?.selectedOptions?.[0]?.textContent?.trim() || "";
 
 
     const nama =
@@ -4485,49 +4440,6 @@ async function simpanProduk(event){
         document.getElementById(
             "deskripsiProduk"
         ).value.trim();
-
-
-    const kategori =
-        document.getElementById(
-            "kategoriProduk"
-        ).value;
-
-
-    const status =
-        document.getElementById(
-            "statusProduk"
-        ).value;
-
-
-    const rating =
-        Number(
-            document.getElementById(
-                "ratingProduk"
-            ).value
-        );
-
-
-    const stok =
-        Math.max(
-            0,
-            Number(
-                document.getElementById(
-                    "stokProduk"
-                )?.value || 0
-            )
-        );
-
-
-    if(!warungId){
-
-        alert(
-            "Silakan pilih Warung Mitra terlebih dahulu."
-        );
-
-        warungSelect?.focus();
-        return;
-
-    }
 
 
     if(!nama){
@@ -4563,132 +4475,71 @@ async function simpanProduk(event){
     }
 
 
-    if(tombol){
-        tombol.disabled = true;
-        tombol.dataset.oldText = tombol.innerHTML;
-        tombol.innerHTML = "⏳ Menyimpan...";
-    }
+    const products =
+        getProducts();
 
 
-    try {
+    products.push({
 
-        const gambar =
+        id:
+            Date.now(),
+
+        nama:
+            nama,
+
+        harga:
+            harga,
+
+        kategori:
+            document.getElementById(
+                "kategoriProduk"
+            ).value,
+
+        rating:
+            Number(
+                document.getElementById(
+                    "ratingProduk"
+                ).value
+            ),
+
+        status:
+            document.getElementById(
+                "statusProduk"
+            ).value,
+
+        stok:
+            Math.max(0, Number(document.getElementById("stokProduk")?.value || 0)),
+
+        deskripsi:
+            deskripsi,
+
+        gambar:
             selectedNewImage ||
-            "banner.jpg";
+            "banner.jpg"
+
+    });
 
 
-        const hasil =
-            await supabaseClient
-                .from("produk")
-                .insert({
-                    warung_id: warungId,
-                    nama: nama,
-                    kategori: kategori,
-                    harga: harga,
-                    deskripsi: deskripsi,
-                    gambar: gambar,
-                    status: status
-                })
-                .select()
-                .single();
+    saveProducts(
+        products
+    );
 
 
-        if(hasil.error){
-            throw new Error(hasil.error.message);
-        }
+    resetForm();
+
+    renderProducts();
+
+    updateDashboard();
 
 
-        const products =
-            getProducts();
+    toast(
+        "Produk berhasil ditambahkan."
+    );
 
 
-        products.push({
-
-            id:
-                hasil.data.id,
-
-            warung_id:
-                warungId,
-
-            warung_nama:
-                warungNama,
-
-            nama:
-                nama,
-
-            harga:
-                harga,
-
-            kategori:
-                kategori,
-
-            rating:
-                rating,
-
-            status:
-                status,
-
-            stok:
-                stok,
-
-            deskripsi:
-                deskripsi,
-
-            gambar:
-                gambar
-
-        });
-
-
-        saveProducts(
-            products
-        );
-
-
-        resetForm();
-
-        renderProducts();
-
-        updateDashboard();
-
-
-        toast(
-            "Produk berhasil disimpan ke Supabase."
-        );
-
-        alert(
-            "✅ Produk berhasil disimpan untuk " +
-            warungNama +
-            ".\n\nID Produk: " +
-            hasil.data.id
-        );
-
-
-        showPageById(
-            "produk"
-        );
-
-    } catch(error) {
-
-        console.error(
-            "ERROR SIMPAN PRODUK:",
-            error
-        );
-
-        alert(
-            "❌ Gagal menyimpan produk ke Supabase:\n\n" +
-            error.message
-        );
-
-    } finally {
-
-        if(tombol){
-            tombol.disabled = false;
-            tombol.innerHTML =
-                tombol.dataset.oldText || "💾 Simpan Produk";
-        }
-
-    }
+    showPageById(
+        "produk"
+    );
 
 }
 
@@ -4874,123 +4725,94 @@ function previewEdit(event){
 }
 
 
-function simpanEdit(event){
+async function simpanEdit(event){
 
     event.preventDefault();
 
+    const id = Number(document.getElementById("editId").value);
+    const products = getProducts();
+    const index = products.findIndex(p => Number(p.id) === id);
 
-    const id =
-        Number(
-            document.getElementById(
-                "editId"
-            ).value
-        );
-
-
-    const products =
-        getProducts();
-
-
-    const index =
-        products.findIndex(
-            p =>
-            Number(p.id) ===
-            id
-        );
-
-
-    if(index<0){
-
-        alert(
-            "Produk tidak ditemukan."
-        );
-
+    if(index < 0){
+        alert("Produk tidak ditemukan.");
         return;
-
     }
 
+    const fotoLama = products[index].gambar;
 
-    /*
-      PENTING:
-      FOTO LAMA DISIMPAN.
-      FOTO HANYA DIGANTI JIKA
-      USER MEMILIH FOTO BARU.
-    */
+    const nama = document.getElementById("editNama").value.trim();
+    const harga = Number(document.getElementById("editHarga").value);
+    const kategori = document.getElementById("editKategori").value;
+    const rating = Number(document.getElementById("editRating").value);
+    const status = document.getElementById("editStatus").value;
+    const stok = Math.max(0, Number(document.getElementById("editStok")?.value || 0));
+    const deskripsi = document.getElementById("editDeskripsi").value.trim();
+    const gambar = selectedEditImage || fotoLama;
 
-    const fotoLama =
-        products[index].gambar;
+    if(!nama){ alert("Nama produk wajib diisi."); return; }
+    if(harga <= 0){ alert("Harga produk harus diisi."); return; }
+    if(!deskripsi){ alert("Deskripsi produk wajib diisi."); return; }
 
+    const tombol = document.querySelector('#modalEdit button[type="submit"]');
+    if(tombol){
+        tombol.disabled = true;
+        tombol.dataset.oldText = tombol.innerHTML;
+        tombol.innerHTML = "⏳ Menyimpan...";
+    }
 
-    products[index].nama =
-        document.getElementById(
-            "editNama"
-        ).value.trim();
+    try {
+        /* Sinkronkan produk Warung Mitra ke Supabase.
+           Rating dan stok tetap disimpan lokal karena kolom tersebut
+           belum ada di tabel public.produk. */
+        if(products[index].warung_id){
+            const hasil = await supabaseClient
+                .from("produk")
+                .update({
+                    nama: nama,
+                    harga: harga,
+                    kategori: kategori,
+                    deskripsi: deskripsi,
+                    gambar: gambar || "banner.jpg",
+                    status: status
+                })
+                .eq("id", id)
+                .select("id")
+                .maybeSingle();
 
+            if(hasil.error){
+                throw new Error(hasil.error.message);
+            }
 
-    products[index].harga =
-        Number(
-            document.getElementById(
-                "editHarga"
-            ).value
-        );
+            if(!hasil.data){
+                throw new Error("Produk Warung Mitra tidak ditemukan di Supabase. Silakan gunakan produk yang ditambahkan melalui menu Tambah Produk.");
+            }
+        }
 
+        products[index].nama = nama;
+        products[index].harga = harga;
+        products[index].kategori = kategori;
+        products[index].rating = rating;
+        products[index].status = status;
+        products[index].stok = stok;
+        products[index].deskripsi = deskripsi;
+        products[index].gambar = gambar;
 
-    products[index].kategori =
-        document.getElementById(
-            "editKategori"
-        ).value;
+        saveProducts(products);
+        selectedEditImage = "";
+        closeModal("modalEdit");
+        renderProducts();
+        updateDashboard();
+        toast("Produk berhasil diperbarui dan disinkronkan ke Supabase.");
 
-
-    products[index].rating =
-        Number(
-            document.getElementById(
-                "editRating"
-            ).value
-        );
-
-
-    products[index].status =
-        document.getElementById(
-            "editStatus"
-        ).value;
-
-    products[index].stok =
-        Math.max(0, Number(document.getElementById("editStok")?.value || 0));
-
-
-    products[index].deskripsi =
-        document.getElementById(
-            "editDeskripsi"
-        ).value.trim();
-
-
-    products[index].gambar =
-        selectedEditImage ||
-        fotoLama;
-
-
-    saveProducts(
-        products
-    );
-
-
-    selectedEditImage =
-        "";
-
-
-    closeModal(
-        "modalEdit"
-    );
-
-
-    renderProducts();
-
-    updateDashboard();
-
-
-    toast(
-        "Produk berhasil diperbarui."
-    );
+    } catch(error) {
+        console.error("ERROR EDIT PRODUK:", error);
+        alert("❌ Gagal memperbarui produk di Supabase:\n\n" + error.message);
+    } finally {
+        if(tombol){
+            tombol.disabled = false;
+            tombol.innerHTML = tombol.dataset.oldText || "💾 Simpan Perubahan";
+        }
+    }
 
 }
 
@@ -5849,99 +5671,12 @@ function ubahStatusByObject(index,status){ubahStatus(index,status);renderOperasi
    INIT
 ===================================================== */
 
-async function loadWarungMitraProduk(){
-
-    const select =
-        document.getElementById("warungProduk");
-
-    const status =
-        document.getElementById("statusWarungProduk");
-
-    if(!select){
-        return;
-    }
-
-    try {
-
-        const hasil =
-            await supabaseClient
-                .from("warung")
-                .select("id,nama,alamat")
-                .order("id", { ascending: true });
-
-        if(hasil.error){
-            throw new Error(hasil.error.message);
-        }
-
-        select.innerHTML =
-            '<option value="">-- Pilih Warung Mitra --</option>';
-
-        if(!hasil.data || hasil.data.length === 0){
-            select.innerHTML =
-                '<option value="">Belum ada Warung Mitra</option>';
-
-            if(status){
-                status.textContent =
-                    "⚠️ Tambahkan Warung Mitra terlebih dahulu.";
-            }
-
-            return;
-        }
-
-        hasil.data.forEach(function(warung){
-
-            const option =
-                document.createElement("option");
-
-            option.value =
-                warung.id;
-
-            option.textContent =
-                warung.nama +
-                (warung.alamat ? " — " + warung.alamat : "");
-
-            select.appendChild(option);
-
-        });
-
-        if(status){
-            status.textContent =
-                "✅ " + hasil.data.length + " Warung Mitra tersedia.";
-        }
-
-    } catch(error) {
-
-        console.error(
-            "ERROR LOAD WARUNG MITRA:",
-            error
-        );
-
-        select.innerHTML =
-            '<option value="">❌ Gagal memuat warung</option>';
-
-        if(status){
-            status.textContent =
-                "❌ " + error.message;
-        }
-
-    }
-
-}
-
-
-window.loadWarungMitraProduk =
-    loadWarungMitraProduk;
-
-
 document.addEventListener(
     "DOMContentLoaded",
     function(){
 
         lastOrderCount =
             getOrders().length;
-
-
-        loadWarungMitraProduk();
 
 
         updateDashboard();
@@ -5952,46 +5687,9 @@ document.addEventListener(
 
         renderRiwayat();
         renderOperasional();
-        sinkronWarungNamaProdukAdmin();
 
     }
 );
-
-
-/* =====================================================
-   SINKRON NAMA WARUNG MITRA PADA DAFTAR PRODUK
-===================================================== */
-async function sinkronWarungNamaProdukAdmin(){
-    try{
-        if(typeof supabaseClient === "undefined") return;
-        const hasil = await supabaseClient
-            .from("warung")
-            .select("id,nama,alamat")
-            .order("id", {ascending:true});
-        if(hasil.error) return;
-
-        const map = new Map((hasil.data || []).map(w=>[
-            String(w.id),
-            w.nama + (w.alamat ? " — " + w.alamat : "")
-        ]));
-
-        const products = getProducts();
-        let changed = false;
-        products.forEach(p=>{
-            if(p.warung_id && map.has(String(p.warung_id))){
-                const nama = map.get(String(p.warung_id));
-                if(p.warung_nama !== nama){
-                    p.warung_nama = nama;
-                    changed = true;
-                }
-            }
-        });
-        if(changed) saveProducts(products);
-        renderProducts();
-    }catch(e){
-        console.warn("Sinkron warung produk:", e);
-    }
-}
 
 
 /* =====================================================
@@ -6229,7 +5927,7 @@ setInterval(
 
   window.renderPengantaranV24=function(){
     const drivers=getDriversV24(), orders=getOrders();
-    const aktif=orders.filter(o=>['diantar','siapdiantar','diproses'].includes(status(o))&&o.driverId).length;
+    const aktif=orders.filter(o=>['diantar','diproses'].includes(status(o))&&o.driverId).length;
     const selesai=orders.filter(o=>status(o)==='selesai'&&o.driverId).length;
     const belum=orders.filter(o=>!o.driverId&&!['selesai','batal'].includes(status(o))).length;
     [['v24DriverCount',drivers.length],['v24Aktif',aktif],['v24Selesai',selesai],['v24Belum',belum]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
@@ -6307,46 +6005,11 @@ setInterval(
   };
   document.addEventListener('DOMContentLoaded',()=>setTimeout(renderCRMV25,250));
   setInterval(()=>{try{renderCRMV25()}catch(e){}},5000);
-  window.ambilGPSWarung = function() {
-    const status = document.getElementById("statusGPSWarung");
-    const latEl = document.getElementById("latitudeWarung");
-    const lonEl = document.getElementById("longitudeWarung");
-
-    if (!navigator.geolocation) {
-      status.textContent = "❌ Browser ini tidak mendukung GPS.";
-      return;
-    }
-
-    status.textContent = "⏳ Mengambil lokasi GPS... Izinkan akses lokasi jika diminta browser.";
-
-    navigator.geolocation.getCurrentPosition(
-      function(position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        latEl.value = lat.toFixed(7);
-        lonEl.value = lon.toFixed(7);
-        status.textContent = "✅ Lokasi warung berhasil diambil.";
-      },
-      function(error) {
-        let pesan = "❌ Gagal mengambil lokasi GPS.";
-        if (error.code === 1) pesan = "❌ Izin lokasi ditolak. Izinkan lokasi untuk situs ini lalu coba lagi.";
-        if (error.code === 2) pesan = "❌ Lokasi tidak tersedia. Pastikan GPS/lokasi perangkat aktif.";
-        if (error.code === 3) pesan = "❌ Pengambilan lokasi terlalu lama. Coba lagi.";
-        status.textContent = pesan;
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  };
-
   window.tambahWarung = async function() {
 
     const nama = document.getElementById("namaWarung").value.trim();
     const alamat = document.getElementById("alamatWarung").value.trim();
     const noWa = document.getElementById("noWaWarung").value.trim();
-    const latText = document.getElementById("latitudeWarung").value.trim();
-    const lonText = document.getElementById("longitudeWarung").value.trim();
-    const latitude = latText ? Number(latText) : null;
-    const longitude = lonText ? Number(lonText) : null;
 
     if (!nama) {
         alert("Silakan isi nama warung.");
@@ -6358,11 +6021,6 @@ setInterval(
         return;
     }
 
-    if ((latText && !Number.isFinite(latitude)) || (lonText && !Number.isFinite(longitude))) {
-        alert("Koordinat GPS tidak valid. Silakan ambil lokasi GPS lagi.");
-        return;
-    }
-
     try {
 
         const hasil = await supabaseClient
@@ -6370,9 +6028,7 @@ setInterval(
             .insert({
                 nama: nama,
                 alamat: alamat,
-                no_wa: noWa || null,
-                latitude: latitude,
-                longitude: longitude
+                no_wa: noWa || null
             })
             .select()
             .single();
@@ -6383,17 +6039,11 @@ setInterval(
 
         document.getElementById("hasilWarung").innerHTML =
             "✅ Warung berhasil disimpan. ID Warung: " +
-            hasil.data.id +
-            (hasil.data.latitude != null && hasil.data.longitude != null
-              ? "<br>📍 GPS: " + hasil.data.latitude + ", " + hasil.data.longitude
-              : "<br>📍 GPS belum diisi.");
+            hasil.data.id;
 
         document.getElementById("namaWarung").value = "";
         document.getElementById("alamatWarung").value = "";
         document.getElementById("noWaWarung").value = "";
-        document.getElementById("latitudeWarung").value = "";
-        document.getElementById("longitudeWarung").value = "";
-        document.getElementById("statusGPSWarung").textContent = "";
 
         alert("✅ Warung berhasil disimpan ke Supabase.");
 
