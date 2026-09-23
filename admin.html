@@ -409,16 +409,6 @@ tr:hover td{
     color:#084298;
 }
 
-.status-siap-diantar{
-    background:#e0cffc;
-    color:#4b1d95;
-}
-
-.status-diantar{
-    background:#cff4fc;
-    color:#055160;
-}
-
 .status-selesai{
     background:#d1e7dd;
     color:#0f5132;
@@ -1273,7 +1263,7 @@ tr:hover td{
                     Diproses
                 </option>
 
-                <option value="siap_diantar">
+                <option value="siapdiantar">
                     Siap Diantar
                 </option>
 
@@ -1370,11 +1360,23 @@ tr:hover td{
         </div>
 
 
-        <input
-            id="searchProduk"
-            class="search"
-            placeholder="Cari nama produk..."
-            oninput="renderProducts()">
+        <div class="toolbar" style="margin-top:12px;align-items:center;">
+
+            <input
+                id="searchProduk"
+                class="search"
+                placeholder="Cari nama produk..."
+                oninput="renderProducts()">
+
+            <select
+                id="filterWarungProduk"
+                class="filter"
+                onchange="renderProducts()"
+                style="min-width:260px;">
+                <option value="semua">🏪 Semua Warung Mitra</option>
+            </select>
+
+        </div>
 
 
         <br><br>
@@ -1773,6 +1775,7 @@ tr:hover td{
                 <option value="semua">Semua Status</option>
                 <option value="baru">Baru</option>
                 <option value="diproses">Diproses</option>
+                <option value="siapdiantar">Siap Diantar</option>
                 <option value="diantar">Diantar</option>
                 <option value="selesai">Selesai</option>
                 <option value="batal">Batal</option>
@@ -1937,6 +1940,7 @@ tr:hover td{
         <option value="semua">Semua Status</option>
         <option value="baru">Baru</option>
         <option value="diproses">Diproses</option>
+        <option value="siapdiantar">Siap Diantar</option>
         <option value="diantar">Diantar</option>
         <option value="selesai">Selesai</option>
         <option value="batal">Batal</option>
@@ -2004,7 +2008,7 @@ tr:hover td{
     <div class="toolbar">
       <input id="v24CariPesanan" class="search" placeholder="Cari pelanggan, alamat, atau nomor pesanan..." oninput="renderPengantaranV24()">
       <select id="v24FilterStatus" class="filter" onchange="renderPengantaranV24()">
-        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option><option value="siap_diantar">Siap Diantar</option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
+        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option><option value="siapdiantar">Siap Diantar</option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
       </select>
     </div>
     <div class="table-scroll"><table style="min-width:1100px"><thead><tr><th>#</th><th>Pelanggan</th><th>Alamat</th><th>Total</th><th>Status</th><th>Driver</th><th>Aksi</th></tr></thead><tbody id="tabelPengantaranV24"></tbody></table></div>
@@ -2859,10 +2863,10 @@ function statusHTML(status){
 
     }
 
-    if(s==="siap_diantar" || s==="siap diantar"){
+    if(s==="siapdiantar"){
 
         return `
-            <span class="status status-siap-diantar">
+            <span class="status status-proses">
                 Siap Diantar
             </span>
         `;
@@ -3484,28 +3488,10 @@ function detailPesanan(index){
             style="margin-top:20px">
 
             <button
-                class="btn btn-gray"
-                onclick="ubahStatus(${index},'baru')">
-
-                🆕 Baru
-
-            </button>
-
-
-            <button
                 class="btn btn-warning"
                 onclick="ubahStatus(${index},'diproses')">
 
-                ⚙️ Diproses
-
-            </button>
-
-
-            <button
-                class="btn btn-purple"
-                onclick="ubahStatus(${index},'siap_diantar')">
-
-                📦 Siap Diantar
+                🔄 Diproses
 
             </button>
 
@@ -3515,6 +3501,15 @@ function detailPesanan(index){
                 onclick="ubahStatus(${index},'selesai')">
 
                 ✅ Selesai
+
+            </button>
+
+
+            <button
+                class="btn btn-blue"
+                onclick="ubahStatus(${index},'siapdiantar')">
+
+                📦 Siap Diantar
 
             </button>
 
@@ -4251,200 +4246,142 @@ function cetakStruk(index){
 function renderProducts(){
 
     const grid =
-        document.getElementById(
-            "produkGrid"
-        );
+        document.getElementById("produkGrid");
 
+    if(!grid){
+        return;
+    }
 
     const keyword =
-        (
-            document.getElementById(
-                "searchProduk"
-            )?.value || ""
-        )
+        String(document.getElementById("searchProduk")?.value || "")
         .toLowerCase()
         .trim();
 
+    const filterWarung =
+        String(document.getElementById("filterWarungProduk")?.value || "semua");
 
-    const products =
-        getProducts()
-        .filter(product=>{
+    const allProducts = getProducts();
 
-            return String(
-                product.nama || ""
-            )
-            .toLowerCase()
-            .includes(keyword);
+    /*
+       Produk yang dibuat melalui Tambah Produk sudah menyimpan
+       warung_id dan warung_nama. Untuk produk lama, tetap tampil,
+       tetapi ditandai belum terhubung agar data lama tidak hilang.
+    */
+    const warungMap = new Map();
+    allProducts.forEach(p=>{
+        const id = Number(p.warung_id || 0);
+        const nama = String(p.warung_nama || p.warungNama || "").trim();
+        if(id && nama) warungMap.set(String(id), nama);
+    });
 
-        });
-
-
-    if(!products.length){
-
-        grid.innerHTML = `
-
-            <div class="empty">
-
-                🍔<br>
-                Produk tidak ditemukan.
-
-            </div>
-
-        `;
-
-        return;
-
+    const filterSelect = document.getElementById("filterWarungProduk");
+    if(filterSelect){
+        const current = filterSelect.value || "semua";
+        const options = [...warungMap.entries()]
+            .sort((a,b)=>a[1].localeCompare(b[1],'id'))
+            .map(([id,nama])=>`<option value="${safe(id)}">🏪 ${safe(nama)}</option>`)
+            .join("");
+        filterSelect.innerHTML =
+            `<option value="semua">🏪 Semua Warung Mitra</option>` +
+            options +
+            `<option value="tanpawaru">⚠️ Belum Terhubung Warung</option>`;
+        filterSelect.value = [...filterSelect.options].some(o=>o.value===current) ? current : "semua";
     }
 
+    const products =
+        allProducts.filter(product=>{
+            const nama = String(product.nama || "").toLowerCase();
+            const warungId = String(product.warung_id || "");
+            const warungNama = String(product.warung_nama || product.warungNama || "").toLowerCase();
 
-    grid.innerHTML =
-        products
-        .map(product=>{
+            const cocokCari =
+                !keyword ||
+                nama.includes(keyword) ||
+                warungNama.includes(keyword);
 
-            const status =
-                String(
-                    product.status ||
-                    "tersedia"
-                ).toLowerCase();
+            const cocokWarung =
+                filterWarung === "semua" ||
+                (filterWarung === "tanpawaru" && !warungId) ||
+                (warungId === filterWarung);
 
+            return cocokCari && cocokWarung;
+        });
 
-            const stars =
-                "⭐".repeat(
-                    Number(
-                        product.rating ||
-                        0
-                    )
-                );
+    if(!products.length){
+        grid.innerHTML = `
+            <div class="empty" style="grid-column:1/-1;">
+                🍔<br>
+                Produk tidak ditemukan.
+            </div>
+        `;
+        return;
+    }
 
+    grid.innerHTML = products.map(product=>{
 
-            return `
+        const status =
+            String(product.status || "tersedia").toLowerCase();
 
-                <div class="product-card">
+        const stars =
+            "⭐".repeat(Number(product.rating || 0));
 
-                    <div
-                        class="product-image">
+        const warungNama =
+            String(product.warung_nama || product.warungNama || "").trim();
 
-                        <img
-                            src="${imagePath(product.gambar)}"
-                            alt="${safe(product.nama)}"
-                            onerror="this.onerror=null;this.src='images/banner.jpg';">
+        const warungLabel =
+            warungNama ||
+            (product.warung_id
+                ? "Warung Mitra ID " + product.warung_id
+                : "Belum terhubung ke Warung Mitra");
 
-                    </div>
-
-
-                    <div
-                        class="product-body">
-
-                        <h3>
-                            ${safe(product.nama)}
-                        </h3>
-
-
-                        <div
-                            class="product-description">
-
-                            ${safe(
-                                product.deskripsi ||
-                                ""
-                            )}
-
-                        </div>
-
-
-                        <span
-                            class="category">
-
-                            ${safe(
-                                product.kategori ||
-                                "Produk"
-                            )}
-
-                        </span>
-
-
-                        <div
-                            class="rating">
-
-                            ${stars}
-
-                        </div>
-
-
-                        <div class="price">
-
-                            ${rupiah(
-                                product.harga
-                            )}
-
-                        </div>
-
-
-                        <div style="margin:8px 0;font-size:13px;font-weight:700;">📦 Stok: ${Number(product.stok ?? 0)} &nbsp; • &nbsp; Modal: ${rupiah(Number(product.modal ?? 0))}</div>
-                        <button class="btn btn-blue btn-small" onclick="setModalProdukV22(${Number(product.id)})">💰 Set Modal</button>
-
-                        <div>
-
-                            ${
-                                status==="habis"
-
-                                ?
-
-                                `
-                                <span
-                                    class="status status-batal">
-
-                                    ❌ Habis
-
-                                </span>
-                                `
-
-                                :
-
-                                `
-                                <span
-                                    class="status status-selesai">
-
-                                    ✅ Tersedia
-
-                                </span>
-                                `
-
-                            }
-
-                        </div>
-
-
-                        <div
-                            class="product-actions"
-                            style="margin-top:10px">
-
-                            <button
-                                class="btn btn-warning"
-                                onclick="editProduct(${product.id})">
-
-                                ✏️ Edit
-
-                            </button>
-
-
-                            <button
-                                class="btn btn-danger"
-                                onclick="deleteProduct(${product.id})">
-
-                                🗑 Hapus
-
-                            </button>
-
-                        </div>
-
-                    </div>
-
+        return `
+            <div class="product-card">
+                <div class="product-image">
+                    <img
+                        src="${imagePath(product.gambar)}"
+                        alt="${safe(product.nama)}"
+                        onerror="this.onerror=null;this.src='images/banner.jpg';">
                 </div>
 
-            `;
+                <div class="product-body">
+                    <h3>${safe(product.nama)}</h3>
 
-        })
-        .join("");
+                    <div style="margin:6px 0 10px;padding:7px 9px;border-radius:8px;background:#fff7e8;font-size:12px;font-weight:700;color:#8a5a00;">
+                        🏪 ${safe(warungLabel)}
+                    </div>
+
+                    <div class="product-description">
+                        ${safe(product.deskripsi || "")}
+                    </div>
+
+                    <span class="category">
+                        ${safe(product.kategori || "Produk")}
+                    </span>
+
+                    <div class="rating">${stars}</div>
+
+                    <div class="price">${rupiah(product.harga)}</div>
+
+                    <div style="margin:8px 0;font-size:13px;font-weight:700;">
+                        📦 Stok: ${Number(product.stok ?? 0)} &nbsp; • &nbsp; Modal: ${rupiah(Number(product.modal ?? 0))}
+                    </div>
+
+                    <button class="btn btn-blue btn-small" onclick="setModalProdukV22(${Number(product.id)})">💰 Set Modal</button>
+
+                    <div style="margin-top:8px;">
+                        ${status==="habis"
+                            ? `<span class="status status-batal">❌ Habis</span>`
+                            : `<span class="status status-selesai">✅ Tersedia</span>`}
+                    </div>
+
+                    <div class="product-actions" style="margin-top:10px">
+                        <button class="btn btn-warning" onclick="editProduct(${product.id})">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="deleteProduct(${product.id})">🗑 Hapus</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
 
 }
 
@@ -6015,9 +5952,46 @@ document.addEventListener(
 
         renderRiwayat();
         renderOperasional();
+        sinkronWarungNamaProdukAdmin();
 
     }
 );
+
+
+/* =====================================================
+   SINKRON NAMA WARUNG MITRA PADA DAFTAR PRODUK
+===================================================== */
+async function sinkronWarungNamaProdukAdmin(){
+    try{
+        if(typeof supabaseClient === "undefined") return;
+        const hasil = await supabaseClient
+            .from("warung")
+            .select("id,nama,alamat")
+            .order("id", {ascending:true});
+        if(hasil.error) return;
+
+        const map = new Map((hasil.data || []).map(w=>[
+            String(w.id),
+            w.nama + (w.alamat ? " — " + w.alamat : "")
+        ]));
+
+        const products = getProducts();
+        let changed = false;
+        products.forEach(p=>{
+            if(p.warung_id && map.has(String(p.warung_id))){
+                const nama = map.get(String(p.warung_id));
+                if(p.warung_nama !== nama){
+                    p.warung_nama = nama;
+                    changed = true;
+                }
+            }
+        });
+        if(changed) saveProducts(products);
+        renderProducts();
+    }catch(e){
+        console.warn("Sinkron warung produk:", e);
+    }
+}
 
 
 /* =====================================================
@@ -6255,7 +6229,7 @@ setInterval(
 
   window.renderPengantaranV24=function(){
     const drivers=getDriversV24(), orders=getOrders();
-    const aktif=orders.filter(o=>['diantar','diproses'].includes(status(o))&&o.driverId).length;
+    const aktif=orders.filter(o=>['diantar','siapdiantar','diproses'].includes(status(o))&&o.driverId).length;
     const selesai=orders.filter(o=>status(o)==='selesai'&&o.driverId).length;
     const belum=orders.filter(o=>!o.driverId&&!['selesai','batal'].includes(status(o))).length;
     [['v24DriverCount',drivers.length],['v24Aktif',aktif],['v24Selesai',selesai],['v24Belum',belum]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
