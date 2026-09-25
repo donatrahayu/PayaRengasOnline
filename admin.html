@@ -2013,10 +2013,14 @@ tr:hover td{
 </section>
 
 <!-- =========================
+     BACKUP
+========================= -->
+    <div class="page-title">
+<!-- =========================
      TAMBAH WARUNG
 ========================= -->
 <section id="warung" class="page">
-    <div class="page-title">
+
         <h2>🏪 Tambah Warung</h2>
         <p>Tambah data warung ke Paya Rengas Delivery.</p>
     </div>
@@ -4851,58 +4855,37 @@ function simpanEdit(event){
    HAPUS PRODUK
 ===================================================== */
 
-function deleteProduct(id){
+async function deleteProduct(id){
 
-    const products =
-        getProducts();
+    const products = getProducts();
+    const product = products.find(p => Number(p.id) === Number(id));
 
+    if(!product){ return; }
 
-    const product =
-        products.find(
-            p =>
-            Number(p.id) ===
-            Number(id)
-        );
-
-
-    if(!product){
+    if(!confirm("Hapus produk \"" + product.nama + "\"?")){
         return;
     }
 
+    try {
+        const hasil = await supabaseClient
+            .from("produk")
+            .delete()
+            .eq("id", Number(id));
 
-    if(
-        !confirm(
-            "Hapus produk \"" +
-            product.nama +
-            "\"?"
-        )
-    ){
-        return;
+        if(hasil.error){
+            throw new Error(hasil.error.message);
+        }
+
+        const newProducts = products.filter(p => Number(p.id) !== Number(id));
+        saveProducts(newProducts);
+        renderProducts();
+        updateDashboard();
+        toast("Produk berhasil dihapus.");
+
+    } catch(error) {
+        console.error("ERROR HAPUS PRODUK:", error);
+        alert("❌ Gagal menghapus produk dari Supabase:\n\n" + error.message);
     }
-
-
-    const newProducts =
-        products.filter(
-            p =>
-            Number(p.id) !==
-            Number(id)
-        );
-
-
-    saveProducts(
-        newProducts
-    );
-
-
-    renderProducts();
-
-    updateDashboard();
-
-
-    toast(
-        "Produk berhasil dihapus."
-    );
-
 }
 
 
