@@ -1420,23 +1420,6 @@ tr:hover td{
                 <div class="form-group">
 
                     <label>
-                        Warung Mitra
-                    </label>
-
-                    <select id="warungProduk" required>
-
-                        <option value="">⏳ Memuat Warung Mitra...</option>
-
-                    </select>
-
-                    <small id="statusWarungProduk" style="color:#777"></small>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label>
                         Harga
                     </label>
 
@@ -2030,8 +2013,9 @@ tr:hover td{
 </section>
 
 <!-- =========================
-     BACKUP
+     TAMBAH WARUNG
 ========================= -->
+<section id="warung" class="page">
     <div class="page-title">
         <h2>🏪 Tambah Warung</h2>
         <p>Tambah data warung ke Paya Rengas Delivery.</p>
@@ -2233,21 +2217,6 @@ tr:hover td{
                     <input
                         id="editNama"
                         required>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label>
-                        Warung Mitra
-                    </label>
-
-                    <select id="editWarungProduk">
-
-                        <option value="">Produk lama / tanpa Warung Mitra</option>
-
-                    </select>
 
                 </div>
 
@@ -4449,75 +4418,132 @@ function previewTambah(event){
 }
 
 
-async function simpanProduk(event){
+function simpanProduk(event){
 
     event.preventDefault();
 
-    const nama = document.getElementById("namaProduk").value.trim();
-    const harga = Number(document.getElementById("hargaProduk").value);
-    const deskripsi = document.getElementById("deskripsiProduk").value.trim();
-    const warungId = Number(document.getElementById("warungProduk")?.value || 0);
-    const kategori = document.getElementById("kategoriProduk").value;
-    const rating = Number(document.getElementById("ratingProduk").value);
-    const status = document.getElementById("statusProduk").value;
-    const stok = Math.max(0, Number(document.getElementById("stokProduk")?.value || 0));
-    const gambar = selectedNewImage || "banner.jpg";
 
-    if(!nama){ alert("Nama produk wajib diisi."); return; }
-    if(harga <= 0){ alert("Harga produk harus diisi."); return; }
-    if(!deskripsi){ alert("Deskripsi produk wajib diisi."); return; }
-    if(!warungId){ alert("Pilih Warung Mitra terlebih dahulu."); return; }
+    const nama =
+        document.getElementById(
+            "namaProduk"
+        ).value.trim();
 
-    const tombol = document.querySelector('#tambah button[type="submit"]');
-    if(tombol){ tombol.disabled=true; tombol.dataset.oldText=tombol.innerHTML; tombol.innerHTML="⏳ Menyimpan..."; }
 
-    try{
-        const hasil = await supabaseClient
-            .from("produk")
-            .insert({
-                warung_id: warungId,
-                nama: nama,
-                kategori: kategori,
-                harga: harga,
-                deskripsi: deskripsi,
-                gambar: gambar,
-                status: status
-            })
-            .select("id,warung_id,nama,kategori,harga,deskripsi,gambar,status")
-            .single();
+    const harga =
+        Number(
+            document.getElementById(
+                "hargaProduk"
+            ).value
+        );
 
-        if(hasil.error) throw new Error(hasil.error.message);
 
-        const products = getProducts();
-        products.push({
-            id: 1000000000 + Number(hasil.data.id),
-            supabase_id: hasil.data.id,
-            warung_id: hasil.data.warung_id,
-            nama: hasil.data.nama,
-            harga: Number(hasil.data.harga || harga),
-            kategori: hasil.data.kategori || kategori,
-            rating: rating,
-            status: hasil.data.status || status,
-            stok: stok,
-            deskripsi: hasil.data.deskripsi || deskripsi,
-            gambar: hasil.data.gambar || gambar
-        });
+    const deskripsi =
+        document.getElementById(
+            "deskripsiProduk"
+        ).value.trim();
 
-        saveProducts(products);
-        resetForm();
-        renderProducts();
-        updateDashboard();
-        toast("Produk berhasil disimpan ke Supabase.");
-        showPageById("produk");
 
-    }catch(error){
-        console.error("ERROR TAMBAH PRODUK:", error);
-        alert("❌ Gagal menyimpan produk ke Supabase:\n\n" + error.message);
-    }finally{
-        if(tombol){ tombol.disabled=false; tombol.innerHTML=tombol.dataset.oldText || "💾 Simpan Produk"; }
+    if(!nama){
+
+        alert(
+            "Nama produk wajib diisi."
+        );
+
+        return;
+
     }
 
+
+    if(harga<=0){
+
+        alert(
+            "Harga produk harus diisi."
+        );
+
+        return;
+
+    }
+
+
+    if(!deskripsi){
+
+        alert(
+            "Deskripsi produk wajib diisi."
+        );
+
+        return;
+
+    }
+
+
+    const products =
+        getProducts();
+
+
+    products.push({
+
+        id:
+            Date.now(),
+
+        nama:
+            nama,
+
+        harga:
+            harga,
+
+        kategori:
+            document.getElementById(
+                "kategoriProduk"
+            ).value,
+
+        rating:
+            Number(
+                document.getElementById(
+                    "ratingProduk"
+                ).value
+            ),
+
+        status:
+            document.getElementById(
+                "statusProduk"
+            ).value,
+
+        stok:
+            Math.max(0, Number(document.getElementById("stokProduk")?.value || 0)),
+
+        deskripsi:
+            deskripsi,
+
+        gambar:
+            selectedNewImage ||
+            "banner.jpg"
+
+    });
+
+
+    saveProducts(
+        products
+    );
+
+
+    resetForm();
+
+    renderProducts();
+
+    updateDashboard();
+
+
+    toast(
+        "Produk berhasil ditambahkan."
+    );
+
+
+    showPageById(
+        "produk"
+    );
+
 }
+
 
 function resetForm(){
 
@@ -4583,21 +4609,6 @@ function editProduct(id){
         "editNama"
     ).value =
         product.nama || "";
-
-
-    const editWarung = document.getElementById("editWarungProduk");
-    if(editWarung){
-        editWarung.innerHTML = '<option value="">Produk lama / tanpa Warung Mitra</option>';
-        supabaseClient.from("warung").select("id,nama,alamat").order("id", {ascending:true}).then(({data})=>{
-            (data || []).forEach(w=>{
-                const opt=document.createElement("option");
-                opt.value=w.id;
-                opt.textContent=w.nama + (w.alamat ? " — " + w.alamat : "");
-                editWarung.appendChild(opt);
-            });
-            if(product.warung_id) editWarung.value=String(product.warung_id);
-        });
-    }
 
 
     document.getElementById(
@@ -4715,83 +4726,126 @@ function previewEdit(event){
 }
 
 
-async function simpanEdit(event){
+function simpanEdit(event){
 
     event.preventDefault();
 
-    const id = Number(document.getElementById("editId").value);
-    const products = getProducts();
-    const index = products.findIndex(p => Number(p.id) === id);
 
-    if(index < 0){ alert("Produk tidak ditemukan."); return; }
+    const id =
+        Number(
+            document.getElementById(
+                "editId"
+            ).value
+        );
 
-    const product = products[index];
-    const fotoLama = product.gambar;
-    const nama = document.getElementById("editNama").value.trim();
-    const harga = Number(document.getElementById("editHarga").value);
-    const kategori = document.getElementById("editKategori").value;
-    const rating = Number(document.getElementById("editRating").value);
-    const status = document.getElementById("editStatus").value;
-    const stok = Math.max(0, Number(document.getElementById("editStok")?.value || 0));
-    const deskripsi = document.getElementById("editDeskripsi").value.trim();
-    const gambar = selectedEditImage || fotoLama || "banner.jpg";
-    const warungId = Number(document.getElementById("editWarungProduk")?.value || product.warung_id || 0);
 
-    if(!nama){ alert("Nama produk wajib diisi."); return; }
-    if(harga <= 0){ alert("Harga produk harus diisi."); return; }
-    if(!deskripsi){ alert("Deskripsi produk wajib diisi."); return; }
+    const products =
+        getProducts();
 
-    const tombol = document.querySelector('#modalEdit button[type="submit"]');
-    if(tombol){ tombol.disabled=true; tombol.dataset.oldText=tombol.innerHTML; tombol.innerHTML="⏳ Menyimpan..."; }
 
-    try{
-        const dbId = Number(product.supabase_id || 0);
+    const index =
+        products.findIndex(
+            p =>
+            Number(p.id) ===
+            id
+        );
 
-        if(dbId > 0){
-            const hasil = await supabaseClient
-                .from("produk")
-                .update({
-                    warung_id: warungId || product.warung_id,
-                    nama: nama,
-                    harga: harga,
-                    kategori: kategori,
-                    deskripsi: deskripsi,
-                    gambar: gambar,
-                    status: status
-                })
-                .eq("id", dbId)
-                .select("id")
-                .maybeSingle();
 
-            if(hasil.error) throw new Error(hasil.error.message);
-            if(!hasil.data) throw new Error("Produk tidak ditemukan di Supabase.");
-        }
+    if(index<0){
 
-        product.nama = nama;
-        product.harga = harga;
-        product.kategori = kategori;
-        product.rating = rating;
-        product.status = status;
-        product.stok = stok;
-        product.deskripsi = deskripsi;
-        product.gambar = gambar;
-        if(warungId) product.warung_id = warungId;
+        alert(
+            "Produk tidak ditemukan."
+        );
 
-        saveProducts(products);
-        selectedEditImage = "";
-        closeModal("modalEdit");
-        renderProducts();
-        updateDashboard();
-        toast(dbId > 0 ? "Produk berhasil diperbarui dan disinkronkan ke Supabase." : "Produk lokal berhasil diperbarui.");
+        return;
 
-    }catch(error){
-        console.error("ERROR EDIT PRODUK:", error);
-        alert("❌ Gagal memperbarui produk di Supabase:\n\n" + error.message);
-    }finally{
-        if(tombol){ tombol.disabled=false; tombol.innerHTML=tombol.dataset.oldText || "💾 Simpan Perubahan"; }
     }
 
+
+    /*
+      PENTING:
+      FOTO LAMA DISIMPAN.
+      FOTO HANYA DIGANTI JIKA
+      USER MEMILIH FOTO BARU.
+    */
+
+    const fotoLama =
+        products[index].gambar;
+
+
+    products[index].nama =
+        document.getElementById(
+            "editNama"
+        ).value.trim();
+
+
+    products[index].harga =
+        Number(
+            document.getElementById(
+                "editHarga"
+            ).value
+        );
+
+
+    products[index].kategori =
+        document.getElementById(
+            "editKategori"
+        ).value;
+
+
+    products[index].rating =
+        Number(
+            document.getElementById(
+                "editRating"
+            ).value
+        );
+
+
+    products[index].status =
+        document.getElementById(
+            "editStatus"
+        ).value;
+
+    products[index].stok =
+        Math.max(0, Number(document.getElementById("editStok")?.value || 0));
+
+
+    products[index].deskripsi =
+        document.getElementById(
+            "editDeskripsi"
+        ).value.trim();
+
+
+    products[index].gambar =
+        selectedEditImage ||
+        fotoLama;
+
+
+    saveProducts(
+        products
+    );
+
+
+    selectedEditImage =
+        "";
+
+
+    closeModal(
+        "modalEdit"
+    );
+
+
+    renderProducts();
+
+    updateDashboard();
+
+
+    toast(
+        "Produk berhasil diperbarui."
+    );
+
 }
+
 
 /* =====================================================
    HAPUS PRODUK
@@ -5644,86 +5698,6 @@ function setStok(id){
 function ubahStatusByObject(index,status){ubahStatus(index,status);renderOperasional();}
 
 /* =====================================================
-   WARUNG MITRA & SYNC PRODUK SUPABASE
-===================================================== */
-
-async function loadWarungMitraProduk(){
-    const select = document.getElementById("warungProduk");
-    const status = document.getElementById("statusWarungProduk");
-    if(!select) return;
-
-    try{
-        const hasil = await supabaseClient
-            .from("warung")
-            .select("id,nama,alamat,status")
-            .order("id", {ascending:true});
-        if(hasil.error) throw new Error(hasil.error.message);
-
-        const warung = (hasil.data || []).filter(w => String(w.status || "aktif").toLowerCase() !== "nonaktif");
-        select.innerHTML = '<option value="">-- Pilih Warung Mitra --</option>';
-        warung.forEach(w=>{
-            const opt=document.createElement("option");
-            opt.value=w.id;
-            opt.textContent=w.nama + (w.alamat ? " — " + w.alamat : "");
-            select.appendChild(opt);
-        });
-        if(status) status.textContent = warung.length ? "✅ " + warung.length + " Warung Mitra tersedia." : "⚠️ Belum ada Warung Mitra.";
-    }catch(error){
-        console.error("ERROR LOAD WARUNG MITRA:", error);
-        select.innerHTML='<option value="">❌ Gagal memuat warung</option>';
-        if(status) status.textContent="❌ " + error.message;
-    }
-}
-
-async function sinkronkanProdukSupabaseKeAdmin(){
-    try{
-        const hasil = await supabaseClient
-            .from("produk")
-            .select("id,warung_id,nama,kategori,harga,deskripsi,gambar,status")
-            .order("id", {ascending:true});
-        if(hasil.error) throw new Error(hasil.error.message);
-
-        const local = getProducts();
-        let berubah = false;
-
-        (hasil.data || []).forEach(row=>{
-            let p = local.find(x => Number(x.supabase_id) === Number(row.id));
-            if(!p){
-                p = local.find(x => Number(x.id) === Number(row.id) && x.warung_id);
-            }
-            if(!p){
-                p = {
-                    id: 1000000000 + Number(row.id),
-                    supabase_id: row.id,
-                    warung_id: row.warung_id
-                };
-                local.push(p);
-            }
-
-            p.supabase_id = row.id;
-            p.warung_id = row.warung_id;
-            p.nama = row.nama || "Produk";
-            p.harga = Number(row.harga || 0);
-            p.kategori = row.kategori || "Makanan";
-            p.status = row.status || "tersedia";
-            p.deskripsi = row.deskripsi || "";
-            p.gambar = row.gambar || "banner.jpg";
-            if(p.rating == null) p.rating = 5;
-            if(p.stok == null) p.stok = p.status === "tersedia" ? 1 : 0;
-            berubah = true;
-        });
-
-        if(berubah){
-            saveProducts(local);
-            renderProducts();
-            updateDashboard();
-        }
-    }catch(error){
-        console.warn("Sinkronisasi produk Supabase dilewati:", error.message);
-    }
-}
-
-/* =====================================================
    INIT
 ===================================================== */
 
@@ -5733,10 +5707,6 @@ document.addEventListener(
 
         lastOrderCount =
             getOrders().length;
-
-
-        loadWarungMitraProduk();
-        sinkronkanProdukSupabaseKeAdmin();
 
 
         updateDashboard();
