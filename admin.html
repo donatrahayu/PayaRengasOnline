@@ -415,6 +415,11 @@ tr:hover td{
     color:#0f5132;
 }
 
+.status-siap-diantar{
+    background:#fff3cd;
+    color:#856404;
+}
+
 .status-batal{
     background:#f8d7da;
     color:#842029;
@@ -1263,6 +1268,9 @@ tr:hover td{
                 <option value="diproses">
                     Diproses
                 </option>
+                <option value="siap_diantar">
+                    Siap Diantar
+                </option>
 
                 <option value="diantar">
                     Diantar
@@ -1760,6 +1768,9 @@ tr:hover td{
                 <option value="semua">Semua Status</option>
                 <option value="baru">Baru</option>
                 <option value="diproses">Diproses</option>
+                <option value="siap_diantar">
+                    Siap Diantar
+                </option>
                 <option value="diantar">Diantar</option>
                 <option value="selesai">Selesai</option>
                 <option value="batal">Batal</option>
@@ -1924,6 +1935,9 @@ tr:hover td{
         <option value="semua">Semua Status</option>
         <option value="baru">Baru</option>
         <option value="diproses">Diproses</option>
+                <option value="siap_diantar">
+                    Siap Diantar
+                </option>
         <option value="diantar">Diantar</option>
         <option value="selesai">Selesai</option>
         <option value="batal">Batal</option>
@@ -1944,6 +1958,7 @@ tr:hover td{
     <div class="summary-grid">
       <div class="summary-box"><h4>🟡 Pesanan Baru</h4><strong id="v23Baru">0</strong></div>
       <div class="summary-box"><h4>🔵 Sedang Diproses</h4><strong id="v23Proses">0</strong></div>
+      <div class="summary-box"><h4>📦 Siap Diantar</h4><strong id="v23SiapDiantar">0</strong></div>
       <div class="summary-box"><h4>🚚 Sedang Diantar</h4><strong id="v23Diantar">0</strong></div>
       <div class="summary-box"><h4>🟢 Selesai</h4><strong id="v23Selesai">0</strong></div>
       <div class="summary-box"><h4>🔴 Batal</h4><strong id="v23Batal">0</strong></div>
@@ -1991,7 +2006,10 @@ tr:hover td{
     <div class="toolbar">
       <input id="v24CariPesanan" class="search" placeholder="Cari pelanggan, alamat, atau nomor pesanan..." oninput="renderPengantaranV24()">
       <select id="v24FilterStatus" class="filter" onchange="renderPengantaranV24()">
-        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
+        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option>
+                <option value="siap_diantar">
+                    Siap Diantar
+                </option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
       </select>
     </div>
     <div class="table-scroll"><table style="min-width:1100px"><thead><tr><th>#</th><th>Pelanggan</th><th>Alamat</th><th>Total</th><th>Status</th><th>Driver</th><th>Aksi</th></tr></thead><tbody id="tabelPengantaranV24"></tbody></table></div>
@@ -2884,6 +2902,17 @@ function statusHTML(status){
 
     }
 
+    if(s==="siap_diantar" || s==="siap diantar" || s==="siap-diantar"){
+
+        return `
+            <span class="status status-siap-diantar">
+                Siap Diantar
+            </span>
+        `;
+
+    }
+
+
 
     if(s==="batal"){
 
@@ -3497,6 +3526,15 @@ function detailPesanan(index){
 
 
             <button
+                class="btn btn-blue"
+                onclick="ubahStatus(${index},'siap_diantar')">
+
+                📦 Siap Diantar
+
+            </button>
+
+
+            <button
                 class="btn btn-success"
                 onclick="ubahStatus(${index},'selesai')">
 
@@ -3572,6 +3610,15 @@ function detailPesanan(index){
 
 
 /* =====================================================
+   NORMALISASI STATUS PAYA RENGAS
+===================================================== */
+window.normalisasiStatusPRD = function(status){
+    const s = String(status || "baru").toLowerCase().trim();
+    if(s === "siap diantar" || s === "siap-diantar") return "siap_diantar";
+    return s;
+};
+
+/* =====================================================
    UBAH STATUS
 ===================================================== */
 
@@ -3587,7 +3634,9 @@ function ubahStatus(index,status){
 
 
     orders[index].status =
-        status;
+        (typeof window.normalisasiStatusPRD === "function")
+            ? window.normalisasiStatusPRD(status)
+            : status;
 
     orders[index].statusUpdatedAt = new Date().toISOString();
 
@@ -6197,9 +6246,9 @@ setInterval(
   window.renderPusatKontrolV23=function(){
     const orders=getOrders(), products=getProducts();
     const customers=typeof buildCustomers==='function'?buildCustomers(orders):[];
-    const counts={baru:0,diproses:0,diantar:0,selesai:0,batal:0}; let omzet=0;
+    const counts={baru:0,diproses:0,siap_diantar:0,diantar:0,selesai:0,batal:0}; let omzet=0;
     orders.forEach(o=>{const st=v23Status(o);if(counts[st]!==undefined)counts[st]++;omzet+=v23Total(o);});
-    const vals=[['v23Pesanan',orders.length],['v23Pelanggan',customers.length],['v23Produk',products.length],['v23Stok',products.filter(p=>Number(p?.stok??0)<=5).length],['v23Baru',counts.baru],['v23Proses',counts.diproses],['v23Diantar',counts.diantar],['v23Selesai',counts.selesai],['v23Batal',counts.batal],['v23Omzet',v23Money(omzet)]];
+    const vals=[['v23Pesanan',orders.length],['v23Pelanggan',customers.length],['v23Produk',products.length],['v23Stok',products.filter(p=>Number(p?.stok??0)<=5).length],['v23Baru',counts.baru],['v23Proses',counts.diproses],['v23SiapDiantar',counts.siap_diantar],['v23Diantar',counts.diantar],['v23Selesai',counts.selesai],['v23Batal',counts.batal],['v23Omzet',v23Money(omzet)]];
     vals.forEach(([id,val])=>{const e=document.getElementById(id);if(e)e.textContent=val;});
 
     const q=v23Text(document.getElementById('v23CariPesanan')?.value).trim();
