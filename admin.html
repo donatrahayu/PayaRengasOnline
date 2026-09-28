@@ -1,3 +1,4 @@
+```
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -4251,12 +4252,15 @@ function renderProducts(){
         .trim();
 
 
-    const products =
-        getProducts()
-        .filter(product=>{
+    const products = getProducts();
+
+    const filteredProducts =
+        products
+        .map((product, originalIndex) => ({product, originalIndex}))
+        .filter(item=>{
 
             return String(
-                product.nama || ""
+                item.product.nama || ""
             )
             .toLowerCase()
             .includes(keyword);
@@ -4283,10 +4287,10 @@ function renderProducts(){
 
 
     grid.innerHTML =
-        products
-        .map(product=>{
-
-            const localIndex = products.indexOf(product);
+        filteredProducts
+        .map(item=>{
+            const product = item.product;
+            const originalIndex = item.originalIndex;
 
             const status =
                 String(
@@ -4408,7 +4412,7 @@ function renderProducts(){
                             <button
                                 class="btn btn-warning pRD-edit-btn"
                                 type="button"
-                                data-product-index="${localIndex}">
+                                data-product-id="${Number(product.id)}">
 
                                 ✏️ Edit
 
@@ -4418,7 +4422,7 @@ function renderProducts(){
                             <button
                                 class="btn btn-danger pRD-delete-btn"
                                 type="button"
-                                data-product-index="${localIndex}">
+                                data-product-id="${Number(product.id)}">
 
                                 🗑 Hapus
 
@@ -6480,11 +6484,12 @@ setInterval(
 
 <script>
 /* Paya Rengas Delivery - tombol produk bridge fix */
-window.__pRD_editProduct = function(index){
+window.__pRD_editProductById = function(id){
     try {
         const products = typeof getProducts === "function" ? getProducts() : [];
-        index = Number(index);
-        if (!Number.isInteger(index) || index < 0 || index >= products.length) {
+        id = Number(id);
+        const index = products.findIndex(p => Number(p.id) === id);
+        if (index < 0) {
             alert("Produk tidak ditemukan.");
             return;
         }
@@ -6510,9 +6515,16 @@ window.__pRD_editProduct = function(index){
         alert("Gagal membuka Edit Produk: " + e.message);
     }
 };
-window.__pRD_deleteProduct = function(index){
+window.__pRD_deleteProductById = function(id){
     try {
-        if(typeof deleteProductByIndex === "function") return deleteProductByIndex(Number(index));
+        const products = typeof getProducts === "function" ? getProducts() : [];
+        id = Number(id);
+        const index = products.findIndex(p => Number(p.id) === id);
+        if(index < 0){
+            alert("Produk tidak ditemukan.");
+            return;
+        }
+        if(typeof deleteProductByIndex === "function") return deleteProductByIndex(index);
         alert("Fungsi Hapus Produk tidak tersedia.");
     } catch(e){ console.error("HAPUS PRODUK:",e); alert("Gagal menghapus produk: " + e.message); }
 };
@@ -6525,13 +6537,11 @@ document.addEventListener("click", function(event){
     if(editBtn){
         event.preventDefault();
         event.stopPropagation();
-        const index = Number(editBtn.dataset.productIndex);
-        if(typeof window.__pRD_editProduct === "function"){
-            window.__pRD_editProduct(index);
+        const id = Number(editBtn.dataset.productId);
+        if(typeof window.__pRD_editProductById === "function"){
+            window.__pRD_editProductById(id);
         } else if(typeof window.editProduct === "function"){
-            const products = typeof window.getProducts === "function" ? window.getProducts() : [];
-            const product = products[index];
-            if(product) window.editProduct(product.id);
+            window.editProduct(id);
         }
         return;
     }
@@ -6540,12 +6550,13 @@ document.addEventListener("click", function(event){
     if(deleteBtn){
         event.preventDefault();
         event.stopPropagation();
-        const index = Number(deleteBtn.dataset.productIndex);
-        if(typeof window.__pRD_deleteProduct === "function"){
-            window.__pRD_deleteProduct(index);
+        const id = Number(deleteBtn.dataset.productId);
+        if(typeof window.__pRD_deleteProductById === "function"){
+            window.__pRD_deleteProductById(id);
         }
     }
 });
 </script>
 </body>
 </html>
+```
