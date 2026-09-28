@@ -2504,6 +2504,8 @@ let selectedNewImage = "";
 
 let selectedEditImage = "";
 
+let editingProductIndex = -1;
+
 let lastOrderCount = 0;
 
 
@@ -4284,6 +4286,9 @@ function renderProducts(){
         products
         .map(product=>{
 
+            const localProducts = getProducts();
+            const localIndex = localProducts.indexOf(product);
+
             const status =
                 String(
                     product.status ||
@@ -4403,7 +4408,7 @@ function renderProducts(){
 
                             <button
                                 class="btn btn-warning"
-                                onclick="editProduct(${product.id})">
+                                onclick="editProductByIndex(${localIndex})">
 
                                 ✏️ Edit
 
@@ -4412,7 +4417,7 @@ function renderProducts(){
 
                             <button
                                 class="btn btn-danger"
-                                onclick="deleteProduct(${product.id})">
+                                onclick="deleteProductByIndex(${localIndex})">
 
                                 🗑 Hapus
 
@@ -4779,7 +4784,69 @@ function resetForm(){
    EDIT PRODUK
 ===================================================== */
 
+function editProductByIndex(index){
+
+    const products = getProducts();
+
+    if(index < 0 || index >= products.length){
+        return;
+    }
+
+    const product = products[index];
+    editingProductIndex = index;
+
+    document.getElementById("editId").value = product.id;
+    document.getElementById("editNama").value = product.nama || "";
+    document.getElementById("editHarga").value = product.harga || 0;
+    document.getElementById("editKategori").value = product.kategori || "Makanan";
+    document.getElementById("editRating").value = product.rating || 5;
+    document.getElementById("editStatus").value = product.status || "tersedia";
+
+    const editStok = document.getElementById("editStok");
+    if(editStok) editStok.value = Number(product.stok ?? 0);
+
+    document.getElementById("editDeskripsi").value = product.deskripsi || "";
+    selectedEditImage = "";
+    document.getElementById("editFile").value = "";
+    document.getElementById("previewEditImg").src = imagePath(product.gambar);
+    document.getElementById("modalEdit").classList.add("show");
+}
+
+function deleteProductByIndex(index){
+
+    const products = getProducts();
+    if(index < 0 || index >= products.length) return;
+
+    const product = products[index];
+    if(!confirm("Hapus produk \"" + product.nama + "\"?")) return;
+
+    const dbId = Number(product.supabase_id || 0);
+
+    (async function(){
+        try{
+            if(dbId > 0){
+                const hasil = await supabaseClient
+                    .from("produk")
+                    .delete()
+                    .eq("id", dbId);
+                if(hasil.error) throw new Error(hasil.error.message);
+            }
+
+            products.splice(index, 1);
+            saveProducts(products);
+            renderProducts();
+            updateDashboard();
+            toast(dbId > 0 ? "Produk berhasil dihapus dari Supabase." : "Produk berhasil dihapus.");
+        }catch(error){
+            console.error("ERROR HAPUS PRODUK:", error);
+            alert("❌ Gagal menghapus produk di Supabase:\n\n" + error.message);
+        }
+    })();
+}
+
 function editProduct(id){
+
+    editingProductIndex = -1;
 
     const products =
         getProducts();
@@ -4935,9 +5002,9 @@ function simpanEdit(event){
 
     const products = getProducts();
 
-    const index = products.findIndex(
-        p => Number(p.id) === id
-    );
+    const index = (editingProductIndex >= 0 && editingProductIndex < products.length)
+        ? editingProductIndex
+        : products.findIndex(p => Number(p.id) === id);
 
     if(index < 0){
         alert("Produk tidak ditemukan.");
@@ -5013,6 +5080,7 @@ function simpanEdit(event){
 
             saveProducts(products);
             selectedEditImage = "";
+            editingProductIndex = -1;
             closeModal("modalEdit");
             renderProducts();
             updateDashboard();
