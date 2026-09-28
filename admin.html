@@ -4286,8 +4286,7 @@ function renderProducts(){
         products
         .map(product=>{
 
-            const localProducts = getProducts();
-            const localIndex = localProducts.indexOf(product);
+            const localIndex = products.indexOf(product);
 
             const status =
                 String(
