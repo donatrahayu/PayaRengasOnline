@@ -4407,8 +4407,9 @@ function renderProducts(){
                             style="margin-top:10px">
 
                             <button
-                                class="btn btn-warning"
-                                onclick="editProductByIndex(${localIndex})">
+                                class="btn btn-warning pRD-edit-btn"
+                                type="button"
+                                data-product-index="${localIndex}">
 
                                 ✏️ Edit
 
@@ -4416,8 +4417,9 @@ function renderProducts(){
 
 
                             <button
-                                class="btn btn-danger"
-                                onclick="deleteProductByIndex(${localIndex})">
+                                class="btn btn-danger pRD-delete-btn"
+                                type="button"
+                                data-product-index="${localIndex}">
 
                                 🗑 Hapus
 
@@ -6476,5 +6478,73 @@ setInterval(
 })();
 </script>
 
+
+<script>
+/* Paya Rengas Delivery - tombol produk bridge fix */
+window.__pRD_editProduct = function(index){
+    try {
+        const products = typeof getProducts === "function" ? getProducts() : [];
+        index = Number(index);
+        if (!Number.isInteger(index) || index < 0 || index >= products.length) {
+            alert("Produk tidak ditemukan.");
+            return;
+        }
+        const product = products[index];
+        window.editingProductIndex = index;
+        const set = (id, value) => { const el=document.getElementById(id); if(el) el.value=value; };
+        set("editId", product.id);
+        set("editNama", product.nama || "");
+        set("editHarga", product.harga || 0);
+        set("editKategori", product.kategori || "Makanan");
+        set("editRating", product.rating || 5);
+        set("editStatus", product.status || "tersedia");
+        set("editStok", Number(product.stok ?? 0));
+        set("editDeskripsi", product.deskripsi || "");
+        if(typeof selectedEditImage !== "undefined") window.selectedEditImage = "";
+        const file=document.getElementById("editFile"); if(file) file.value="";
+        const img=document.getElementById("previewEditImg"); if(img && typeof imagePath === "function") img.src=imagePath(product.gambar);
+        const modal=document.getElementById("modalEdit");
+        if(!modal){ alert("Form Edit Produk tidak ditemukan."); return; }
+        modal.classList.add("show");
+    } catch(e){
+        console.error("EDIT PRODUK:",e);
+        alert("Gagal membuka Edit Produk: " + e.message);
+    }
+};
+window.__pRD_deleteProduct = function(index){
+    try {
+        if(typeof deleteProductByIndex === "function") return deleteProductByIndex(Number(index));
+        alert("Fungsi Hapus Produk tidak tersedia.");
+    } catch(e){ console.error("HAPUS PRODUK:",e); alert("Gagal menghapus produk: " + e.message); }
+};
+<script>
+/* Paya Rengas Delivery - direct product button events */
+document.addEventListener("click", function(event){
+    const editBtn = event.target.closest(".pRD-edit-btn");
+    if(editBtn){
+        event.preventDefault();
+        event.stopPropagation();
+        const index = Number(editBtn.dataset.productIndex);
+        if(typeof window.__pRD_editProduct === "function"){
+            window.__pRD_editProduct(index);
+        } else if(typeof window.editProduct === "function"){
+            const products = typeof window.getProducts === "function" ? window.getProducts() : [];
+            const product = products[index];
+            if(product) window.editProduct(product.id);
+        }
+        return;
+    }
+
+    const deleteBtn = event.target.closest(".pRD-delete-btn");
+    if(deleteBtn){
+        event.preventDefault();
+        event.stopPropagation();
+        const index = Number(deleteBtn.dataset.productIndex);
+        if(typeof window.__pRD_deleteProduct === "function"){
+            window.__pRD_deleteProduct(index);
+        }
+    }
+});
+</script>
 </body>
 </html>
