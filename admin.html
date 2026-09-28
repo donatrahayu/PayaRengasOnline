@@ -6557,6 +6557,189 @@ document.addEventListener("click", function(event){
     }
 });
 </script>
+
+<script>
+/* Paya Rengas Delivery - Pesanan Supabase Sync */
+(function(){
+    "use strict";
+
+    async function ambilPesananSupabase(){
+        const hasil = await supabaseClient
+            .from("pesanan")
+            .select("id,created_at,pelanggan_id,warung_id,nama_pelanggan,no_wa,\"alamat pengantara\",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,latitude,longitude")
+            .order("created_at", {ascending:false});
+
+        if(hasil.error){
+            throw new Error(hasil.error.message);
+        }
+        return Array.isArray(hasil.data) ? hasil.data : [];
+    }
+
+    function ubahPesananSupabaseKeFormatAdmin(row){
+        return {
+            id: Number(row.id),
+            supabase_id: Number(row.id),
+            created_at: row.created_at,
+            nama: row.nama_pelanggan || "Pelanggan",
+            namaPelanggan: row.nama_pelanggan || "Pelanggan",
+            whatsapp: row.no_wa || "",
+            noWhatsapp: row.no_wa || "",
+            alamat: row["alamat pengantara"] || "",
+            alamatPengantaran: row["alamat pengantara"] || "",
+            catatan: row.catatan || "",
+            totalBelanja: Number(row.total_belanja || 0),
+            ongkir: Number(row.ongkir || 0),
+            totalPembayaran: Number(row.total_pembayaran || 0),
+            total: Number(row.total_pembayaran || 0),
+            status: row.status || "baru",
+            metodePembayaran: row.metode_pembayaran || "WhatsApp",
+            latitude: row.latitude ?? null,
+            longitude: row.longitude ?? null,
+            pelanggan_id: row.pelanggan_id ?? null,
+            warung_id: row.warung_id ?? null,
+            items: []
+        };
+    }
+
+    function gabungkanPesanan(localOrders, remoteRows){
+        const local = Array.isArray(localOrders) ? localOrders : [];
+        const byDbId = new Map();
+
+        local.forEach(o=>{
+            const id = Number(o?.supabase_id || o?.id || 0);
+            if(id > 0) byDbId.set(id, o);
+        });
+
+        const hasil = remoteRows.map(row=>{
+            const remote = ubahPesananSupabaseKeFormatAdmin(row);
+            const lama = byDbId.get(remote.supabase_id);
+
+            if(lama){
+                return Object.assign({}, lama, remote, {
+                    items: Array.isArray(lama.items) ? lama.items : []
+                });
+            }
+
+            return remote;
+        });
+
+        /* Pertahankan data lokal lama yang belum ada di Supabase. */
+        const remoteIds = new Set(remoteRows.map(r=>Number(r.id)));
+        local.forEach(o=>{
+            const id = Number(o?.supabase_id || o?.id || 0);
+            if(id <= 0 || !remoteIds.has(id)){
+                hasil.push(o);
+            }
+        });
+
+        return hasil.sort((a,b)=>{
+            const da = new Date(a?.created_at || 0).getTime();
+            const db = new Date(b?.created_at || 0).getTime();
+            return db - da;
+        });
+    }
+
+    async function sinkronkanPesananSupabase(showError){
+        try{
+            const remoteRows = await ambilPesananSupabase();
+            const lokal = getOrders();
+            const gabungan = gabungkanPesanan(lokal, remoteRows);
+
+            localStorage.setItem(
+                ORDER_KEY,
+                JSON.stringify(gabungan)
+            );
+
+            if(typeof renderPesanan === "function") renderPesanan();
+            if(typeof renderPesananTerbaru === "function") renderPesananTerbaru();
+            if(typeof renderRiwayat === "function") renderRiwayat();
+            if(typeof renderLaporan === "function") renderLaporan();
+            if(typeof updateDashboard === "function") updateDashboard();
+            if(typeof renderOperasional === "function") renderOperasional();
+            if(typeof renderPengantaranV24 === "function") renderPengantaranV24();
+
+            return gabungan;
+        }catch(error){
+            console.error("SYNC PESANAN SUPABASE:", error);
+            if(showError){
+                alert("❌ Gagal mengambil pesanan dari Supabase:\n\n" + error.message);
+            }
+            return null;
+        }
+    }
+
+    /* Simpan fungsi lama untuk tetap mempertahankan UI/status lokal. */
+    const ubahStatusLokalLama = window.ubahStatus;
+
+    window.ubahStatus = async function(index,status){
+        const orders = getOrders();
+        const order = orders[index];
+
+        if(!order){
+            return;
+        }
+
+        const dbId = Number(order.supabase_id || order.id || 0);
+
+        try{
+            if(dbId > 0){
+                const hasil = await supabaseClient
+                    .from("pesanan")
+                    .update({
+                        status: String(status || "baru")
+                    })
+                    .eq("id", dbId)
+                    .select("id,status")
+                    .maybeSingle();
+
+                if(hasil.error){
+                    throw new Error(hasil.error.message);
+                }
+
+                if(!hasil.data){
+                    throw new Error("Pesanan tidak ditemukan di Supabase.");
+                }
+            }
+
+            /* Setelah server berhasil, pertahankan alur lokal lama. */
+            if(typeof ubahStatusLokalLama === "function"){
+                ubahStatusLokalLama(index,status);
+            }else{
+                orders[index].status = status;
+                orders[index].statusUpdatedAt = new Date().toISOString();
+                localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+                if(typeof renderPesanan === "function") renderPesanan();
+            }
+
+            /* Ambil kembali data server agar status Admin benar-benar sama dengan Supabase. */
+            await sinkronkanPesananSupabase(false);
+
+            toast("Status pesanan berhasil diperbarui di Supabase.");
+        }catch(error){
+            console.error("UPDATE STATUS PESANAN:", error);
+            alert("❌ Gagal memperbarui status pesanan di Supabase:\n\n" + error.message);
+        }
+    };
+
+    window.sinkronkanPesananSupabase = function(){
+        return sinkronkanPesananSupabase(true);
+    };
+
+    document.addEventListener("DOMContentLoaded", function(){
+        setTimeout(function(){
+            sinkronkanPesananSupabase(false);
+        }, 300);
+    });
+
+    /* Pesanan baru dari pelanggan akan muncul otomatis di Admin. */
+    setInterval(function(){
+        if(document.visibilityState === "visible"){
+            sinkronkanPesananSupabase(false);
+        }
+    }, 10000);
+})();
+</script>
+
 </body>
 </html>
 ```
