@@ -6307,19 +6307,13 @@ setInterval(
 <script>
 /* =====================================================
    V24 ENHANCEMENT PACK - DRIVER & DELIVERY
-   Paya Rengas Delivery - Driver + Supabase Status Sync
+   Paya Rengas Delivery - Driver + Delivery Supabase
+   Driver management and assignment are persisted in Supabase.
 ===================================================== */
 (function(){
-  const DRIVER_KEY='payaRengasDriverV24';
+  const DRIVER_TABLE='driver';
 
-  const getDriversV24=()=>{
-    try{
-      const d=JSON.parse(localStorage.getItem(DRIVER_KEY)||'[]');
-      return Array.isArray(d)?d:[];
-    }catch(e){return[]}
-  };
-
-  const saveDriversV24=d=>localStorage.setItem(DRIVER_KEY,JSON.stringify(d));
+  let driversCache=[];
 
   const name=o=>o?.nama||o?.namaPelanggan||o?.customerName||'Pelanggan';
   const phone=o=>o?.whatsapp||o?.nomorWA||o?.noWa||o?.phone||o?.telepon||'-';
@@ -6333,96 +6327,193 @@ setInterval(
     ? safe(v)
     : String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 
-  async function updateStatusSupabaseV24(order,statusBaru){
-    const dbId=Number(order?.supabase_id||order?.id||0);
+  function normalizeDriver(row){
+    return {
+      id:Number(row?.id||0),
+      nama:String(row?.nama||'').trim(),
+      whatsapp:String(row?.no_wa||'').trim(),
+      aktif:String(row?.status||'Aktif').toLowerCase()!=='nonaktif',
+      status:row?.status||'Aktif',
+      created_at:row?.created_at||null
+    };
+  }
 
-    if(dbId<=0 || typeof supabaseClient==="undefined"){
-      throw new Error("ID pesanan Supabase tidak tersedia.");
+  async function ambilDriversV24(){
+    if(typeof supabaseClient==='undefined'){
+      throw new Error('Koneksi Supabase belum tersedia.');
     }
 
     const hasil=await supabaseClient
-      .from("pesanan")
-      .update({status:String(statusBaru)})
-      .eq("id",dbId)
-      .select("id,status")
+      .from(DRIVER_TABLE)
+      .select('id,nama,no_wa,status,created_at')
+      .order('id',{ascending:true});
+
+    if(hasil.error) throw new Error(hasil.error.message);
+
+    driversCache=(Array.isArray(hasil.data)?hasil.data:[]).map(normalizeDriver);
+    return driversCache;
+  }
+
+  function getDriversV24(){
+    return Array.isArray(driversCache)?driversCache:[];
+  }
+
+  async function refreshDriversV24(showError=true){
+    try{
+      await ambilDriversV24();
+      renderPengantaranV24();
+      return getDriversV24();
+    }catch(error){
+      console.error('LOAD DRIVER V24:',error);
+      if(showError) alert('❌ Gagal memuat driver dari Supabase:\n\n'+error.message);
+      return [];
+    }
+  }
+
+  async function updatePesananDriverSupabaseV24(order,driver,mode){
+    const dbId=Number(order?.supabase_id||order?.id||0);
+    if(dbId<=0 || typeof supabaseClient==='undefined'){
+      throw new Error('ID pesanan Supabase tidak tersedia.');
+    }
+
+    const payload={};
+
+    if(mode==='assign'){
+      payload.status='diantar';
+      payload.driver_id=Number(driver.id);
+      payload.driver_nama=driver.nama;
+      payload.driver_no_wa=driver.whatsapp;
+    }else if(mode==='release'){
+      payload.status='siap_diantar';
+      payload.driver_id=null;
+      payload.driver_nama=null;
+      payload.driver_no_wa=null;
+    }else if(mode==='complete'){
+      payload.status='selesai';
+      payload.driver_id=Number(driver?.id||order?.driverId||0)||null;
+      payload.driver_nama=driver?.nama||order?.driverNama||null;
+      payload.driver_no_wa=driver?.whatsapp||order?.driverWhatsApp||null;
+    }else{
+      throw new Error('Mode pengantaran tidak dikenal.');
+    }
+
+    const hasil=await supabaseClient
+      .from('pesanan')
+      .update(payload)
+      .eq('id',dbId)
+      .select('id,status,driver_id,driver_nama,driver_no_wa')
       .maybeSingle();
 
     if(hasil.error) throw new Error(hasil.error.message);
-    if(!hasil.data) throw new Error("Pesanan tidak ditemukan di Supabase.");
+    if(!hasil.data) throw new Error('Pesanan tidak ditemukan di Supabase.');
 
     return hasil.data;
   }
 
-  window.tambahDriverV24=function(){
+  window.tambahDriverV24=async function(){
     const nama=prompt('Nama driver:');
     if(!nama||!nama.trim())return;
 
     const wa=prompt('Nomor WhatsApp driver:');
     if(!wa||!wa.trim())return;
 
-    const d=getDriversV24();
-    d.push({
-      id:'DRV'+Date.now(),
-      nama:nama.trim(),
-      whatsapp:wa.trim(),
-      aktif:true
-    });
+    try{
+      const hasil=await supabaseClient
+        .from(DRIVER_TABLE)
+        .insert({
+          nama:nama.trim(),
+          no_wa:wa.trim(),
+          status:'Aktif'
+        })
+        .select('id,nama,no_wa,status,created_at')
+        .single();
 
-    saveDriversV24(d);
-    renderPengantaranV24();
-    toast('Driver berhasil ditambahkan.');
+      if(hasil.error) throw new Error(hasil.error.message);
+
+      await refreshDriversV24(false);
+      toast('Driver '+hasil.data.nama+' berhasil ditambahkan ke Supabase.');
+    }catch(error){
+      console.error('TAMBAH DRIVER:',error);
+      alert('❌ Gagal menambahkan driver ke Supabase:\n\n'+error.message);
+    }
   };
 
-  window.hapusDriverV24=function(id){
-    const d=getDriversV24();
-    const x=d.find(v=>v.id===id);
-    if(!x)return;
-
-    if(!confirm('Hapus driver '+x.nama+'?'))return;
+  window.hapusDriverV24=async function(id){
+    const driver=getDriversV24().find(v=>Number(v.id)===Number(id));
+    if(!driver)return;
 
     const orders=getOrders();
-    orders.forEach(o=>{
-      if(o.driverId===id){
-        delete o.driverId;
-        delete o.driverNama;
-        delete o.driverWhatsApp;
-      }
-    });
+    const activeAssigned=orders.filter(o=>
+      Number(o.driverId)===Number(id) &&
+      !['selesai','batal'].includes(status(o))
+    );
 
-    localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
-    saveDriversV24(d.filter(v=>v.id!==id));
-    renderPengantaranV24();
+    if(activeAssigned.length){
+      alert('Driver masih memiliki '+activeAssigned.length+' pesanan aktif.\n\nLepas driver dari pesanan tersebut terlebih dahulu sebelum menghapus driver.');
+      return;
+    }
 
-    if(typeof renderPesanan==='function')renderPesanan();
+    if(!confirm('Hapus driver '+driver.nama+' dari Supabase?'))return;
 
-    toast('Driver dihapus.');
+    try{
+      const hasil=await supabaseClient
+        .from(DRIVER_TABLE)
+        .delete()
+        .eq('id',Number(id))
+        .select('id')
+        .maybeSingle();
+
+      if(hasil.error) throw new Error(hasil.error.message);
+      if(!hasil.data) throw new Error('Driver tidak ditemukan di Supabase.');
+
+      await refreshDriversV24(false);
+      toast('Driver '+driver.nama+' berhasil dihapus dari Supabase.');
+    }catch(error){
+      console.error('HAPUS DRIVER:',error);
+      alert('❌ Gagal menghapus driver dari Supabase:\n\n'+error.message);
+    }
   };
 
-  window.toggleDriverV24=function(id){
-    const d=getDriversV24();
-    const x=d.find(v=>v.id===id);
-    if(!x)return;
+  window.toggleDriverV24=async function(id){
+    const driver=getDriversV24().find(v=>Number(v.id)===Number(id));
+    if(!driver)return;
 
-    x.aktif=!x.aktif;
-    saveDriversV24(d);
-    renderPengantaranV24();
+    const nextStatus=driver.aktif?'Nonaktif':'Aktif';
+
+    try{
+      const hasil=await supabaseClient
+        .from(DRIVER_TABLE)
+        .update({status:nextStatus})
+        .eq('id',Number(id))
+        .select('id,nama,no_wa,status,created_at')
+        .maybeSingle();
+
+      if(hasil.error) throw new Error(hasil.error.message);
+      if(!hasil.data) throw new Error('Driver tidak ditemukan di Supabase.');
+
+      await refreshDriversV24(false);
+      toast(driver.nama+' sekarang '+nextStatus+'.');
+    }catch(error){
+      console.error('TOGGLE DRIVER:',error);
+      alert('❌ Gagal mengubah status driver:\n\n'+error.message);
+    }
   };
 
   /*
-   * Siap Diantar -> pilih driver -> otomatis menjadi Diantar.
-   * Status Diantar dikirim ke Supabase terlebih dahulu.
+   * Siap Diantar -> pilih driver -> Supabase menyimpan:
+   * status, driver_id, driver_nama, driver_no_wa.
    */
   window.tugaskanDriverV24=async function(orderIndex){
+    await refreshDriversV24(false);
     const d=getDriversV24().filter(x=>x.aktif!==false);
 
     if(!d.length){
-      alert('Belum ada driver aktif. Tambahkan driver terlebih dahulu.');
+      alert('Belum ada driver aktif di Supabase. Tambahkan driver terlebih dahulu.');
       return;
     }
 
     const orders=getOrders();
     const o=orders[orderIndex];
-
     if(!o)return;
 
     if(!['siap_diantar','diantar'].includes(status(o))){
@@ -6433,51 +6524,44 @@ setInterval(
     const pilihan=d.map((x,i)=>`${i+1}. ${x.nama} (${x.whatsapp})`).join('\n');
     const raw=prompt('Pilih nomor driver:\n\n'+pilihan);
     const n=Number(raw)-1;
-
     if(!Number.isInteger(n)||!d[n])return;
 
-    const x=d[n];
+    const driver=d[n];
 
     try{
-      await updateStatusSupabaseV24(o,'diantar');
+      await updatePesananDriverSupabaseV24(o,driver,'assign');
 
-      o.driverId=x.id;
-      o.driverNama=x.nama;
-      o.driverWhatsApp=x.whatsapp;
+      o.driverId=Number(driver.id);
+      o.driverNama=driver.nama;
+      o.driverWhatsApp=driver.whatsapp;
       o.status='diantar';
-      o.deliveryStartedAt=new Date().toISOString();
+      o.deliveryStartedAt=o.deliveryStartedAt||new Date().toISOString();
 
       localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
 
-      renderPengantaranV24();
-      if(typeof renderPesanan==='function')renderPesanan();
-      if(typeof updateDashboard==='function')updateDashboard();
+      await sinkronkanPesananSupabase(false);
+      await refreshDriversV24(false);
 
-      if(typeof sinkronkanPesananSupabase==='function'){
-        await sinkronkanPesananSupabase(false);
-      }
-
-      toast('Pesanan ditugaskan ke '+x.nama+' dan status menjadi Diantar.');
+      toast('Pesanan ditugaskan ke '+driver.nama+'. Data driver tersimpan di Supabase.');
     }catch(error){
       console.error('TUGASKAN DRIVER:',error);
-      alert('❌ Gagal mengubah status pengantaran:\n\n'+error.message);
+      alert('❌ Gagal menugaskan driver:\n\n'+error.message);
     }
   };
 
-  /*
-   * Lepas driver. Pesanan dikembalikan ke Siap Diantar,
-   * sehingga bisa ditugaskan ulang tanpa membuat alur status rusak.
-   */
   window.lepasDriverV24=async function(orderIndex){
     const orders=getOrders();
     const o=orders[orderIndex];
-
     if(!o)return;
 
+    const driver={
+      id:o.driverId,
+      nama:o.driverNama,
+      whatsapp:o.driverWhatsApp
+    };
+
     try{
-      if(status(o)==='diantar'){
-        await updateStatusSupabaseV24(o,'siap_diantar');
-      }
+      await updatePesananDriverSupabaseV24(o,driver,'release');
 
       delete o.driverId;
       delete o.driverNama;
@@ -6486,12 +6570,8 @@ setInterval(
 
       localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
 
-      renderPengantaranV24();
-      if(typeof renderPesanan==='function')renderPesanan();
-
-      if(typeof sinkronkanPesananSupabase==='function'){
-        await sinkronkanPesananSupabase(false);
-      }
+      await sinkronkanPesananSupabase(false);
+      await refreshDriversV24(false);
 
       toast('Driver dilepas. Pesanan kembali ke Siap Diantar.');
     }catch(error){
@@ -6500,13 +6580,9 @@ setInterval(
     }
   };
 
-  /*
-   * Diantar -> Selesai. Status selesai juga dikirim ke Supabase.
-   */
   window.selesaikanAntarV24=async function(orderIndex){
     const orders=getOrders();
     const o=orders[orderIndex];
-
     if(!o)return;
 
     if(!o.driverId){
@@ -6514,24 +6590,24 @@ setInterval(
       return;
     }
 
+    const driver={
+      id:o.driverId,
+      nama:o.driverNama,
+      whatsapp:o.driverWhatsApp
+    };
+
     try{
-      await updateStatusSupabaseV24(o,'selesai');
+      await updatePesananDriverSupabaseV24(o,driver,'complete');
 
       o.status='selesai';
       o.deliveryCompletedAt=new Date().toISOString();
 
       localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
 
-      renderPengantaranV24();
-      if(typeof renderPesanan==='function')renderPesanan();
-      if(typeof renderRiwayat==='function')renderRiwayat();
-      if(typeof updateDashboard==='function')updateDashboard();
+      await sinkronkanPesananSupabase(false);
+      await refreshDriversV24(false);
 
-      if(typeof sinkronkanPesananSupabase==='function'){
-        await sinkronkanPesananSupabase(false);
-      }
-
-      toast('Pesanan selesai dan status tersimpan di Supabase.');
+      toast('Pesanan selesai. Status dan driver tersimpan di Supabase.');
     }catch(error){
       console.error('SELESAI ANTAR:',error);
       alert('❌ Gagal menyelesaikan pengantaran:\n\n'+error.message);
@@ -6543,15 +6619,15 @@ setInterval(
     const orders=getOrders();
 
     const aktif=orders.filter(o=>
-      ['diantar'].includes(status(o)) && o.driverId
+      status(o)==='diantar' && Number(o.driverId)>0
     ).length;
 
     const selesai=orders.filter(o=>
-      status(o)==='selesai' && o.driverId
+      status(o)==='selesai' && Number(o.driverId)>0
     ).length;
 
     const belum=orders.filter(o=>
-      !o.driverId && ['siap_diantar','diantar'].includes(status(o))
+      !Number(o.driverId) && ['siap_diantar','diantar'].includes(status(o))
     ).length;
 
     [
@@ -6564,10 +6640,7 @@ setInterval(
       if(e)e.textContent=v;
     });
 
-    const q=String(
-      document.getElementById('v24CariDriver')?.value||''
-    ).toLowerCase().trim();
-
+    const q=String(document.getElementById('v24CariDriver')?.value||'').toLowerCase().trim();
     const td=document.getElementById('tabelDriverV24');
 
     if(td){
@@ -6575,7 +6648,7 @@ setInterval(
         .filter(d=>!q||(`${d.nama} ${d.whatsapp}`).toLowerCase().includes(q))
         .map((d,i)=>{
           const c=orders.filter(o=>
-            o.driverId===d.id &&
+            Number(o.driverId)===Number(d.id) &&
             !['selesai','batal'].includes(status(o))
           ).length;
 
@@ -6584,39 +6657,25 @@ setInterval(
               <td>${i+1}</td>
               <td><strong>${esc(d.nama)}</strong></td>
               <td>${esc(d.whatsapp)}</td>
-              <td>
-                ${
-                  d.aktif
-                  ? '<span class="status status-selesai">Aktif</span>'
-                  : '<span class="status status-batal">Nonaktif</span>'
-                }
+              <td>${d.aktif
+                ? '<span class="status status-selesai">Aktif</span>'
+                : '<span class="status status-batal">Nonaktif</span>'}
               </td>
               <td>${c}</td>
               <td>
-                <button
-                  class="btn btn-small ${d.aktif?'btn-warning':'btn-success'}"
-                  onclick="toggleDriverV24('${d.id}')">
+                <button class="btn btn-small ${d.aktif?'btn-warning':'btn-success'}" onclick="toggleDriverV24('${d.id}')">
                   ${d.aktif?'Nonaktifkan':'Aktifkan'}
                 </button>
-                <button
-                  class="btn btn-danger btn-small"
-                  onclick="hapusDriverV24('${d.id}')">
-                  Hapus
-                </button>
+                <button class="btn btn-danger btn-small" onclick="hapusDriverV24('${d.id}')">Hapus</button>
               </td>
-            </tr>
-          `;
+            </tr>`;
         })
-        .join('')
-        ||
+        .join('') ||
         '<tr><td colspan="6"><div class="empty">🚚 Belum ada driver.</div></td></tr>';
     }
 
     const sf=document.getElementById('v24FilterStatus')?.value||'semua';
-    const oq=String(
-      document.getElementById('v24CariPesanan')?.value||''
-    ).toLowerCase().trim();
-
+    const oq=String(document.getElementById('v24CariPesanan')?.value||'').toLowerCase().trim();
     const tp=document.getElementById('tabelPengantaranV24');
     if(!tp)return;
 
@@ -6624,95 +6683,52 @@ setInterval(
       .map((o,i)=>({o,i}))
       .filter(({o})=>{
         const st=status(o);
-
         if(sf!=='semua'&&st!==sf)return false;
         if(!oq)return true;
-
-        return `
-          ${o.id||o.orderId||''}
-          ${name(o)}
-          ${address(o)}
-          ${phone(o)}
-          ${o.driverNama||''}
-        `.toLowerCase().includes(oq);
+        return `${o.id||o.orderId||''} ${name(o)} ${address(o)} ${phone(o)} ${o.driverNama||''}`.toLowerCase().includes(oq);
       })
       .reverse();
 
-    tp.innerHTML=rows
-      .slice(0,150)
-      .map(({o,i},n)=>{
-        const assigned=o.driverId
-          ? `<strong>${esc(o.driverNama||'Driver')}</strong><br><small>${esc(o.driverWhatsApp||'')}</small>`
-          : '<span style="color:#999">Belum ditugaskan</span>';
+    tp.innerHTML=rows.slice(0,150).map(({o,i},n)=>{
+      const assigned=o.driverId
+        ? `<strong>${esc(o.driverNama||'Driver')}</strong><br><small>${esc(o.driverWhatsApp||'')}</small>`
+        : '<span style="color:#999">Belum ditugaskan</span>';
 
-        let act='';
+      let act='';
 
-        if(
-          ['siap_diantar','diantar'].includes(status(o)) &&
-          !o.driverId
-        ){
-          act+=`
-            <button
-              class="btn btn-primary btn-small"
-              onclick="tugaskanDriverV24(${i})">
-              🛵 Tugaskan
-            </button>
-          `;
-        }
+      if(['siap_diantar','diantar'].includes(status(o))&&!o.driverId){
+        act+=`<button class="btn btn-primary btn-small" onclick="tugaskanDriverV24(${i})">🛵 Tugaskan</button>`;
+      }
 
-        if(o.driverId && status(o)==='diantar'){
-          act+=`
-            <button
-              class="btn btn-gray btn-small"
-              onclick="lepasDriverV24(${i})">
-              Lepas
-            </button>
-            <button
-              class="btn btn-success btn-small"
-              onclick="selesaikanAntarV24(${i})">
-              ✅ Selesai
-            </button>
-          `;
-        }
+      if(o.driverId&&status(o)==='diantar'){
+        act+=`<button class="btn btn-gray btn-small" onclick="lepasDriverV24(${i})">Lepas</button>
+              <button class="btn btn-success btn-small" onclick="selesaikanAntarV24(${i})">✅ Selesai</button>`;
+      }
 
-        if(o.driverId && status(o)==='selesai'){
-          act+='<span class="status status-selesai">Selesai</span>';
-        }
+      if(o.driverId&&status(o)==='selesai'){
+        act+='<span class="status status-selesai">Selesai</span>';
+      }
 
-        return `
-          <tr>
-            <td>${n+1}</td>
-            <td>
-              <strong>${esc(name(o))}</strong><br>
-              <small>${esc(phone(o))}</small>
-            </td>
-            <td>${esc(address(o))}</td>
-            <td><strong>${money(total(o))}</strong></td>
-            <td>
-              ${
-                typeof statusHTML==='function'
-                ? statusHTML(o.status)
-                : esc(o.status||'baru')
-              }
-            </td>
-            <td>${assigned}</td>
-            <td>${act||'<span style="color:#999">-</span>'}</td>
-          </tr>
-        `;
-      })
-      .join('')
-      ||
-      '<tr><td colspan="7"><div class="empty">📦 Tidak ada pesanan sesuai filter.</div></td></tr>';
+      return `
+        <tr>
+          <td>${n+1}</td>
+          <td><strong>${esc(name(o))}</strong><br><small>${esc(phone(o))}</small></td>
+          <td>${esc(address(o))}</td>
+          <td><strong>${money(total(o))}</strong></td>
+          <td>${typeof statusHTML==='function'?statusHTML(o.status):esc(o.status||'baru')}</td>
+          <td>${assigned}</td>
+          <td>${act||'<span style="color:#999">-</span>'}</td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="7"><div class="empty">📦 Tidak ada pesanan sesuai filter.</div></td></tr>';
   };
 
-  document.addEventListener(
-    'DOMContentLoaded',
-    ()=>setTimeout(renderPengantaranV24,200)
-  );
+  document.addEventListener('DOMContentLoaded',async function(){
+    setTimeout(()=>refreshDriversV24(false),250);
+  });
 
   setInterval(()=>{
-    try{renderPengantaranV24()}catch(e){}
-  },5000);
+    if(document.visibilityState==='visible') refreshDriversV24(false);
+  },10000);
 })();
 </script>
 
@@ -6966,7 +6982,7 @@ document.addEventListener("click", function(event){
     async function ambilPesananSupabase(){
         const hasil = await supabaseClient
             .from("pesanan")
-            .select("id,created_at,pelanggan_id,warung_id,nama_pelanggan,no_wa,\"alamat pengantara\",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,latitude,longitude")
+            .select("id,created_at,pelanggan_id,warung_id,nama_pelanggan,no_wa,\"alamat pengantara\",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,latitude,longitude,driver_id,driver_nama,driver_no_wa")
             .order("created_at", {ascending:false});
 
         if(hasil.error){
@@ -6995,6 +7011,9 @@ document.addEventListener("click", function(event){
             metodePembayaran: row.metode_pembayaran || "WhatsApp",
             latitude: row.latitude ?? null,
             longitude: row.longitude ?? null,
+            driverId: row.driver_id ?? null,
+            driverNama: row.driver_nama || "",
+            driverWhatsApp: row.driver_no_wa || "",
             pelanggan_id: row.pelanggan_id ?? null,
             warung_id: row.warung_id ?? null,
             items: []
