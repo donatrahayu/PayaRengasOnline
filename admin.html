@@ -7042,11 +7042,16 @@ document.addEventListener("click", function(event){
             return remote;
         });
 
-        /* Pertahankan data lokal lama yang belum ada di Supabase. */
+        /*
+         * Pertahankan hanya pesanan lokal lama yang memang BELUM punya ID
+         * Supabase. Kalau sebuah pesanan sudah punya supabase_id lalu tidak
+         * ada lagi di server, berarti data tersebut memang sudah dihapus dari
+         * Supabase dan jangan dimunculkan kembali oleh cache browser.
+         */
         const remoteIds = new Set(remoteRows.map(r=>Number(r.id)));
         local.forEach(o=>{
             const id = Number(o?.supabase_id || o?.id || 0);
-            if(id <= 0 || !remoteIds.has(id)){
+            if(id <= 0){
                 hasil.push(o);
             }
         });
@@ -7142,6 +7147,65 @@ document.addEventListener("click", function(event){
 
     window.sinkronkanPesananSupabase = function(){
         return sinkronkanPesananSupabase(true);
+    };
+
+    /*
+     * Hapus pesanan: Supabase menjadi sumber data utama.
+     * Data lokal baru dihapus setelah penghapusan di server berhasil.
+     */
+    const hapusPesananLokalLama = window.hapusPesanan;
+
+    window.hapusPesanan = async function(index){
+        const orders = getOrders();
+        const order = orders[index];
+
+        if(!order){
+            return;
+        }
+
+        if(!confirm("Yakin ingin menghapus pesanan ini?")){
+            return;
+        }
+
+        const dbId = Number(order.supabase_id || order.id || 0);
+
+        try{
+            if(dbId > 0){
+                const hasil = await supabaseClient
+                    .from("pesanan")
+                    .delete()
+                    .eq("id", dbId)
+                    .select("id")
+                    .maybeSingle();
+
+                if(hasil.error){
+                    throw new Error(hasil.error.message);
+                }
+
+                if(!hasil.data){
+                    throw new Error("Pesanan tidak ditemukan di Supabase.");
+                }
+            }
+
+            /* Hanya hapus cache lokal setelah server berhasil. */
+            if(typeof hapusPesananLokalLama === "function"){
+                hapusPesananLokalLama(index);
+            }else{
+                orders.splice(index,1);
+                localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+            }
+
+            /* Pastikan semua panel Admin membaca keadaan terbaru dari server. */
+            await sinkronkanPesananSupabase(false);
+
+            toast(dbId > 0
+                ? "Pesanan berhasil dihapus dari Supabase."
+                : "Pesanan lokal berhasil dihapus.");
+
+        }catch(error){
+            console.error("HAPUS PESANAN:", error);
+            alert("❌ Gagal menghapus pesanan di Supabase:\n\n" + error.message);
+        }
     };
 
     document.addEventListener("DOMContentLoaded", function(){
