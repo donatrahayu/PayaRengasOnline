@@ -41,6 +41,102 @@ let produkMitraList = [];
 
 
 /* =====================================================
+   ATURAN ONGKIR BERDASARKAN JARAK
+===================================================== */
+
+const MAKS_JARAK_PESANAN_KM = 15;
+
+function hitungJarakKm(lat1, lon1, lat2, lon2) {
+    const toRad = nilai => Number(nilai) * Math.PI / 180;
+    const R = 6371;
+    const dLat = toRad(Number(lat2) - Number(lat1));
+    const dLon = toRad(Number(lon2) - Number(lon1));
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(Number(lat1))) *
+        Math.cos(toRad(Number(lat2))) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function getWarungTerpilih() {
+    return warungMitraList.find(
+        item => Number(item.id) === Number(keranjang[0]?.warung_id || selectedWarungId || 0)
+    ) || null;
+}
+
+function hitungJarakPelangganKeWarung() {
+    const warung = getWarungTerpilih();
+    if (!warung || !lokasiPelanggan) return null;
+    const latWarung = Number(warung.latitude);
+    const lonWarung = Number(warung.longitude);
+    const latPelanggan = Number(lokasiPelanggan.latitude);
+    const lonPelanggan = Number(lokasiPelanggan.longitude);
+    if (
+        !Number.isFinite(latWarung) || !Number.isFinite(lonWarung) ||
+        !Number.isFinite(latPelanggan) || !Number.isFinite(lonPelanggan)
+    ) return null;
+    return hitungJarakKm(latWarung, lonWarung, latPelanggan, lonPelanggan);
+}
+
+function tentukanOngkirDariJarak(jarakKm) {
+    if (!Number.isFinite(Number(jarakKm))) return null;
+    const jarak = Number(jarakKm);
+    if (jarak < 0) return null;
+    if (jarak <= 2) return 5000;
+    if (jarak <= 4) return 8000;
+    if (jarak <= 5) return 10000;
+    if (jarak <= 7) return 15000;
+    if (jarak <= 9) return 25000;
+    if (jarak <= 10) return 30000;
+    if (jarak <= 15) return 50000;
+    return null;
+}
+
+function formatJarakKm(jarakKm) {
+    if (!Number.isFinite(Number(jarakKm))) return "-";
+    return Number(jarakKm).toLocaleString("id-ID", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }) + " km";
+}
+
+function updateInfoJarakOngkir() {
+    const info = document.getElementById("infoJarakOngkir");
+    if (!info) return;
+    if (!keranjang.length) {
+        info.innerHTML = "🛒 Tambahkan produk ke keranjang untuk menghitung ongkir.";
+        return;
+    }
+    const warung = getWarungTerpilih();
+    if (!warung) {
+        info.innerHTML = "🏪 Silakan pilih Warung Mitra terlebih dahulu.";
+        return;
+    }
+    const latWarung = Number(warung.latitude);
+    const lonWarung = Number(warung.longitude);
+    if (!Number.isFinite(latWarung) || !Number.isFinite(lonWarung)) {
+        info.innerHTML = "⚠️ Lokasi GPS Warung Mitra belum tersedia. Admin harus mengambil dan menyimpan lokasi GPS warung terlebih dahulu.";
+        return;
+    }
+    if (!lokasiPelanggan) {
+        info.innerHTML = "📍 Tekan <strong>Ambil Lokasi Saya</strong> untuk menghitung jarak dan ongkir otomatis.";
+        return;
+    }
+    const jarakKm = hitungJarakPelangganKeWarung();
+    const ongkir = tentukanOngkirDariJarak(jarakKm);
+    if (jarakKm === null || ongkir === null) {
+        const jarakTampil = jarakKm === null ? "-" : formatJarakKm(jarakKm);
+        info.innerHTML = "❌ Jarak pengantaran <strong>" + jarakTampil + "</strong>. Pesanan tidak dapat diterima karena jarak lebih dari 15 km.";
+        return;
+    }
+    info.innerHTML = "📏 Jarak Warung → Pelanggan: <strong>" + formatJarakKm(jarakKm) + "</strong><br>🚚 Ongkos Kirim: <strong>" + rupiah(ongkir) + "</strong><br>✅ Pengantaran tersedia.";
+}
+
+
+
+/* =====================================================
    LOCAL STORAGE
 ===================================================== */
 
@@ -247,49 +343,9 @@ function hitungTotalBelanja() {
 ===================================================== */
 
 function hitungOngkir() {
-
-    if (keranjang.length === 0) {
-        return 0;
-    }
-
-
-    const pilihan =
-        document.getElementById(
-            "pilihanOngkir"
-        );
-
-
-    if (!pilihan) {
-        return 5000;
-    }
-
-
-    const option =
-        pilihan.options[
-            pilihan.selectedIndex
-        ];
-
-
-    if (!option) {
-        return 5000;
-    }
-
-
-    const ongkir =
-        Number(
-            option.getAttribute(
-                "data-ongkir"
-            )
-        );
-
-
-    if (Number.isNaN(ongkir)) {
-        return 5000;
-    }
-
-
-    return ongkir;
-
+    if (keranjang.length === 0) return 0;
+    const ongkir = tentukanOngkirDariJarak(hitungJarakPelangganKeWarung());
+    return ongkir === null ? 0 : ongkir;
 }
 
 
@@ -758,6 +814,10 @@ function ambilLokasi() {
             }
 
 
+            updateInfoJarakOngkir();
+            updateCheckout();
+            tampilkanKeranjang();
+
             alert(
                 "Lokasi berhasil diambil."
             );
@@ -886,6 +946,9 @@ function muatLokasi() {
 
         }
 
+        updateInfoJarakOngkir();
+        updateCheckout();
+
     }
 
     catch(error) {
@@ -930,21 +993,8 @@ function ambilDataPelanggan() {
         );
 
 
-    const pilihanOngkir =
-        document.getElementById(
-            "pilihanOngkir"
-        );
-
-
-    let pilihanPengantaran = "";
-
-
-    if (pilihanOngkir) {
-
-        pilihanPengantaran =
-            pilihanOngkir.value;
-
-    }
+    const pilihanPengantaran =
+        "Antar otomatis berdasarkan jarak";
 
 
     return {
@@ -1071,23 +1121,61 @@ function validasiCheckout() {
     }
 
 
-    if (!data.pilihanPengantaran) {
+    if (!lokasiPelanggan) {
 
         alert(
-            "Silakan pilih pengantaran."
+            "📍 Silakan ambil Lokasi Saya terlebih dahulu agar jarak dan ongkir dapat dihitung."
         );
 
+        return false;
 
-        const input =
-            document.getElementById(
-                "pilihanOngkir"
-            );
+    }
 
 
-        if (input) {
-            input.focus();
-        }
+    const warung = getWarungTerpilih();
 
+    if (!warung) {
+
+        alert(
+            "Silakan pilih Warung Mitra terlebih dahulu."
+        );
+
+        return false;
+
+    }
+
+
+    const jarakKm = hitungJarakPelangganKeWarung();
+
+    if (jarakKm === null) {
+
+        alert(
+            "⚠️ Lokasi GPS Warung Mitra belum tersedia. Pesanan belum dapat diproses."
+        );
+
+        return false;
+
+    }
+
+
+    if (jarakKm > MAKS_JARAK_PESANAN_KM) {
+
+        alert(
+            "❌ Pesanan tidak dapat diterima. Jarak pengantaran " +
+            formatJarakKm(jarakKm) +
+            " dan batas maksimal pengantaran adalah 15 km."
+        );
+
+        return false;
+
+    }
+
+
+    if (tentukanOngkirDariJarak(jarakKm) === null) {
+
+        alert(
+            "❌ Ongkir belum dapat ditentukan untuk jarak tersebut."
+        );
 
         return false;
 
@@ -1283,6 +1371,10 @@ async function simpanPesananKeSupabase() {
         hitungTotalBelanja();
 
 
+    const jarakKm =
+        hitungJarakPelangganKeWarung();
+
+
     const ongkir =
         hitungOngkir();
 
@@ -1328,6 +1420,9 @@ async function simpanPesananKeSupabase() {
 
         ongkir:
             ongkir,
+
+        jarak_km:
+            Number(jarakKm),
 
         total_pembayaran:
             totalPembayaran,
@@ -1470,6 +1565,20 @@ function buatPesanWhatsApp() {
     pesan +=
         data.pilihanPengantaran +
         "\n";
+
+
+    const jarakKm =
+        hitungJarakPelangganKeWarung();
+
+
+    if (jarakKm !== null) {
+
+        pesan +=
+            "Jarak: " +
+            formatJarakKm(jarakKm) +
+            "\n";
+
+    }
 
 
     pesan += "\n";
@@ -1744,6 +1853,9 @@ async function konfirmasiPesan() {
 
             ongkir:
                 hitungOngkir(),
+
+            jarakKm:
+                hitungJarakPelangganKeWarung(),
 
             totalPembayaran:
                 hitungTotalPembayaran(),
@@ -2158,6 +2270,8 @@ async function pilihWarungMitra(id) {
     tampilkanInfoWarung();
 
     await muatProdukMitra();
+    updateInfoJarakOngkir();
+    updateCheckout();
 
 }
 
@@ -2264,20 +2378,6 @@ function renderProdukMitra(products) {
     }
 
 
-    /* =====================================================
-       TAMPILAN KARTU PRODUK MITRA
-       Dibuat grid dan ukuran gambar tetap supaya kartu
-       tidak memanjang/goyang walaupun gambar produk kosong.
-    ====================================================== */
-
-    container.style.display = "grid";
-    container.style.gridTemplateColumns =
-        "repeat(auto-fit, minmax(230px, 1fr))";
-    container.style.gap = "20px";
-    container.style.alignItems = "stretch";
-    container.style.width = "100%";
-    container.style.boxSizing = "border-box";
-
     container.innerHTML =
         products.map(function(product) {
 
@@ -2302,73 +2402,27 @@ function renderProdukMitra(products) {
 
             return `
 
-                <div
-                    class="card"
-                    data-kategori="${escapeHTML(kategori)}"
-                    data-nama="${escapeHTML(product.nama || "")}"
-                    style="
-                        width:100%;
-                        min-width:0;
-                        box-sizing:border-box;
-                        display:flex;
-                        flex-direction:column;
-                        height:100%;
-                        margin:0;
-                        overflow:hidden;
-                    ">
+                <div class="card" data-kategori="${escapeHTML(kategori)}" data-nama="${escapeHTML(product.nama || "")}">
 
                     <img
                         src="${gambar}"
                         alt="${nama}"
-                        style="
-                            display:block;
-                            width:100%;
-                            height:190px;
-                            min-height:190px;
-                            max-height:190px;
-                            object-fit:cover;
-                            object-position:center;
-                            border-radius:12px;
-                            margin:0 0 14px 0;
-                            background:#f1f1f1;
-                        "
-                        onerror="
-                            this.onerror=null;
-                            this.src='images/banner.jpg';
-                        ">
+                        onerror="this.src='images/banner.jpg'">
 
-                    <h3 style="margin:0 0 8px 0;">
-                        ${nama}
-                    </h3>
+                    <h3>${nama}</h3>
 
-                    <p style="
-                        margin:0 0 10px 0;
-                        min-height:42px;
-                        line-height:1.5;
-                    ">
-                        ${deskripsi}
-                    </p>
+                    <p>${deskripsi}</p>
 
-                    <div
-                        class="rating"
-                        style="margin-bottom:8px;">
+                    <div class="rating">
                         ${bintangProduk(rating)}
                     </div>
 
-                    <h4 style="
-                        margin:0 0 14px 0;
-                        font-size:20px;
-                    ">
+                    <h4>
                         ${rupiah(harga)}
                     </h4>
 
                     <button
                         type="button"
-                        style="
-                            width:100%;
-                            margin-top:auto;
-                            min-height:44px;
-                        "
                         onclick="tambahProdukMitra(${Number(product.id)})">
 
                         🛒 Pesan
@@ -2485,36 +2539,8 @@ document.addEventListener(
            UPDATE CHECKOUT
         */
 
+        updateInfoJarakOngkir();
         updateCheckout();
-
-
-        /*
-           PERUBAHAN ONGKIR
-        */
-
-        const pilihanOngkir =
-            document.getElementById(
-                "pilihanOngkir"
-            );
-
-
-        if (pilihanOngkir) {
-
-            pilihanOngkir.addEventListener(
-
-                "change",
-
-                function() {
-
-                    updateCheckout();
-
-                    tampilkanKeranjang();
-
-                }
-
-            );
-
-        }
 
 
         /*
