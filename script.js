@@ -1403,6 +1403,9 @@ async function simpanPesananKeSupabase() {
         warung_id:
             Number(keranjang[0]?.warung_id || selectedWarungId || 0),
 
+        items:
+            buatDetailItemPesanan(),
+
         nama_pelanggan:
             data.nama,
 
