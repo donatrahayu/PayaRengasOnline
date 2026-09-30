@@ -2127,44 +2127,12 @@ tr:hover td{
 </section>
 
 <!-- =========================
-     WARUNG MITRA V26
+     BACKUP
 ========================= -->
-<section id="warung" class="page">
     <div class="page-title">
-        <h2>🏪 Warung Mitra</h2>
-        <p>Kelola warung mitra Paya Rengas Delivery.</p>
+        <h2>🏪 Tambah Warung</h2>
+        <p>Tambah data warung ke Paya Rengas Delivery.</p>
     </div>
-
-    <div class="panel">
-        <div class="panel-header">
-            <h3>📋 Data Warung Mitra</h3>
-            <button class="btn btn-blue" onclick="renderWarungMitra()">🔄 Refresh</button>
-        </div>
-        <div class="table-scroll">
-            <table style="min-width:950px">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Nama Warung</th>
-                        <th>Alamat</th>
-                        <th>WhatsApp</th>
-                        <th>Status</th>
-                        <th>GPS</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelWarungMitra">
-                    <tr><td colspan="7" class="empty">Memuat data warung mitra...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="panel">
-        <div class="page-title" style="margin-bottom:14px">
-            <h3>➕ Tambah Warung Mitra</h3>
-            <p>Tambah warung yang bekerja sama dengan Paya Rengas Delivery.</p>
-        </div>
 
     <div class="panel">
 
@@ -2225,9 +2193,7 @@ tr:hover td{
 
 </section>
 
-<!-- =========================
-     BACKUP
-========================= -->
+
 <section
     id="backup"
     class="page">
@@ -6122,78 +6088,6 @@ function ubahStatusByObject(index,status){ubahStatus(index,status);renderOperasi
    INIT
 ===================================================== */
 
-async function renderWarungMitra(){
-    const tbody = document.getElementById("tabelWarungMitra");
-    if(!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">⏳ Memuat data warung mitra...</td></tr>';
-    try{
-        const hasil = await supabaseClient.from("warung").select("*").order("id", {ascending:true});
-        if(hasil.error) throw new Error(hasil.error.message);
-        const rows = Array.isArray(hasil.data) ? hasil.data : [];
-        if(!rows.length){
-            tbody.innerHTML = '<tr><td colspan="7" class="empty">Belum ada data warung mitra.</td></tr>';
-            return;
-        }
-        tbody.innerHTML = rows.map((w,i)=>{
-            const status = String(w.status ?? "aktif").toLowerCase();
-            const statusLabel = ["nonaktif","non-aktif","tidak aktif","inactive","false","0"].includes(status) ? "Nonaktif" : "Aktif";
-            const gps = (w.latitude != null && w.longitude != null) ? `${w.latitude}, ${w.longitude}` : "Belum diisi";
-            const wa = w.no_wa || "-";
-            return `<tr>
-                <td>${i+1}</td>
-                <td><strong>${safe(w.nama || "-")}</strong></td>
-                <td>${safe(w.alamat || "-")}</td>
-                <td>${safe(wa)}</td>
-                <td><span class="status ${statusLabel==="Aktif"?"status-selesai":"status-batal"}">${statusLabel}</span></td>
-                <td>${safe(gps)}</td>
-                <td><button class="btn btn-primary btn-small" onclick="editWarungMitra(${Number(w.id)})">✏️ Edit</button></td>
-            </tr>`;
-        }).join("");
-    }catch(error){
-        console.error("ERROR LOAD WARUNG MITRA:", error);
-        tbody.innerHTML = `<tr><td colspan="7" class="empty">❌ Gagal memuat warung: ${safe(error.message)}</td></tr>`;
-    }
-}
-
-window.renderWarungMitra = renderWarungMitra;
-
-window.editWarungMitra = async function(id){
-    try{
-        const hasil = await supabaseClient.from("warung").select("*").eq("id", id).single();
-        if(hasil.error) throw new Error(hasil.error.message);
-        const w = hasil.data;
-        const nama = prompt("Nama Warung:", w.nama || "");
-        if(nama === null) return;
-        const alamat = prompt("Alamat Warung:", w.alamat || "");
-        if(alamat === null) return;
-        const noWa = prompt("Nomor WhatsApp Warung:", w.no_wa || "");
-        if(noWa === null) return;
-        const statusAwal = String(w.status ?? "aktif").toLowerCase();
-        const status = prompt("Status warung (aktif/nonaktif):", statusAwal.includes("non") ? "nonaktif" : "aktif");
-        if(status === null) return;
-        const latText = prompt("Latitude:", w.latitude ?? "");
-        if(latText === null) return;
-        const lonText = prompt("Longitude:", w.longitude ?? "");
-        if(lonText === null) return;
-        const latitude = String(latText).trim() === "" ? null : Number(latText);
-        const longitude = String(lonText).trim() === "" ? null : Number(lonText);
-        if(!Number.isFinite(latitude) && latitude !== null){ alert("Latitude tidak valid."); return; }
-        if(!Number.isFinite(longitude) && longitude !== null){ alert("Longitude tidak valid."); return; }
-        const normalizedStatus = String(status).trim().toLowerCase().startsWith("non") ? "nonaktif" : "aktif";
-        const update = await supabaseClient.from("warung").update({
-            nama: nama.trim(), alamat: alamat.trim(), no_wa: noWa.trim() || null,
-            latitude, longitude, status: normalizedStatus
-        }).eq("id", id);
-        if(update.error) throw new Error(update.error.message);
-        alert("✅ Data warung mitra berhasil diperbarui.");
-        await renderWarungMitra();
-        await loadWarungMitraProduk();
-    }catch(error){
-        console.error("ERROR EDIT WARUNG:", error);
-        alert("❌ Gagal memperbarui warung:\n\n" + error.message);
-    }
-};
-
 async function loadWarungMitraProduk(){
 
     const select =
@@ -6287,7 +6181,6 @@ document.addEventListener(
 
 
         loadWarungMitraProduk();
-        renderWarungMitra();
 
 
         updateDashboard();
@@ -7467,8 +7360,6 @@ setInterval(
         document.getElementById("statusGPSWarung").textContent = "";
 
         alert("✅ Warung berhasil disimpan ke Supabase.");
-        await renderWarungMitra();
-        await loadWarungMitraProduk();
 
     } catch (error) {
 
