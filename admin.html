@@ -4770,7 +4770,8 @@ async function simpanProduk(event){
                     harga: harga,
                     deskripsi: deskripsi,
                     gambar: gambar,
-                    status: status
+                    status: status,
+                    modal: 0
                 })
                 .select()
                 .single();
@@ -4823,7 +4824,10 @@ async function simpanProduk(event){
                 deskripsi,
 
             gambar:
-                gambar
+                gambar,
+
+            modal:
+                Number(hasil.data.modal || 0)
 
         });
 
@@ -5191,7 +5195,8 @@ function simpanEdit(event){
                         harga: harga,
                         deskripsi: deskripsi,
                         gambar: gambar,
-                        status: status
+                        status: status,
+                        modal: Number(product.modal || 0)
                     })
                     .eq("id", dbId)
                     .select("id")
@@ -5209,6 +5214,7 @@ function simpanEdit(event){
             product.stok = stok;
             product.deskripsi = deskripsi;
             product.gambar = gambar;
+            product.modal = Number(product.modal || 0);
 
             saveProducts(products);
             selectedEditImage = "";
@@ -6243,7 +6249,23 @@ setInterval(
     const ps=getProducts(); const p=ps.find(x=>Number(x.id)===Number(id)); if(!p)return;
     const v=prompt('Masukkan modal/HPP per unit untuk '+(p.nama||'produk')+':',Number(p.modal||0));
     if(v===null)return; const n=Number(v); if(!Number.isFinite(n)||n<0){alert('Modal harus angka 0 atau lebih.');return;}
-    p.modal=Math.round(n); saveProducts(ps); renderProducts(); renderOperasional(); renderKeuanganV22(); toast('Modal produk diperbarui.');
+    const nilai=Math.round(n);
+    const dbId=Number(p.supabase_id || 0);
+    const simpanServer=async()=>{
+      if(dbId>0){
+        const hasil=await supabaseClient.from('produk').update({modal:nilai}).eq('id',dbId).select('id,modal').maybeSingle();
+        if(hasil.error)throw new Error(hasil.error.message);
+        if(!hasil.data)throw new Error('Produk tidak ditemukan di Supabase.');
+      }
+      p.modal=nilai;
+      saveProducts(ps);
+      renderProducts(); renderOperasional(); renderKeuanganV22();
+      toast('Modal/HPP produk berhasil disimpan.');
+    };
+    simpanServer().catch(error=>{
+      console.error('SIMPAN MODAL PRODUK:',error);
+      alert('❌ Modal belum tersimpan ke Supabase:\n\n'+error.message);
+    });
   };
 
   window.tambahKategoriV22=function(){
@@ -7439,7 +7461,7 @@ document.addEventListener("click", function(event){
     async function ambilPesananSupabase(){
         const hasil = await supabaseClient
             .from("pesanan")
-            .select("id,created_at,pelanggan_id,warung_id,nama_pelanggan,no_wa,\"alamat pengantara\",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,latitude,longitude,driver_id,driver_nama,driver_no_wa")
+            .select("id,created_at,pelanggan_id,warung_id,nama_pelanggan,no_wa,\"alamat pengantara\",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,latitude,longitude,driver_id,driver_nama,driver_no_wa,items")
             .order("created_at", {ascending:false});
 
         if(hasil.error){
@@ -7473,7 +7495,7 @@ document.addEventListener("click", function(event){
             driverWhatsApp: row.driver_no_wa || "",
             pelanggan_id: row.pelanggan_id ?? null,
             warung_id: row.warung_id ?? null,
-            items: []
+            items: Array.isArray(row.items) ? row.items : []
         };
     }
 
@@ -7492,7 +7514,9 @@ document.addEventListener("click", function(event){
 
             if(lama){
                 return Object.assign({}, lama, remote, {
-                    items: Array.isArray(lama.items) ? lama.items : []
+                    items: Array.isArray(remote.items) && remote.items.length
+                        ? remote.items
+                        : (Array.isArray(lama.items) ? lama.items : [])
                 });
             }
 
@@ -7677,6 +7701,62 @@ document.addEventListener("click", function(event){
             sinkronkanPesananSupabase(false);
         }
     }, 10000);
+})();
+</script>
+
+
+
+<script>
+/* Paya Rengas Delivery - V27 Produk Modal/HPP Sync */
+(function(){
+    "use strict";
+
+    async function sinkronkanModalProdukV27(){
+        try{
+            if(!supabaseClient || typeof getProducts!=="function" || typeof saveProducts!=="function") return;
+            const hasil=await supabaseClient
+                .from("produk")
+                .select("id,modal");
+            if(hasil.error) throw new Error(hasil.error.message);
+
+            const rows=Array.isArray(hasil.data)?hasil.data:[];
+            if(!rows.length) return;
+
+            const map=new Map(rows.map(r=>[Number(r.id),Number(r.modal||0)]));
+            const products=getProducts();
+            let berubah=false;
+
+            products.forEach(p=>{
+                const dbId=Number(p.supabase_id||0);
+                if(dbId>0 && map.has(dbId)){
+                    const modal=map.get(dbId);
+                    if(Number(p.modal||0)!==modal){
+                        p.modal=modal;
+                        berubah=true;
+                    }
+                }
+            });
+
+            if(berubah){
+                saveProducts(products);
+                if(typeof renderProducts==="function") renderProducts();
+                if(typeof renderOperasional==="function") renderOperasional();
+            }
+            if(typeof renderKeuanganV22==="function") renderKeuanganV22();
+        }catch(error){
+            console.warn("SYNC MODAL PRODUK V27:",error);
+        }
+    }
+
+    window.sinkronkanModalProdukV27=sinkronkanModalProdukV27;
+
+    document.addEventListener("DOMContentLoaded",function(){
+        setTimeout(sinkronkanModalProdukV27,500);
+    });
+
+    setInterval(function(){
+        if(document.visibilityState==="visible") sinkronkanModalProdukV27();
+    },10000);
 })();
 </script>
 
