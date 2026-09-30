@@ -7432,6 +7432,18 @@ document.addEventListener("click", function(event){
     const ubahStatusLokalLama = window.ubahStatus;
 
     window.ubahStatus = async function(index,status){
+        /*
+         * Status Selesai ditangani penuh oleh V26 Komisi & Deposit.
+         * Jangan update Supabase lebih dulu di wrapper sinkronisasi ini,
+         * karena V26 harus memastikan deposit cukup dan memproses potongan.
+         */
+        if(String(status||'').toLowerCase()==='selesai'){
+            if(typeof ubahStatusLokalLama === 'function'){
+                return ubahStatusLokalLama(index,status);
+            }
+            return;
+        }
+
         const orders = getOrders();
         const order = orders[index];
 
@@ -7556,6 +7568,334 @@ document.addEventListener("click", function(event){
             sinkronkanPesananSupabase(false);
         }
     }, 10000);
+})();
+</script>
+
+<script>
+/* =====================================================
+   V26.1 AUTO COMMISSION DEDUCTION
+   - Dipotong dari deposit driver hanya bagian KOMISI ADMIN.
+   - Komisi driver tetap dihitung sebagai informasi, tidak dipotong dari deposit.
+   - Mencegah potongan ganda berdasarkan pesanan_id.
+   - Pesanan selesai ditahan jika deposit tidak cukup.
+===================================================== */
+(function(){
+  const KOMISI_AUTO_TABLE='pengaturan_komisi';
+  const DEPOSIT_AUTO_TABLE='deposit_driver';
+  const RIWAYAT_AUTO_TABLE='riwayat_deposit';
+
+  const money=n=>typeof rupiah==='function'
+    ? rupiah(Number(n)||0)
+    : 'Rp'+(Number(n)||0).toLocaleString('id-ID');
+
+  function itemsOf(o){
+    return Array.isArray(o?.items)?o.items:
+      (Array.isArray(o?.keranjang)?o.keranjang:
+      (Array.isArray(o?.detailPesanan)?o.detailPesanan:[]));
+  }
+
+  function qtyOf(i){
+    const q=Number(i?.jumlah??i?.qty??i?.quantity??1);
+    return Number.isFinite(q)&&q>0?q:1;
+  }
+
+  function getOrderDbId(o){
+    return Number(o?.supabase_id||o?.id||0);
+  }
+
+  async function ambilAturanKomisiAuto(){
+    const hasil=await supabaseClient
+      .from(KOMISI_AUTO_TABLE)
+      .select('id,admin_ongkir_persen,driver_ongkir_persen,admin_produk_per_porsi,driver_produk_per_porsi,aktif')
+      .eq('id',1)
+      .maybeSingle();
+    if(hasil.error)throw new Error(hasil.error.message);
+    return hasil.data||null;
+  }
+
+  function hitungKomisiAuto(order,aturan){
+    const ongkir=Number(order?.ongkir||order?.biayaKirim||0)||0;
+    const adminOngkirPersen=Number(aturan?.admin_ongkir_persen||0)||0;
+    const driverOngkirPersen=Number(aturan?.driver_ongkir_persen||0)||0;
+    const adminProdukPerPorsi=Number(aturan?.admin_produk_per_porsi||0)||0;
+    const driverProdukPerPorsi=Number(aturan?.driver_produk_per_porsi||0)||0;
+
+    const totalPorsi=itemsOf(order).reduce((sum,item)=>sum+qtyOf(item),0);
+    const adminOngkir=Math.round(ongkir*adminOngkirPersen/100);
+    const driverOngkir=Math.round(ongkir*driverOngkirPersen/100);
+    const adminProduk=Math.round(totalPorsi*adminProdukPerPorsi);
+    const driverProduk=Math.round(totalPorsi*driverProdukPerPorsi);
+
+    return {
+      ongkir,
+      totalPorsi,
+      adminOngkir,
+      driverOngkir,
+      adminProduk,
+      driverProduk,
+      adminTotal:adminOngkir+adminProduk,
+      driverTotal:driverOngkir+driverProduk
+    };
+  }
+
+  async function sudahDipotongAuto(driverId,pesananId){
+    if(!driverId||!pesananId)return false;
+    const hasil=await supabaseClient
+      .from(RIWAYAT_AUTO_TABLE)
+      .select('id')
+      .eq('driver_id',Number(driverId))
+      .eq('pesanan_id',Number(pesananId))
+      .eq('tipe','potongan_komisi')
+      .limit(1);
+    if(hasil.error)throw new Error(hasil.error.message);
+    return Array.isArray(hasil.data)&&hasil.data.length>0;
+  }
+
+  async function siapkanPotonganKomisiAuto(order){
+    if(!order)throw new Error('Pesanan tidak ditemukan.');
+    if(String(order.status||'').toLowerCase()==='selesai')return {skip:true};
+
+    const driverId=Number(order?.driverId||0);
+    const pesananId=getOrderDbId(order);
+    if(!driverId)throw new Error('Pesanan belum memiliki driver.');
+    if(!pesananId)throw new Error('ID pesanan Supabase tidak tersedia.');
+    if(typeof supabaseClient==='undefined')throw new Error('Koneksi Supabase belum tersedia.');
+
+    const aturan=await ambilAturanKomisiAuto();
+    if(!aturan || !aturan.aktif){
+      return {skip:true,reason:'Komisi nonaktif.'};
+    }
+
+    const komisi=hitungKomisiAuto(order,aturan);
+    const sudah=await sudahDipotongAuto(driverId,pesananId);
+    if(sudah)return {skip:true,already:true,komisi};
+
+    /*
+     * Sesuai konsep saat ini: bagian ADMIN yang menjadi kewajiban driver
+     * langsung dipotong dari deposit driver. Bagian driver bukan potongan.
+     */
+    const hasilDeposit=await supabaseClient
+      .from(DEPOSIT_AUTO_TABLE)
+      .select('id,driver_id,saldo')
+      .eq('driver_id',driverId)
+      .maybeSingle();
+    if(hasilDeposit.error)throw new Error(hasilDeposit.error.message);
+
+    const deposit=hasilDeposit.data;
+    const saldoSebelum=Number(deposit?.saldo||0);
+    const potongan=Number(komisi.adminTotal||0);
+
+    if(!deposit){
+      if(potongan>0){
+        throw new Error('Deposit driver belum tersedia. Tambahkan deposit terlebih dahulu.');
+      }
+      return {skip:true,komisi,saldoSebelum,saldoSesudah:saldoSebelum};
+    }
+
+    if(potongan>saldoSebelum){
+      throw new Error(
+        'Deposit driver tidak cukup.\\n\\n'+
+        'Saldo deposit: '+money(saldoSebelum)+'\\n'+
+        'Potongan komisi admin: '+money(potongan)+'\\n\\n'+
+        'Tambahkan deposit terlebih dahulu sebelum pesanan diselesaikan.'
+      );
+    }
+
+    return {skip:false,aturan,komisi,deposit,saldoSebelum,potongan};
+  }
+
+  async function lakukanPotonganKomisiAuto(prepared,order){
+    if(!prepared || prepared.skip)return prepared;
+    const {deposit,saldoSebelum,potongan,komisi}=prepared;
+    const saldoSesudah=saldoSebelum-potongan;
+
+    if(potongan<=0)return {...prepared,saldoSesudah};
+
+    const update=await supabaseClient
+      .from(DEPOSIT_AUTO_TABLE)
+      .update({saldo:saldoSesudah,updated_at:new Date().toISOString()})
+      .eq('id',Number(deposit.id))
+      .eq('saldo',saldoSebelum)
+      .select('id,driver_id,saldo')
+      .maybeSingle();
+
+    if(update.error)throw new Error(update.error.message);
+    if(!update.data){
+      throw new Error('Saldo deposit berubah. Refresh data lalu coba selesaikan pesanan kembali.');
+    }
+
+    const riwayat=await supabaseClient
+      .from(RIWAYAT_AUTO_TABLE)
+      .insert({
+        driver_id:Number(order.driverId),
+        tipe:'potongan_komisi',
+        jumlah:potongan,
+        saldo_sebelum:saldoSebelum,
+        saldo_sesudah:saldoSesudah,
+        pesanan_id:getOrderDbId(order),
+        keterangan:
+          'Potongan komisi admin saat pesanan selesai. '+
+          'Komisi ongkir admin '+money(komisi.adminOngkir)+
+          ' + komisi produk admin '+money(komisi.adminProduk)+
+          '. Komisi driver '+money(komisi.driverTotal)+' tidak dipotong dari deposit.'
+      });
+
+    if(riwayat.error){
+      /* Kompensasi bila pencatatan riwayat gagal. */
+      await supabaseClient
+        .from(DEPOSIT_AUTO_TABLE)
+        .update({saldo:saldoSebelum,updated_at:new Date().toISOString()})
+        .eq('id',Number(deposit.id))
+        .eq('saldo',saldoSesudah);
+      throw new Error('Potongan deposit gagal dicatat ke riwayat: '+riwayat.error.message);
+    }
+
+    return {...prepared,saldoSesudah};
+  }
+
+  window.hitungKomisiPesananV26=async function(order){
+    const aturan=await ambilAturanKomisiAuto();
+    return hitungKomisiAuto(order,aturan||{});
+  };
+
+  /*
+   * Jalur tombol "Selesai" dari detail/pesanan.
+   * Status selesai ditulis langsung ke Supabase, lalu deposit dipotong.
+   * Jika potongan gagal, status dikembalikan ke status sebelumnya.
+   */
+  const ubahStatusSebelumnya=window.ubahStatus;
+  window.ubahStatus=async function(index,statusBaru){
+    if(String(statusBaru||'').toLowerCase()!=='selesai'){
+      return typeof ubahStatusSebelumnya==='function'
+        ? ubahStatusSebelumnya(index,statusBaru)
+        : undefined;
+    }
+
+    const orders=typeof getOrders==='function'?getOrders():[];
+    const order=orders[index];
+    if(!order)return;
+
+    const statusLama=String(order.status||'baru');
+    try{
+      const prepared=await siapkanPotonganKomisiAuto(order);
+
+      if(prepared.skip && prepared.already){
+        if(typeof ubahStatusSebelumnya==='function'){
+          return ubahStatusSebelumnya(index,statusBaru);
+        }
+        return;
+      }
+
+      const dbId=getOrderDbId(order);
+      if(dbId<=0)throw new Error('ID pesanan Supabase tidak tersedia.');
+
+      const payload={status:'selesai'};
+      if(order.driverId){
+        payload.driver_id=Number(order.driverId);
+        payload.driver_nama=order.driverNama||null;
+        payload.driver_no_wa=order.driverWhatsApp||null;
+      }
+
+      const hasil=await supabaseClient
+        .from('pesanan')
+        .update(payload)
+        .eq('id',dbId)
+        .select('id,status')
+        .maybeSingle();
+      if(hasil.error)throw new Error(hasil.error.message);
+      if(!hasil.data)throw new Error('Pesanan tidak ditemukan di Supabase.');
+
+      try{
+        await lakukanPotonganKomisiAuto(prepared,order);
+      }catch(e){
+        await supabaseClient.from('pesanan').update({status:statusLama}).eq('id',dbId);
+        await (typeof sinkronkanPesananSupabase==='function'?sinkronkanPesananSupabase(false):Promise.resolve());
+        throw e;
+      }
+
+      order.status='selesai';
+      order.deliveryCompletedAt=order.deliveryCompletedAt||new Date().toISOString();
+      localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+      await (typeof sinkronkanPesananSupabase==='function'?sinkronkanPesananSupabase(false):Promise.resolve());
+      if(typeof muatKomisiDepositV26==='function')await muatKomisiDepositV26();
+      toast('Pesanan selesai. Komisi admin otomatis diproses ke deposit driver.');
+    }catch(error){
+      console.error('SELESAI + KOMISI V26:',error);
+      alert('❌ Pesanan belum dapat diselesaikan:\n\n'+error.message);
+    }
+  };
+
+  /*
+   * Jalur khusus Pengantaran V24: tombol "Selesai" pada driver.
+   * Tetap memakai alur lama untuk status, tetapi komisi dipastikan diproses.
+   */
+  const selesaikanAntarSebelumnya=window.selesaikanAntarV24;
+  window.selesaikanAntarV24=async function(orderIndex){
+    const orders=typeof getOrders==='function'?getOrders():[];
+    const order=orders[orderIndex];
+    if(!order)return;
+
+    try{
+      const prepared=await siapkanPotonganKomisiAuto(order);
+      if(prepared.skip && prepared.already){
+        return typeof selesaikanAntarSebelumnya==='function'
+          ? selesaikanAntarSebelumnya(orderIndex)
+          : undefined;
+      }
+
+      if(typeof selesaikanAntarSebelumnya==='function'){
+        await selesaikanAntarSebelumnya(orderIndex);
+      }else{
+        throw new Error('Fungsi pengantaran V24 tidak tersedia.');
+      }
+
+      /* Fungsi lama harus benar-benar menghasilkan status selesai. */
+      if(String(order.status||'').toLowerCase()!=='selesai'){
+        throw new Error('Pengantaran V24 belum berhasil mengubah status menjadi Selesai.');
+      }
+
+      try{
+        await lakukanPotonganKomisiAuto(prepared,order);
+      }catch(e){
+        /* Kembalikan pesanan ke Diantar bila potongan deposit gagal. */
+        const dbId=getOrderDbId(order);
+        if(dbId>0){
+          await supabaseClient.from('pesanan').update({status:'diantar'}).eq('id',dbId);
+        }
+        order.status='diantar';
+        localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+        await (typeof sinkronkanPesananSupabase==='function'?sinkronkanPesananSupabase(false):Promise.resolve());
+        throw e;
+      }
+
+      await (typeof sinkronkanPesananSupabase==='function'?sinkronkanPesananSupabase(false):Promise.resolve());
+      if(typeof muatKomisiDepositV26==='function')await muatKomisiDepositV26();
+      toast('Pengantaran selesai. Komisi admin otomatis dipotong dari deposit driver.');
+    }catch(error){
+      console.error('SELESAI ANTAR + KOMISI V26:',error);
+      alert('❌ Pengantaran belum dapat diproses:\n\n'+error.message);
+    }
+  };
+
+  window.previewKomisiPesananV26=async function(index){
+    try{
+      const orders=typeof getOrders==='function'?getOrders():[];
+      const order=orders[index];
+      if(!order)return;
+      const k=await window.hitungKomisiPesananV26(order);
+      alert(
+        '📊 RINCIAN KOMISI PESANAN\\n\\n'+
+        'Ongkir: '+money(k.ongkir)+'\\n'+
+        'Total porsi/item: '+k.totalPorsi+'\\n\\n'+
+        'Komisi Admin Ongkir: '+money(k.adminOngkir)+'\\n'+
+        'Komisi Admin Produk: '+money(k.adminProduk)+'\\n'+
+        'TOTAL POTONGAN DEPOSIT: '+money(k.adminTotal)+'\\n\\n'+
+        'Komisi Driver Ongkir: '+money(k.driverOngkir)+'\\n'+
+        'Komisi Driver Produk: '+money(k.driverProduk)+'\\n'+
+        'TOTAL KOMISI DRIVER: '+money(k.driverTotal)
+      );
+    }catch(e){alert('❌ Gagal menghitung komisi:\n\n'+e.message);}
+  };
 })();
 </script>
 
