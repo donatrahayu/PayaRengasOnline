@@ -603,6 +603,210 @@ body{
 }
 </style>
 
+
+<style id="paya-mobile-v11">
+/* V11 MOBILE - khusus HP, desktop tidak diubah */
+@media (max-width: 700px){
+  html,body{width:100%;overflow-x:hidden!important}
+
+  /* Header: satu baris, tidak turun */
+  header{
+    min-height:56px!important;
+    height:56px!important;
+    padding:7px 12px!important;
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+  }
+  header .logo{
+    min-width:0!important;
+    flex:1 1 auto!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:7px!important;
+    overflow:hidden!important;
+  }
+  header .logo img{width:32px!important;height:32px!important;flex:0 0 32px!important}
+  header .logo h1{
+    font-size:15px!important;
+    line-height:1.15!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  header .logo p{display:none!important}
+  header nav{
+    flex:0 0 auto!important;
+    display:flex!important;
+    gap:0!important;
+    margin-left:8px!important;
+    white-space:nowrap!important;
+  }
+  header nav a{
+    display:none!important;
+    font-size:11px!important;
+    padding:4px 0!important;
+  }
+  header nav a:first-child{display:block!important}
+
+  /* Hero: lebih pendek dan proporsional */
+  .banner{
+    width:100%!important;
+    min-height:300px!important;
+    height:auto!important;
+    margin:0!important;
+    padding:42px 18px 18px!important;
+    border-radius:0!important;
+    background-position:center top!important;
+  }
+  .banner-text{max-width:100%!important}
+  .banner-text h2{
+    font-size:18px!important;
+    line-height:1.2!important;
+    margin:0 0 5px!important;
+  }
+  .banner-text h1{
+    font-size:28px!important;
+    line-height:1.08!important;
+    margin:0 0 10px!important;
+    max-width:330px!important;
+  }
+  .banner-text p{
+    font-size:12px!important;
+    line-height:1.55!important;
+    max-width:320px!important;
+    margin:0!important;
+  }
+
+  /* Search tetap satu baris */
+  .search-area{
+    width:94%!important;
+    margin:-2px auto 12px!important;
+    gap:7px!important;
+  }
+  .search-area input{
+    height:44px!important;
+    min-width:0!important;
+    padding:0 12px!important;
+    font-size:12px!important;
+    border-radius:12px!important;
+  }
+  .search-area button{
+    height:44px!important;
+    flex:0 0 auto!important;
+    padding:0 14px!important;
+    font-size:12px!important;
+    border-radius:12px!important;
+  }
+
+  /* Kategori: satu baris yang bisa digeser */
+  .kategori{
+    width:94%!important;
+    margin:0 auto 18px!important;
+    padding:0 0 4px!important;
+    gap:7px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    justify-content:flex-start!important;
+    scrollbar-width:none!important;
+  }
+  .kategori::-webkit-scrollbar{display:none!important}
+  .kategori-btn{
+    flex:0 0 auto!important;
+    padding:8px 13px!important;
+    font-size:11px!important;
+    white-space:nowrap!important;
+  }
+
+  /* Layanan dibuat ringkas */
+  #layanan-pr{
+    width:94%!important;
+    margin:0 auto 18px!important;
+  }
+  #layanan-pr h2{
+    font-size:19px!important;
+    line-height:1.25!important;
+    margin:0 0 10px!important;
+  }
+  #layanan-pr .pr-services{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+  #layanan-pr .pr-service{
+    min-height:76px!important;
+    padding:10px 42px 10px 10px!important;
+    border-radius:15px!important;
+    gap:10px!important;
+  }
+  #layanan-pr .pr-service .ico{
+    width:42px!important;
+    height:42px!important;
+    flex:0 0 42px!important;
+    font-size:21px!important;
+    border-radius:12px!important;
+  }
+  #layanan-pr .pr-service h3{
+    font-size:13px!important;
+    line-height:1.2!important;
+    margin:0 0 3px!important;
+  }
+  #layanan-pr .pr-service p{
+    font-size:10px!important;
+    line-height:1.35!important;
+  }
+  #layanan-pr .pr-badge{
+    font-size:8px!important;
+    padding:3px 6px!important;
+    margin-top:4px!important;
+  }
+  #layanan-pr .pr-service:first-child .action-arrow{
+    width:30px!important;
+    height:30px!important;
+    font-size:20px!important;
+  }
+
+  /* Menu/produk juga nyaman di HP */
+  #menu,#keranjang,#checkout{
+    width:94%!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+  #menu{margin-top:16px!important}
+  #menu>h2,#keranjang>h2,.checkout-box h2{font-size:18px!important}
+  #menu>div[style*="max-width:1200px"]{padding:12px!important}
+  #pilihWarungMitra{height:44px!important;font-size:13px!important}
+  .produk{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+
+  /* Promo dan footer jangan terlalu tinggi */
+  #promo{
+    width:94%!important;
+    margin:14px auto 18px!important;
+    padding:12px 14px!important;
+    border-radius:14px!important;
+  }
+  #promo h2{font-size:15px!important}
+  #promo p{font-size:9px!important}
+  footer{padding:20px 15px!important;margin-top:18px!important}
+  footer .footer-logo h2{font-size:17px!important}
+  footer .footer-logo p,footer .footer-copy{font-size:10px!important}
+  footer .footer-menu{gap:10px!important}
+  footer .footer-menu a{font-size:11px!important}
+}
+
+@media (max-width:380px){
+  header .logo h1{font-size:14px!important}
+  .banner{min-height:285px!important;padding-top:38px!important}
+  .banner-text h1{font-size:25px!important}
+  .banner-text h2{font-size:17px!important}
+  .banner-text p{font-size:11px!important}
+  .search-area button{padding:0 11px!important}
+  .kategori-btn{padding:7px 11px!important;font-size:10px!important}
+  #layanan-pr h2{font-size:18px!important}
+}
+</style>
+
 </head>
 
 
