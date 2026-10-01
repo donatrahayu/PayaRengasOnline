@@ -807,6 +807,14 @@ body{
 }
 </style>
 
+<style id="paya-mobile-flow-fix-v12">
+/* Pastikan tombol Pesan Makanan membuka menu walaupun #menu disembunyikan dengan !important. */
+#menu.menu-open{display:block!important;animation:prFade .25s ease!important}
+@media(max-width:800px){
+  #menu.menu-open{display:block!important}
+}
+</style>
+
 </head>
 
 
@@ -1446,7 +1454,7 @@ body{
 function bukaPesanMakanan(){
   const menu=document.getElementById('menu');
   if(!menu) return;
-  menu.classList.add('menu-open');
+  menu.classList.add('menu-open','pr-flow-open');
   menu.scrollIntoView({behavior:'smooth',block:'start'});
   setTimeout(function(){
     const w=document.getElementById('pilihWarungMitra');
@@ -1455,7 +1463,7 @@ function bukaPesanMakanan(){
 }
 function tutupPesanMakanan(){
   const menu=document.getElementById('menu');
-  if(menu) menu.classList.remove('menu-open');
+  if(menu) menu.classList.remove('menu-open','pr-flow-open');
   const layanan=document.getElementById('layanan-pr');
   if(layanan) layanan.scrollIntoView({behavior:'smooth',block:'center'});
 }
