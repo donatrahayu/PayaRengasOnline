@@ -25,6 +25,584 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+
+<style id="paya-modern-ui">
+:root{
+  --pr-orange:#ff5a1f;--pr-orange2:#ff8a00;--pr-dark:#172033;
+  --pr-bg:#f6f7fb;--pr-card:#fff;--pr-muted:#697386;
+  --pr-shadow:0 10px 30px rgba(23,32,51,.08);
+}
+*{box-sizing:border-box}
+body{background:var(--pr-bg)!important;color:var(--pr-dark)}
+header{
+  position:sticky;top:0;z-index:50!important;
+  min-height:76px!important;padding:12px 5%!important;
+  background:linear-gradient(100deg,var(--pr-orange2),var(--pr-orange))!important;
+  box-shadow:0 5px 20px rgba(0,0,0,.12)!important;
+}
+header .logo img{width:46px;height:46px;object-fit:contain}
+header .logo h1{font-size:22px!important;margin:0!important}
+header .logo p{font-size:12px!important;margin:2px 0 0!important}
+header nav{gap:22px!important}
+header nav a{font-weight:600!important}
+
+.banner{
+  width:min(1200px,94%)!important;min-height:285px!important;
+  margin:24px auto!important;border-radius:26px!important;
+  padding:42px 44px!important;overflow:hidden!important;
+  background:
+    radial-gradient(circle at 88% 25%,rgba(255,255,255,.55),transparent 25%),
+    linear-gradient(135deg,#fff0d2,#ffe0ad)!important;
+  box-shadow:var(--pr-shadow)!important;position:relative;
+}
+.banner-text{position:relative;z-index:2;max-width:620px}
+.banner-text h2{font-size:20px!important;color:var(--pr-orange)!important}
+.banner-text h1{font-size:38px!important;line-height:1.12!important;margin:8px 0 14px!important;color:#e94719!important}
+.banner-text p{max-width:560px!important;color:#586174!important;line-height:1.7!important}
+.banner-text button{
+  border:0!important;border-radius:12px!important;background:var(--pr-orange)!important;
+  padding:13px 20px!important;color:#fff!important;font-weight:700!important;
+  box-shadow:0 8px 18px rgba(255,90,31,.25)!important;
+}
+.banner-image{position:absolute;right:35px;top:30px;width:38%;height:225px;display:flex;align-items:center;justify-content:center}
+.banner-image img{display:none!important}
+.banner-image:after{content:"🍔  🍜  🥤";font-size:70px;letter-spacing:12px;transform:rotate(-5deg);filter:drop-shadow(0 12px 12px rgba(0,0,0,.08))}
+
+.search-area{width:min(900px,92%)!important;margin:0 auto 20px!important}
+.search-area input{height:52px!important;border-radius:15px!important;border:1px solid #e3e7ee!important;background:#fff!important}
+.search-area button{height:52px!important;border-radius:15px!important;background:var(--pr-orange)!important;border:0!important}
+
+.kategori{width:min(1200px,94%)!important;margin:0 auto 30px!important;gap:10px!important}
+.kategori-btn{border:0!important;border-radius:999px!important;padding:11px 18px!important;background:#fff!important;box-shadow:0 5px 16px rgba(23,32,51,.07)!important;font-weight:600!important}
+.kategori-btn.active{background:var(--pr-orange)!important;color:#fff!important}
+
+#layanan-pr{
+  width:min(1200px,94%);margin:0 auto 34px;
+}
+#layanan-pr h2{font-size:25px;margin:0 0 15px;color:#ef4d1c}
+.pr-services{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pr-service{
+  background:#fff;border-radius:18px;padding:20px;box-shadow:var(--pr-shadow);
+  border:1px solid #edf0f5;display:flex;align-items:center;gap:15px;
+}
+.pr-service .ico{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;background:#fff0e9;font-size:27px}
+.pr-service h3{margin:0 0 4px;font-size:17px}.pr-service p{margin:0;color:var(--pr-muted);font-size:13px;line-height:1.5}
+.pr-service.soon{opacity:.88}
+.pr-badge{display:inline-block;margin-top:7px;font-size:11px;padding:4px 8px;border-radius:999px;background:#fff1df;color:#c76a00;font-weight:700}
+
+.menu{width:min(1200px,94%)!important;margin:0 auto 35px!important}
+.menu h2{font-size:25px!important;color:#ef4d1c!important}
+.menu>div[style*="max-width:1200px"]{
+  max-width:none!important;border-radius:18px!important;box-shadow:var(--pr-shadow)!important;
+  border:1px solid #edf0f5;
+}
+#pilihWarungMitra{height:48px!important;background:#fff!important}
+.produk{gap:18px!important}
+
+.keranjang,.checkout-box{
+  width:min(1200px,94%)!important;margin-left:auto!important;margin-right:auto!important;
+  border-radius:20px!important;box-shadow:var(--pr-shadow)!important;
+}
+.btn-konfirmasi{border-radius:13px!important;background:var(--pr-orange)!important}
+
+footer{margin-top:45px!important;background:#172033!important}
+
+@media(max-width:800px){
+  header{padding:10px 4%!important}.logo p{display:none}
+  header nav{gap:10px!important}.banner{padding:30px 24px!important;min-height:330px!important}
+  .banner-text h1{font-size:30px!important}.banner-image{opacity:.35;right:5px;width:45%}
+  .pr-services{grid-template-columns:1fr}
+  .kategori{overflow-x:auto;justify-content:flex-start;padding-bottom:4px}
+  .kategori-btn{white-space:nowrap}
+}
+</style>
+
+
+<style id="paya-v3-mobile-village">
+:root{--pr-orange:#ff5a1f;--pr-green:#2f7d32;--pr-cream:#fff8ea;--pr-ink:#18212b}
+body{background:linear-gradient(180deg,#f4f8f1 0%,#fffaf1 52%,#f5f7fb 100%)!important;color:var(--pr-ink)}
+header{background:linear-gradient(100deg,#8a542d,#5f351f)!important;position:sticky;top:0;z-index:100;border-bottom:3px solid #d99a48}
+header .logo h1,header .logo p{color:#fff!important}
+.banner{background:linear-gradient(135deg,rgba(255,248,226,.98),rgba(237,247,218,.96))!important;min-height:250px!important}
+.banner-text h2{color:var(--pr-green)!important}
+.banner-text h1{color:var(--pr-orange)!important}
+.banner:before{content:"🌿  🏡  🌾  🌴";position:absolute;right:30px;bottom:18px;font-size:42px;opacity:.55}
+#layanan-pr{margin-bottom:28px}
+#layanan-pr h2{color:#5a351f!important}
+.pr-services{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pr-service{transition:transform .18s,box-shadow .18s;border:1px solid #eadfcf}
+.pr-service:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(80,60,30,.12)}
+.pr-service.food{cursor:pointer;border:2px solid #ffb06f;background:linear-gradient(135deg,#fff5e8,#fff)}
+.pr-service .action-arrow{margin-left:auto;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--pr-orange);color:#fff;font-weight:700}
+#menu{display:none}
+#menu.menu-open{display:block;animation:prFade .25s ease}
+#menu .menu-inner-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#menu .back-food{border:0;background:#fff0e8;color:var(--pr-orange);padding:9px 13px;border-radius:999px;font-weight:700;cursor:pointer}
+#menu .warung-box{max-width:none!important;border:1px solid #eee2d2!important}
+@keyframes prFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(max-width:700px){
+  header{min-height:62px!important;padding:8px 4%!important}
+  header .logo img{width:38px!important;height:38px!important}
+  header .logo h1{font-size:17px!important}
+  header nav a:nth-child(n+3){display:none}
+  .banner{width:94%!important;margin:14px auto!important;padding:25px 20px!important;min-height:220px!important}
+  .banner-text h1{font-size:28px!important}
+  .banner-text p{font-size:13px!important;max-width:75%!important}
+  .banner:before{font-size:27px;right:10px}
+  .pr-services{grid-template-columns:1fr!important;gap:10px!important}
+  .pr-service{padding:14px!important}
+  .pr-service .ico{width:45px;height:45px;font-size:23px}
+  .pr-service p{font-size:12px}
+  .menu{width:94%!important}
+}
+</style>
+
+
+<style id="paya-android-final">
+:root{
+  --orange:#ff5a1f;--orange2:#ff7a18;--green:#2e8b57;--ink:#20252f;
+  --muted:#697386;--bg:#f7f8fa;--card:#fff;--line:#e7e9ee;
+  --shadow:0 8px 24px rgba(25,35,50,.08);
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0!important;font-family:Poppins,Arial,sans-serif!important;
+  background:linear-gradient(#f8faf4,#f7f8fa)!important;color:var(--ink)!important;
+}
+header{
+  position:sticky!important;top:0!important;z-index:100!important;
+  width:100%!important;min-height:68px!important;padding:9px 5%!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  background:linear-gradient(100deg,#6f431f,#a7632b)!important;
+  border-bottom:3px solid #e5a348!important;box-shadow:0 5px 18px rgba(0,0,0,.16)!important;
+}
+header .logo{display:flex!important;align-items:center!important;gap:12px!important}
+header .logo img{width:46px!important;height:46px!important;object-fit:contain!important}
+header .logo h1{font-family:Poppins,Arial,sans-serif!important;color:#fff!important;font-size:21px!important;margin:0!important}
+header .logo p{color:#fff!important;font-size:11px!important;margin:1px 0 0!important}
+header nav{display:flex!important;align-items:center!important;gap:18px!important}
+header nav a{color:#fff!important;text-decoration:none!important;font-weight:600!important;font-size:13px!important}
+header nav a:hover{opacity:.8}
+
+.banner{
+  width:min(1180px,94%)!important;min-height:260px!important;margin:22px auto!important;
+  padding:34px 38px!important;border-radius:24px!important;overflow:hidden!important;
+  background:
+    linear-gradient(90deg,rgba(255,248,224,.97),rgba(238,248,220,.9)),
+    #fff!important;box-shadow:var(--shadow)!important;
+}
+.banner-text{max-width:600px!important}
+.banner-text h2{color:var(--orange)!important;font-size:19px!important;margin:0 0 6px!important}
+.banner-text h1{color:#e84e1d!important;font-size:34px!important;margin:0 0 12px!important}
+.banner-text p{color:#596273!important;line-height:1.65!important}
+.banner-text button{
+  border:0!important;background:var(--orange)!important;color:#fff!important;
+  border-radius:12px!important;padding:13px 20px!important;font-weight:700!important;
+}
+.banner-image{position:absolute!important;right:7%!important;opacity:.75}
+.banner-image img{display:none!important}
+
+.search-area{
+  width:min(900px,92%)!important;margin:10px auto 18px!important;
+  display:flex!important;gap:8px!important;
+}
+.search-area input{flex:1!important;height:48px!important;padding:0 15px!important;border:1px solid var(--line)!important;border-radius:14px!important;background:#fff!important;font-family:inherit!important}
+.search-area button{height:48px!important;padding:0 20px!important;border:0!important;border-radius:14px!important;background:var(--orange)!important;color:#fff!important;font-weight:700!important}
+
+.kategori{
+  width:min(1180px,94%)!important;margin:0 auto 28px!important;
+  display:flex!important;gap:9px!important;overflow-x:auto!important;
+}
+.kategori-btn{
+  flex:0 0 auto!important;border:1px solid var(--line)!important;background:#fff!important;
+  border-radius:999px!important;padding:10px 17px!important;box-shadow:0 4px 13px rgba(0,0,0,.05)!important;
+  font-family:inherit!important;font-weight:600!important;
+}
+.kategori-btn.active{background:var(--orange)!important;color:#fff!important;border-color:var(--orange)!important}
+
+#layanan-pr{width:min(1180px,94%)!important;margin:0 auto 28px!important}
+#layanan-pr h2{font-size:24px!important;color:#6b4528!important;margin:0 0 14px!important}
+.pr-services{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:14px!important}
+.pr-service{
+  background:#fff!important;border:1px solid var(--line)!important;border-radius:18px!important;
+  padding:17px!important;box-shadow:var(--shadow)!important;min-height:94px!important;
+}
+.pr-service .ico{background:#fff3ea!important}
+.pr-service h3{font-size:16px!important}
+.pr-service p{font-size:12px!important;color:var(--muted)!important}
+.pr-service.soon{opacity:1!important}
+
+#menu,#keranjang,#checkout{
+  width:min(1180px,94%)!important;margin:0 auto 28px!important;
+}
+#menu{display:none!important}
+#menu.pr-flow-open{display:block!important}
+#menu>h2,#keranjang>h2,.checkout-box h2{
+  color:#6b4528!important;font-size:23px!important
+}
+#menu>div[style*="max-width:1200px"]{
+  max-width:none!important;border:1px solid var(--line)!important;border-radius:18px!important;
+  box-shadow:var(--shadow)!important;padding:16px!important
+}
+#pilihWarungMitra{height:48px!important;font-family:inherit!important;background:#fff!important}
+.produk{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px!important}
+.produk>*{min-width:0}
+.keranjang{display:none!important;background:#fff!important;padding:22px!important;border-radius:18px!important;box-shadow:var(--shadow)!important}
+.keranjang.pr-flow-open{display:block!important}
+.checkout{display:none!important}
+.checkout.pr-flow-open{display:block!important}
+.checkout-box{
+  width:100%!important;background:#fff!important;padding:22px!important;border-radius:18px!important;
+  box-shadow:var(--shadow)!important
+}
+.checkout-form input,.checkout-form textarea,.checkout-form select{
+  width:100%!important;max-width:100%!important;min-height:44px!important;
+  border:1px solid var(--line)!important;border-radius:11px!important;padding:10px 12px!important;
+  font-family:inherit!important
+}
+.btn-konfirmasi{width:100%!important;border:0!important;border-radius:13px!important;background:var(--orange)!important;color:#fff!important;padding:14px!important;font-weight:700!important}
+
+#promo{width:min(1180px,94%)!important;margin:30px auto!important}
+footer{background:#38271b!important;color:#fff!important}
+
+@media(max-width:800px){
+  header{padding:8px 14px!important;min-height:58px!important}
+  header .logo h1{font-size:16px!important} header .logo p{font-size:9px!important}
+  header .logo img{width:38px!important;height:38px!important}
+  header nav{gap:10px!important} header nav a{font-size:11px!important}
+  header nav a:nth-child(2),header nav a:nth-child(3),header nav a:nth-child(4){display:none!important}
+  .banner{min-height:190px!important;padding:24px 20px!important;margin:14px auto!important}
+  .banner-text h1{font-size:26px!important}.banner-text h2{font-size:16px!important}
+  .banner-text p{font-size:12px!important;max-width:80%!important}
+  .banner-image{display:none!important}
+  .search-area{width:94%!important}.search-area input{min-width:0!important}
+  .kategori{width:94%!important}
+  #layanan-pr{width:94%!important}
+  #layanan-pr h2{font-size:20px!important}
+  .pr-services{grid-template-columns:repeat(3,1fr)!important;gap:8px!important}
+  .pr-service{padding:12px!important;min-height:120px!important}
+  .pr-service .ico{width:40px!important;height:40px!important;font-size:21px!important}
+  .pr-service h3{font-size:13px!important;margin:8px 0 3px!important}
+  .pr-service p{font-size:10px!important;line-height:1.35!important}
+  .pr-badge{font-size:9px!important}
+  .produk{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+}
+@media(max-width:430px){
+  .pr-services{grid-template-columns:1fr!important}
+  .pr-service{display:flex!important;align-items:center!important;min-height:auto!important}
+  .pr-service .ico{flex:0 0 44px!important}
+  .banner-text p{max-width:100%!important}
+}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+<style id="paya-footer-fix">
+footer{
+  width:100%!important;
+  margin:36px 0 0!important;
+  padding:28px 5%!important;
+  background:#38271b!important;
+  color:#fff!important;
+  display:grid!important;
+  grid-template-columns:1.3fr 1fr 1fr!important;
+  gap:22px!important;
+  text-align:left!important;
+  box-sizing:border-box!important;
+}
+footer .footer-logo h2{color:#fff!important;margin:0 0 6px!important;font-size:20px!important}
+footer .footer-logo p{color:#e8ddd5!important;margin:0!important;font-size:12px!important}
+footer .footer-menu{display:flex!important;flex-wrap:wrap!important;gap:14px!important;align-content:flex-start!important}
+footer .footer-menu a{color:#fff!important;text-decoration:none!important;font-size:13px!important;font-weight:600!important}
+footer .footer-menu a:hover{color:#ff9b5e!important}
+footer .footer-copy{color:#d9ccc2!important;font-size:12px!important;line-height:1.6!important}
+@media(max-width:700px){
+  footer{grid-template-columns:1fr!important;padding:24px 18px!important;gap:16px!important}
+  footer .footer-menu{gap:12px!important}
+}
+</style>
+
+
+<style id="paya-approved-concept-v7">
+*{box-sizing:border-box}
+html,body{margin:0!important}
+body{
+  font-family:Poppins,Arial,sans-serif!important;
+  color:#172535!important;
+  background:#123a2a url("images/paya-rengas-village-bg.png") center top/cover fixed no-repeat!important;
+}
+body:before,body:after{display:none!important}
+
+/* Header sits above the village scene. */
+header{
+  position:sticky!important;top:0!important;z-index:100!important;
+  min-height:70px!important;padding:10px 4.5%!important;
+  background:rgba(82,45,21,.94)!important;
+  backdrop-filter:blur(8px)!important;
+  border-bottom:2px solid #e7a43a!important;
+}
+header .logo h1{color:#fff!important}
+header .logo p{color:#fff!important}
+header nav a{color:#fff!important}
+
+/* Hero: image is the background, text is layered on top. */
+.banner{
+  position:relative!important;width:100%!important;max-width:none!important;
+  min-height:500px!important;margin:0!important;padding:58px 7%!important;
+  border-radius:0!important;border:0!important;box-shadow:none!important;
+  overflow:hidden!important;
+  background:
+    linear-gradient(90deg,rgba(255,249,232,.90) 0%,rgba(255,249,232,.60) 36%,rgba(255,249,232,.08) 72%),
+    url("images/paya-rengas-village-bg.png") center/cover no-repeat!important;
+}
+.banner:after{display:none!important}
+.banner-text{position:relative!important;z-index:4!important;max-width:720px!important}
+.banner-text h2{
+  color:#ff5a1f!important;font-size:27px!important;margin:0 0 4px!important;
+  text-shadow:0 2px 7px rgba(255,255,255,.9)!important
+}
+.banner-text h1{
+  color:#ed4d1f!important;font-size:48px!important;line-height:1.05!important;
+  margin:0 0 14px!important;text-shadow:0 3px 9px rgba(255,255,255,.9)!important
+}
+.banner-text p{
+  color:#183247!important;font-size:18px!important;font-weight:600!important;
+  line-height:1.55!important;text-shadow:0 2px 8px rgba(255,255,255,.9)!important
+}
+.banner-text button{display:none!important}
+.banner-image{display:none!important}
+
+/* Search and category chips float over the scenery. */
+.search-area{
+  position:relative!important;z-index:20!important;
+  width:min(1050px,92%)!important;margin:-42px auto 18px!important;
+}
+.search-area input{
+  background:rgba(255,255,255,.92)!important;
+  backdrop-filter:blur(8px)!important;
+}
+.kategori{
+  position:relative!important;z-index:20!important;
+  width:min(1180px,94%)!important;margin:0 auto 28px!important;
+}
+.kategori-btn{
+  background:rgba(255,255,255,.92)!important;
+  backdrop-filter:blur(8px)!important;
+}
+
+/* Services remain visible directly over the background. */
+#layanan-pr{
+  position:relative!important;z-index:10!important;
+  width:min(1180px,94%)!important;margin:0 auto 28px!important;
+}
+#layanan-pr h2{
+  color:#fff!important;text-shadow:0 2px 8px rgba(0,0,0,.7)!important;
+}
+.pr-services{grid-template-columns:repeat(3,1fr)!important;gap:14px!important}
+#layanan-pr .pr-service{
+  background:rgba(255,255,255,.90)!important;
+  backdrop-filter:blur(8px)!important;
+  border:1px solid rgba(255,255,255,.8)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.12)!important;
+}
+#layanan-pr .pr-service:first-child{
+  border:2px solid #ff5a1f!important;background:rgba(255,248,242,.96)!important;
+}
+
+/* Bring back a compact promo block so the page feels complete. */
+#promo{
+  display:block!important;position:relative!important;z-index:10!important;
+  width:min(1180px,94%)!important;margin:26px auto!important;
+  padding:22px!important;border-radius:20px!important;
+  background:rgba(255,248,232,.90)!important;
+  backdrop-filter:blur(8px)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.12)!important;
+}
+#promo h2{color:#6a4020!important;margin:0 0 5px!important}
+#promo p{color:#596273!important;margin:0!important}
+
+/* Footer stays dark and clean. */
+footer{
+  position:relative!important;z-index:10!important;
+  margin-top:28px!important;
+  background:rgba(55,34,20,.97)!important;
+}
+
+@media(max-width:800px){
+  header{padding:8px 14px!important}
+  .banner{
+    min-height:390px!important;padding:42px 20px 28px!important;
+    background:
+      linear-gradient(90deg,rgba(255,249,232,.90),rgba(255,249,232,.35)),
+      url("images/paya-rengas-village-bg.png") center/cover no-repeat!important;
+  }
+  .banner-text h2{font-size:21px!important}
+  .banner-text h1{font-size:33px!important}
+  .banner-text p{font-size:15px!important}
+  .search-area{margin:-18px auto 16px!important}
+  #layanan-pr .pr-services{grid-template-columns:1fr!important}
+  #promo{padding:18px!important}
+}
+</style>
+
+
+<style id="paya-clean-flow-v8">
+/* Rapikan transisi layanan -> pesan makanan */
+#menu{
+  display:none!important;
+  position:relative!important;
+  z-index:12!important;
+  width:min(1100px,92%)!important;
+  margin:28px auto 34px!important;
+  scroll-margin-top:90px!important;
+}
+#menu.pr-flow-open{display:block!important}
+#menu.pr-flow-open:before{
+  content:"";
+  display:block;
+  height:1px;
+  margin-bottom:18px;
+  background:rgba(255,255,255,.35);
+}
+#menu>h2{
+  display:inline-block!important;
+  margin:0 0 12px!important;
+  padding:9px 16px!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.92)!important;
+  color:#6a4020!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.10)!important;
+}
+#menu>div[style*="max-width:1200px"]{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.93)!important;
+  backdrop-filter:blur(9px)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.12)!important;
+  border:1px solid rgba(255,255,255,.85)!important;
+}
+#layanan-pr{
+  margin-bottom:0!important;
+}
+#layanan-pr .pr-service:first-child{
+  cursor:pointer!important;
+}
+#layanan-pr .pr-service:first-child .pr-badge{
+  display:none!important;
+}
+#layanan-pr .pr-service:first-child:after{
+  content:"›";
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:absolute;
+  right:16px;
+  top:50%;
+  transform:translateY(-50%);
+  width:34px;height:34px;
+  border-radius:50%;
+  background:#ff5a1f;color:#fff;font-size:24px;font-weight:700;
+}
+#layanan-pr .pr-service:first-child{position:relative!important;padding-right:62px!important}
+@media(max-width:800px){
+  #menu{width:94%!important;margin:22px auto 28px!important}
+  #menu>h2{font-size:18px!important;padding:8px 13px!important}
+  #layanan-pr .pr-service:first-child{padding-right:54px!important}
+  #layanan-pr .pr-service:first-child:after{right:12px;width:30px;height:30px;font-size:21px}
+}
+</style>
+
+
+<style id="paya-single-background-v9">
+/* Satu background saja: seluruh halaman memakai satu gambar, tidak diulang di hero. */
+html,body{min-height:100%!important}
+body{
+  background-color:#183c2b!important;
+  background-image:
+    linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)),
+    url("images/paya-rengas-village-bg.png")!important;
+  background-position:center top!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+  background-attachment:fixed!important;
+}
+.banner{
+  background:transparent!important;
+  min-height:430px!important;
+  margin:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.banner:after{display:none!important}
+
+/* Search, layanan, promo tetap berada di atas background yang sama. */
+.search-area{margin-top:-18px!important}
+#layanan-pr{margin-top:24px!important}
+#promo{margin-top:24px!important}
+
+/* Hanya satu tanda panah pada kartu Pesan Makanan. */
+#layanan-pr .pr-service:first-child:after{
+  display:none!important;
+}
+#layanan-pr .pr-service:first-child{
+  padding-right:54px!important;
+}
+
+/* Mobile: tetap satu gambar dan tidak ada duplikasi. */
+@media(max-width:800px){
+  body{
+    background-attachment:scroll!important;
+    background-position:center top!important;
+    background-size:auto 100%!important;
+  }
+  .banner{min-height:360px!important}
+  .search-area{margin-top:-8px!important}
+}
+</style>
+
+
+<style id="paya-promo-clean-v10">
+/* Promo dibuat lebih kecil agar Home terasa lega. */
+#promo{
+  width:min(900px,88%)!important;
+  margin:22px auto 30px!important;
+  padding:14px 18px!important;
+  border-radius:15px!important;
+  background:rgba(255,248,232,.88)!important;
+  backdrop-filter:blur(7px)!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.09)!important;
+}
+#promo h2{
+  margin:0 0 3px!important;
+  font-size:18px!important;
+  line-height:1.25!important;
+}
+#promo p{
+  margin:0!important;
+  font-size:11px!important;
+  line-height:1.45!important;
+}
+@media(max-width:800px){
+  #promo{
+    width:94%!important;
+    margin:18px auto 24px!important;
+    padding:13px 15px!important;
+  }
+  #promo h2{font-size:16px!important}
+  #promo p{font-size:10px!important}
+}
+</style>
+
 </head>
 
 
@@ -39,15 +617,14 @@
 
     <div class="logo">
 
-        <img src="icons/logo.svg"
-             alt="Logo Paya Rengas Delivery">
+        <img src="icons/logo.svg" alt="Logo Paya Rengas Delivery" onerror="this.style.display='none';this.parentElement.classList.add('logo-fallback')">
 
         <div>
 
             <h1>Paya Rengas Delivery</h1>
 
             <p>
-                Pesan Makanan & Produk UMKM Desa Paya Rengas
+                Pesan Makanan & Produk UMKM
             </p>
 
         </div>
@@ -99,13 +676,7 @@
         </p>
 
 
-        <button type="button">
-
-            <i class="fa-solid fa-basket-shopping"></i>
-
-            Lihat Menu
-
-        </button>
+        
 
     </div>
 
@@ -201,6 +772,43 @@
 
 
 
+
+<!-- =====================================================
+     LAYANAN PAYA RENGAS
+===================================================== -->
+<section id="layanan-pr">
+  <h2>🛵 Layanan Paya Rengas</h2>
+  <div class="pr-services">
+    <div class="pr-service food" onclick="bukaPesanMakanan()" role="button" tabindex="0"
+         onkeydown="if(event.key==='Enter'||event.key===' '){bukaPesanMakanan();}">
+      <div class="ico">🍔</div>
+      <div>
+        <h3>Pesan Makanan</h3>
+        <p>Pilih warung mitra dan pesan menu favorit.</p>
+      </div>
+      <div class="action-arrow">›</div>
+    </div>
+
+    <div class="pr-service">
+      <div class="ico">🛵</div>
+      <div>
+        <h3>Ojek</h3>
+        <p>Layanan ojek Paya Rengas.</p>
+        <span class="pr-badge">SEGERA HADIR</span>
+      </div>
+    </div>
+
+    <div class="pr-service">
+      <div class="ico">📦</div>
+      <div>
+        <h3>Antar Barang</h3>
+        <p>Pengantaran barang untuk kebutuhan lokal.</p>
+        <span class="pr-badge">SEGERA HADIR</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- =====================================================
      MENU
 ===================================================== -->
@@ -209,11 +817,12 @@
     class="menu"
     id="menu">
 
-    <h2>
-        🍽 Menu Warung Mitra
-    </h2>
+    <div class="menu-inner-title">
+      <h2>🍽 Pesan Makanan</h2>
+      <button type="button" class="back-food" onclick="tutupPesanMakanan()">← Kembali</button>
+    </div>
 
-    <div style="max-width:1200px;margin:0 auto 20px;padding:16px;border-radius:14px;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.06);">
+    <div class="warung-box" style="max-width:1200px;margin:0 auto 20px;padding:16px;border-radius:14px;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.06);">
 
         <label for="pilihWarungMitra" style="display:block;font-weight:600;margin-bottom:8px;">
             🏪 Pilih Warung Mitra
@@ -555,7 +1164,7 @@
 
     <p>
         Nikmati berbagai makanan dan jajanan UMKM
-        dari Desa Paya Rengas.
+        dari Warung Mitra.
     </p>
 
 </section>
@@ -577,7 +1186,7 @@
 
 
         <p>
-            Platform UMKM Desa Paya Rengas
+            Pesan Makanan & Produk UMKM
         </p>
 
     </div>
@@ -615,7 +1224,7 @@
 
         <br>
 
-        Dibuat dengan ❤️ di Desa Paya Rengas
+        Melayani kebutuhan harian dengan mudah
 
     </div>
 
@@ -628,8 +1237,73 @@
      JAVASCRIPT
 ===================================================== -->
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+<script>
+function bukaPesanMakanan(){
+  const menu=document.getElementById('menu');
+  if(!menu) return;
+  menu.classList.add('menu-open');
+  menu.scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(function(){
+    const w=document.getElementById('pilihWarungMitra');
+    if(w) w.focus();
+  },450);
+}
+function tutupPesanMakanan(){
+  const menu=document.getElementById('menu');
+  if(menu) menu.classList.remove('menu-open');
+  const layanan=document.getElementById('layanan-pr');
+  if(layanan) layanan.scrollIntoView({behavior:'smooth',block:'center'});
+}
+document.addEventListener('DOMContentLoaded',function(){
+  const navMenu=document.querySelector('header nav a[href="#menu"]');
+  if(navMenu){
+    navMenu.addEventListener('click',function(e){
+      e.preventDefault(); bukaPesanMakanan();
+    });
+  }
+  const heroBtn=document.querySelector('.banner-text button');
+  if(heroBtn){
+    heroBtn.onclick=function(){bukaPesanMakanan();};
+    heroBtn.innerHTML='<i class="fa-solid fa-store"></i> Pesan Makanan';
+  }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 
+
+
+
+
+
+
+
+
+<script id="paya-clean-flow-v8">
+document.addEventListener("DOMContentLoaded",function(){
+  const menu=document.getElementById("menu");
+  const card=Array.from(document.querySelectorAll("#layanan-pr .pr-service"))
+    .find(el=>(el.textContent||"").toLowerCase().includes("pesan makanan"));
+  if(!menu||!card)return;
+
+  function openFood(){
+    menu.classList.add("pr-flow-open");
+    setTimeout(function(){
+      menu.scrollIntoView({behavior:"smooth",block:"start"});
+      const w=document.getElementById("pilihWarungMitra");
+      if(w) w.focus();
+    },60);
+  }
+
+  card.addEventListener("click",openFood);
+  card.setAttribute("role","button");
+  card.setAttribute("tabindex","0");
+  card.addEventListener("keydown",function(e){
+    if(e.key==="Enter"||e.key===" "){e.preventDefault();openFood();}
+  });
+});
+</script>
 
 </body>
