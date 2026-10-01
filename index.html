@@ -1664,3 +1664,21 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 </body>
+<style id="paya-single-fixed-bg-v15">
+/* V15: satu background tetap untuk seluruh halaman, tanpa gambar dobel */
+html,body{background:none!important;background-color:#183c2b!important}
+body:before{
+  content:""!important;
+  display:block!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:-1!important;
+  pointer-events:none!important;
+  background:#183c2b url("images/paya-rengas-village-bg.png") center center/cover no-repeat!important;
+}
+body:after{display:none!important}
+.banner{background:transparent!important}
+@media(max-width:800px){
+  body:before{background-position:center center!important;background-size:cover!important}
+}
+</style>
