@@ -856,6 +856,26 @@ body:before, body:after {
   }
 }
 </style>
+
+<style id="paya-security-guide-v17">
+.pr-trust{width:min(1100px,92%);margin:28px auto 34px;background:rgba(255,255,255,.96);border:1px solid #eadfcf;border-radius:20px;padding:22px;box-shadow:0 10px 28px rgba(50,40,25,.08)}
+.pr-trust h2{margin:0 0 8px;color:#5a351f;font-size:22px}
+.pr-trust .trust-lead{margin:0 0 16px;color:#5f6673;line-height:1.6;font-size:14px}
+.pr-trust-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pr-trust-card{background:#fffaf1;border:1px solid #f0e3ce;border-radius:15px;padding:15px}
+.pr-trust-card strong{display:block;color:#38271b;margin-bottom:5px;font-size:14px}
+.pr-trust-card span{display:block;color:#697386;font-size:12px;line-height:1.55}
+.pr-trust-safe{margin-top:14px;background:#eef8ed;border:1px solid #cfe7cc;border-radius:14px;padding:13px 15px;color:#315d31;font-size:13px;line-height:1.55}
+@media(max-width:700px){
+ .pr-trust{width:88%;margin:20px auto 24px;padding:17px;border-radius:17px}
+ .pr-trust h2{font-size:19px}
+ .pr-trust .trust-lead{font-size:12px}
+ .pr-trust-grid{grid-template-columns:1fr;gap:9px}
+ .pr-trust-card{padding:12px}
+ .pr-trust-safe{font-size:12px}
+}
+</style>
+
 </head>
 
 
@@ -1438,6 +1458,18 @@ body:before, body:after {
 <!-- =====================================================
      FOOTER
 ===================================================== -->
+
+
+<section class="pr-trust" aria-label="Keamanan dan cara pesan">
+  <h2>🔒 Aman & Cara Pesan</h2>
+  <p class="trust-lead">Belanja di Paya Rengas Delivery dengan tenang. Kami hanya meminta data yang diperlukan untuk memproses dan mengantarkan pesanan.</p>
+  <div class="pr-trust-grid">
+    <div class="pr-trust-card"><strong>🛡️ Kami tidak meminta OTP</strong><span>Jangan pernah memberikan OTP, PIN, password, atau kode keamanan kepada siapa pun.</span></div>
+    <div class="pr-trust-card"><strong>📱 Data untuk pengantaran</strong><span>Isi nama, nomor WhatsApp, alamat, dan detail pesanan yang diperlukan untuk pengiriman.</span></div>
+    <div class="pr-trust-card"><strong>🍔 Cara pesan</strong><span>Pilih warung → pilih makanan → masuk keranjang → checkout → tunggu pesanan diproses.</span></div>
+  </div>
+  <div class="pr-trust-safe"><strong>Catatan keamanan:</strong> Paya Rengas Delivery tidak meminta PIN ATM, password bank, OTP, PIN e-wallet, atau kode WhatsApp untuk menerima pesanan.</div>
+</section>
 
 <footer>
 
