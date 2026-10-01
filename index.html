@@ -8,7 +8,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>Paya Rengas Delivery V13</title>
+    <title>Paya Rengas Delivery V14</title>
 
     <link rel="stylesheet" href="Style.css">
 
@@ -563,10 +563,22 @@ body{
   body{
     background-attachment:scroll!important;
     background-position:center top!important;
-    background-size:auto 100%!important;
+    background-size:100% auto!important;
+    background-repeat:repeat-y!important;
+    background-color:#7e9b79!important;
   }
   .banner{min-height:360px!important}
   .search-area{margin-top:-8px!important}
+}
+
+/* V14: tampilan HP dibuat lebih natural. Gambar tidak lagi di-zoom mengikuti
+   tinggi seluruh halaman, sehingga komposisi desa, langit dan danau tetap terlihat. */
+@media(max-width:700px){
+  body{
+    background-size:100% auto!important;
+    background-repeat:repeat-y!important;
+    background-position:center top!important;
+  }
 }
 </style>
 
