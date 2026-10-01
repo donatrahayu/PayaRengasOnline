@@ -8,7 +8,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>Paya Rengas Delivery V2</title>
+    <title>Paya Rengas Delivery V13</title>
 
     <link rel="stylesheet" href="Style.css">
 
@@ -850,6 +850,8 @@ body{
 
         <a href="#menu">Menu</a>
 
+        <a href="#keranjang" id="navKeranjang" class="nav-cart" style="display:none;">🛒 Keranjang <span id="navKeranjangCount">0</span></a>
+
         <a href="#checkout">Checkout</a>
 
         <a href="#promo">Promo</a>
@@ -1076,6 +1078,11 @@ body{
 
     </div>
 
+    <div id="prFlowActions" class="pr-flow-actions" style="display:none;">
+        <div class="pr-flow-count">🛒 <span id="prFlowCount">0</span> item di keranjang</div>
+        <button type="button" onclick="lanjutKeKeranjang()">Lanjut ke Keranjang →</button>
+    </div>
+
 </section>
 
 
@@ -1139,6 +1146,10 @@ body{
 
     </div>
 
+
+    <div class="pr-cart-next" id="prCartNext">
+        <button type="button" onclick="lanjutKeCheckout()">Lanjut ke Checkout →</button>
+    </div>
 
     <div
         id="statusLokasi"
@@ -1516,6 +1527,128 @@ document.addEventListener("DOMContentLoaded",function(){
     if(e.key==="Enter"||e.key===" "){e.preventDefault();openFood();}
   });
 });
+</script>
+
+
+
+<style id="paya-v13-flow-ui">
+/* V13: alur pelanggan dibuat jelas: Produk -> Keranjang -> Checkout */
+.pr-flow-actions{
+  width:min(1200px,94%);margin:18px auto 28px;padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:rgba(255,255,255,.96);border:1px solid #eadfcf;border-radius:16px;
+  box-shadow:0 10px 28px rgba(50,35,20,.10);
+}
+.pr-flow-count{font-weight:700;color:#5a351f}
+.pr-flow-actions button,.pr-cart-next button{
+  border:0;border-radius:12px;padding:12px 18px;background:#ff5a1f;color:#fff;
+  font-weight:700;cursor:pointer;box-shadow:0 7px 16px rgba(255,90,31,.20);
+}
+.pr-cart-next{margin-top:18px;text-align:right}
+.nav-cart{white-space:nowrap}
+#keranjang.pr-v13-show,#checkout.pr-v13-show{display:block!important;animation:prFade .25s ease}
+@media(max-width:800px){
+  .pr-flow-actions{flex-direction:column;align-items:stretch;text-align:center}
+  .pr-flow-actions button,.pr-cart-next button{width:100%}
+  .pr-cart-next{text-align:stretch}
+  header nav{overflow-x:auto;white-space:nowrap;max-width:100%;padding-bottom:2px}
+  .nav-cart{display:inline-block}
+}
+</style>
+
+<script id="paya-v13-flow-js">
+(function(){
+  function getCart(){
+    try { return Array.isArray(keranjang) ? keranjang : []; } catch(e) { return []; }
+  }
+
+  function cartItemCount(){
+    return getCart().reduce(function(total,item){ return total + Number(item.jumlah || 0); },0);
+  }
+
+  function syncFlow(){
+    var count=cartItemCount();
+    var bar=document.getElementById('prFlowActions');
+    var countEl=document.getElementById('prFlowCount');
+    var nav=document.getElementById('navKeranjang');
+    var navCount=document.getElementById('navKeranjangCount');
+    if(countEl) countEl.textContent=count;
+    if(navCount) navCount.textContent=count;
+    if(bar) bar.style.display=count>0?'flex':'none';
+    if(nav) nav.style.display=count>0?'inline-block':'none';
+  }
+
+  window.lanjutKeKeranjang=function(){
+    var cart=document.getElementById('keranjang');
+    if(!cart || cartItemCount()<=0){
+      alert('Keranjang masih kosong. Silakan pilih makanan terlebih dahulu.');
+      return;
+    }
+    cart.classList.add('pr-v13-show','pr-flow-open');
+    cart.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+
+  window.lanjutKeCheckout=function(){
+    var checkout=document.getElementById('checkout');
+    if(!checkout || cartItemCount()<=0){
+      alert('Keranjang masih kosong. Silakan pilih makanan terlebih dahulu.');
+      return;
+    }
+    checkout.classList.add('pr-v13-show','pr-flow-open');
+    if(typeof updateCheckout==='function') updateCheckout();
+    checkout.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+
+  function patchCartFunctions(){
+    if(typeof window.tambahKeranjang==='function' && !window.tambahKeranjang.__v13){
+      var asliTambah=window.tambahKeranjang;
+      var wrappedTambah=function(){
+        var hasil=asliTambah.apply(this,arguments);
+        syncFlow();
+        return hasil;
+      };
+      wrappedTambah.__v13=true;
+      window.tambahKeranjang=wrappedTambah;
+    }
+
+    if(typeof window.kosongkanKeranjang==='function' && !window.kosongkanKeranjang.__v13){
+      var asliKosong=window.kosongkanKeranjang;
+      var wrappedKosong=function(){
+        var hasil=asliKosong.apply(this,arguments);
+        setTimeout(syncFlow,30);
+        return hasil;
+      };
+      wrappedKosong.__v13=true;
+      window.kosongkanKeranjang=wrappedKosong;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    patchCartFunctions();
+    syncFlow();
+
+    var nav=document.getElementById('navKeranjang');
+    if(nav){
+      nav.addEventListener('click',function(e){
+        e.preventDefault();
+        lanjutKeKeranjang();
+      });
+    }
+
+    // Pastikan klik produk langsung memunculkan alur berikutnya setelah item masuk.
+    var produk=document.getElementById('daftarProdukSupabase');
+    if(produk){
+      produk.addEventListener('click',function(e){
+        var btn=e.target.closest('button');
+        if(!btn) return;
+        setTimeout(syncFlow,80);
+      });
+    }
+
+    // Jika keranjang sudah tersimpan dari sesi sebelumnya, tampilkan tombolnya.
+    setTimeout(syncFlow,200);
+  });
+})();
 </script>
 
 </body>
