@@ -414,11 +414,6 @@ tr:hover td{
     color:#0f5132;
 }
 
-.status-siap-diantar{
-    background:#fff3cd;
-    color:#856404;
-}
-
 .status-batal{
     background:#f8d7da;
     color:#842029;
@@ -966,8 +961,6 @@ tr:hover td{
 
         <button onclick="showPage('keuangan',this)">💰 Keuangan</button>
 
-        <button onclick="showPage('komisidepositv26',this)">⚙️ Komisi & Deposit</button>
-
         <button onclick="showPage('kategori',this)">🏷️ Kategori</button>
 
         <button onclick="showPage('notifikasi',this)">🔔 Notifikasi <span id="badgeNotifikasi" class="badge" style="display:none">0</span></button>
@@ -975,6 +968,7 @@ tr:hover td{
         <button onclick="showPage('pusatv23',this)">🧭 Pusat Kontrol V23</button>
         <button onclick="showPage('pengantaranv24',this)">🚚 Pengantaran V24</button>
         <button onclick="showPage('pelangganv25',this)">👥 CRM Pelanggan V26</button>
+        <button onclick="showPage('pengaturanongkir',this)">⚙️ Pengaturan Ongkir</button>
         <button onclick="showPage('warung',this)">
     🏪 Tambah Warung
 </button>
@@ -1269,9 +1263,6 @@ tr:hover td{
                 <option value="diproses">
                     Diproses
                 </option>
-                <option value="siap_diantar">
-                    Siap Diantar
-                </option>
 
                 <option value="diantar">
                     Diantar
@@ -1414,28 +1405,6 @@ tr:hover td{
             <div class="form-grid">
 
 
-                <div class="form-group full">
-
-                    <label>
-                        🏪 Pilih Warung Mitra
-                    </label>
-
-                    <select
-                        id="warungProduk"
-                        required>
-
-                        <option value="">⏳ Memuat warung mitra...</option>
-
-                    </select>
-
-                    <div
-                        id="statusWarungProduk"
-                        style="margin-top:7px;font-size:13px;color:#666;">
-                    </div>
-
-                </div>
-
-
                 <div class="form-group">
 
                     <label>
@@ -1445,6 +1414,23 @@ tr:hover td{
                     <input
                         id="namaProduk"
                         required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Warung Mitra
+                    </label>
+
+                    <select id="warungProduk" required>
+
+                        <option value="">⏳ Memuat Warung Mitra...</option>
+
+                    </select>
+
+                    <small id="statusWarungProduk" style="color:#777"></small>
 
                 </div>
 
@@ -1769,9 +1755,6 @@ tr:hover td{
                 <option value="semua">Semua Status</option>
                 <option value="baru">Baru</option>
                 <option value="diproses">Diproses</option>
-                <option value="siap_diantar">
-                    Siap Diantar
-                </option>
                 <option value="diantar">Diantar</option>
                 <option value="selesai">Selesai</option>
                 <option value="batal">Batal</option>
@@ -1894,78 +1877,6 @@ tr:hover td{
 </section>
 
 <!-- =========================
-     KOMISI & DEPOSIT V26
-========================= -->
-<section id="komisidepositv26" class="page">
-  <div class="page-title">
-    <h2>⚙️ Komisi & Deposit Driver</h2>
-    <p>Atur komisi ongkir dan komisi produk dari Dashboard Admin. Deposit driver tersimpan di Supabase.</p>
-  </div>
-
-  <div class="stats" style="grid-template-columns:repeat(3,1fr)">
-    <div class="stat"><div class="stat-icon">⚙️</div><div><h3 id="v26StatusKomisi">Aktif</h3><p>Status Pengaturan</p></div></div>
-    <div class="stat"><div class="stat-icon">👤</div><div><h3 id="v26TotalDriver">0</h3><p>Total Driver</p></div></div>
-    <div class="stat"><div class="stat-icon">💰</div><div><h3 id="v26TotalDeposit">Rp0</h3><p>Total Deposit Driver</p></div></div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <h3>⚙️ Pengaturan Komisi</h3>
-      <button class="btn btn-gray" onclick="muatKomisiDepositV26()">🔄 Refresh</button>
-    </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Komisi Admin dari Ongkir (%)</label>
-        <input id="v26AdminOngkir" type="number" min="0" max="100" step="0.01" placeholder="Contoh: 20">
-      </div>
-      <div class="form-group">
-        <label>Komisi Driver dari Ongkir (%)</label>
-        <input id="v26DriverOngkir" type="number" min="0" max="100" step="0.01" placeholder="Contoh: 80">
-      </div>
-      <div class="form-group">
-        <label>Komisi Admin Produk (Rp/porsi)</label>
-        <input id="v26AdminProduk" type="number" min="0" step="100" placeholder="Contoh: 1000">
-      </div>
-      <div class="form-group">
-        <label>Komisi Driver Produk (Rp/porsi)</label>
-        <input id="v26DriverProduk" type="number" min="0" step="100" placeholder="Contoh: 500">
-      </div>
-      <div class="form-group full">
-        <label style="display:flex;align-items:center;gap:8px;font-weight:normal">
-          <input id="v26KomisiAktif" type="checkbox" checked style="width:auto"> Aktifkan perhitungan komisi
-        </label>
-      </div>
-    </div>
-    <div class="form-buttons">
-      <button class="btn btn-primary" onclick="simpanKomisiV26()">💾 Simpan Pengaturan Komisi</button>
-    </div>
-    <div id="v26PesanKomisi" style="margin-top:12px;color:#777;font-size:12px"></div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <h3>💰 Deposit Driver</h3>
-      <button class="btn btn-blue" onclick="muatKomisiDepositV26()">🔄 Refresh</button>
-    </div>
-    <div class="table-scroll">
-      <table style="min-width:900px">
-        <thead><tr><th>#</th><th>Driver</th><th>WhatsApp</th><th>Status</th><th>Saldo Deposit</th><th>Aksi</th></tr></thead>
-        <tbody id="tabelDepositDriverV26"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header"><h3>📌 Aturan Saat Ini</h3></div>
-    <div class="summary-grid">
-      <div class="summary-box"><h4>🚚 Ongkir</h4><span>Komisi Admin dan Driver diisi sendiri dari Dashboard.</span></div>
-      <div class="summary-box"><h4>🍔 Produk</h4><span>Komisi dihitung per porsi/item dan dapat diubah tanpa mengedit kode.</span></div>
-      <div class="summary-box"><h4>💰 Deposit</h4><span>Saldo driver dan riwayat transaksinya disimpan di Supabase.</span></div>
-    </div>
-  </div>
-</section>
-
-<!-- =========================
      KATEGORI V22
 ========================= -->
 <section id="kategori" class="page">
@@ -2008,9 +1919,6 @@ tr:hover td{
         <option value="semua">Semua Status</option>
         <option value="baru">Baru</option>
         <option value="diproses">Diproses</option>
-                <option value="siap_diantar">
-                    Siap Diantar
-                </option>
         <option value="diantar">Diantar</option>
         <option value="selesai">Selesai</option>
         <option value="batal">Batal</option>
@@ -2031,7 +1939,6 @@ tr:hover td{
     <div class="summary-grid">
       <div class="summary-box"><h4>🟡 Pesanan Baru</h4><strong id="v23Baru">0</strong></div>
       <div class="summary-box"><h4>🔵 Sedang Diproses</h4><strong id="v23Proses">0</strong></div>
-      <div class="summary-box"><h4>📦 Siap Diantar</h4><strong id="v23SiapDiantar">0</strong></div>
       <div class="summary-box"><h4>🚚 Sedang Diantar</h4><strong id="v23Diantar">0</strong></div>
       <div class="summary-box"><h4>🟢 Selesai</h4><strong id="v23Selesai">0</strong></div>
       <div class="summary-box"><h4>🔴 Batal</h4><strong id="v23Batal">0</strong></div>
@@ -2079,10 +1986,7 @@ tr:hover td{
     <div class="toolbar">
       <input id="v24CariPesanan" class="search" placeholder="Cari pelanggan, alamat, atau nomor pesanan..." oninput="renderPengantaranV24()">
       <select id="v24FilterStatus" class="filter" onchange="renderPengantaranV24()">
-        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option>
-                <option value="siap_diantar">
-                    Siap Diantar
-                </option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
+        <option value="semua">Semua</option><option value="baru">Baru</option><option value="diproses">Diproses</option><option value="diantar">Diantar</option><option value="selesai">Selesai</option><option value="batal">Batal</option>
       </select>
     </div>
     <div class="table-scroll"><table style="min-width:1100px"><thead><tr><th>#</th><th>Pelanggan</th><th>Alamat</th><th>Total</th><th>Status</th><th>Driver</th><th>Aksi</th></tr></thead><tbody id="tabelPengantaranV24"></tbody></table></div>
@@ -2127,8 +2031,65 @@ tr:hover td{
 </section>
 
 <!-- =========================
-     BACKUP
+     PENGATURAN ONGKIR
 ========================= -->
+<section id="pengaturanongkir" class="page">
+    <div class="page-title">
+        <h2>⚙️ Pengaturan Ongkir</h2>
+        <p>Atur tarif ongkir berdasarkan jarak GPS pelanggan ke Warung Mitra.</p>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h3>🚚 Tarif Berdasarkan Jarak</h3>
+            <button class="btn btn-gray" type="button" onclick="muatPengaturanOngkir()">🔄 Muat Ulang</button>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="ongkirTarif005">0 – 0,5 km</label>
+                <input id="ongkirTarif005" type="number" min="0" step="1000" placeholder="Masukkan tarif">
+            </div>
+            <div class="form-group">
+                <label for="ongkirTarif0515">&gt;0,5 – 1,5 km</label>
+                <input id="ongkirTarif0515" type="number" min="0" step="1000" placeholder="Masukkan tarif">
+            </div>
+            <div class="form-group">
+                <label for="ongkirTarif1525">&gt;1,5 – 2,5 km</label>
+                <input id="ongkirTarif1525" type="number" min="0" step="1000" placeholder="Masukkan tarif">
+            </div>
+            <div class="form-group">
+                <label for="ongkirTarif2535">&gt;2,5 – 3,5 km</label>
+                <input id="ongkirTarif2535" type="number" min="0" step="1000" placeholder="Masukkan tarif">
+            </div>
+            <div class="form-group">
+                <label for="ongkirTarif358">&gt;3,5 – 8 km</label>
+                <input id="ongkirTarif358" type="number" min="0" step="1000" placeholder="Masukkan tarif">
+            </div>
+            <div class="form-group">
+                <label for="ongkirTambahan8">Di atas 8 km — tambahan setiap 1 km</label>
+                <input id="ongkirTambahan8" type="number" min="0" step="1000" value="10000">
+            </div>
+        </div>
+
+        <div class="summary-grid" style="margin-top:18px">
+            <div class="summary-box"><h4>📍 Dasar Perhitungan</h4><span>Jarak dihitung otomatis dari GPS pelanggan ke GPS Warung Mitra.</span></div>
+            <div class="summary-box"><h4>🚚 Sampai 8 km</h4><span>Tarif setiap zona dapat diubah oleh admin.</span></div>
+            <div class="summary-box"><h4>➕ Di atas 8 km</h4><span>Tambahan yang tersimpan saat ini: Rp10.000 untuk setiap 1 km.</span></div>
+        </div>
+
+        <div class="form-buttons">
+            <button class="btn btn-success" type="button" onclick="simpanPengaturanOngkir()">💾 Simpan Pengaturan</button>
+            <button class="btn btn-gray" type="button" onclick="resetPengaturanOngkir()">↩️ Kembalikan Default</button>
+        </div>
+        <div id="hasilPengaturanOngkir" style="margin-top:14px"></div>
+    </div>
+</section>
+
+<!-- =========================
+     TAMBAH WARUNG
+========================= -->
+<section id="warung" class="page">
     <div class="page-title">
         <h2>🏪 Tambah Warung</h2>
         <p>Tambah data warung ke Paya Rengas Delivery.</p>
@@ -2151,37 +2112,9 @@ tr:hover td{
             id="noWaWarung"
             placeholder="Nomor WhatsApp Warung">
 
-        <div style="margin-top:12px;padding:14px;border:1px solid #ddd;border-radius:12px;background:#f8fafc;">
-            <div style="font-weight:700;margin-bottom:6px;">📍 Lokasi GPS Warung</div>
-            <div style="font-size:13px;color:#666;margin-bottom:10px;">Tekan tombol untuk mengambil titik lokasi warung saat berada di tempat warung.</div>
-
-            <button
-                type="button"
-                class="btn btn-primary"
-                onclick="ambilGPSWarung()">
-                📍 Ambil Lokasi GPS
-            </button>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
-                <input
-                    type="text"
-                    id="latitudeWarung"
-                    placeholder="Latitude"
-                    readonly>
-                <input
-                    type="text"
-                    id="longitudeWarung"
-                    placeholder="Longitude"
-                    readonly>
-            </div>
-
-            <div id="statusGPSWarung" style="margin-top:8px;font-size:13px;"></div>
-        </div>
-
         <button
             class="btn btn-primary"
-            onclick="tambahWarung()"
-            style="margin-top:12px;">
+            onclick="tambahWarung()">
 
             ➕ Simpan Warung
 
@@ -2358,6 +2291,21 @@ tr:hover td{
                     <input
                         id="editNama"
                         required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Warung Mitra
+                    </label>
+
+                    <select id="editWarungProduk">
+
+                        <option value="">Produk lama / tanpa Warung Mitra</option>
+
+                    </select>
 
                 </div>
 
@@ -2596,8 +2544,6 @@ let selectedNewImage = "";
 
 let selectedEditImage = "";
 
-let editingProductIndex = -1;
-
 let lastOrderCount = 0;
 
 
@@ -2682,53 +2628,27 @@ const defaultProducts = [
 
 function getProducts(){
 
-    let data = null;
-
     try{
 
-        data = JSON.parse(
-            localStorage.getItem(PRODUCT_KEY)
-        );
+        const data =
+            JSON.parse(
+                localStorage.getItem(
+                    PRODUCT_KEY
+                )
+            );
+
+        if(Array.isArray(data)){
+            return data;
+        }
 
     }catch(e){}
 
-    if(!Array.isArray(data)){
-        data = defaultProducts.map(p => ({...p}));
-    }
+    localStorage.setItem(
+        PRODUCT_KEY,
+        JSON.stringify(defaultProducts)
+    );
 
-    /*
-      ID LOCAL dan ID SUPABASE harus dipisahkan.
-      Produk bawaan lama memakai id 1-6, sedangkan
-      produk dari Supabase bisa memiliki id yang sama.
-      Jika terjadi benturan, produk Supabase diberi
-      ID lokal baru dan ID database disimpan di supabase_id.
-    */
-    const used = new Set();
-    let changed = false;
-
-    data.forEach((product, index) => {
-        const currentId = Number(product.id || 0);
-        const isSupabaseProduct = Number(product.supabase_id || 0) > 0 || Number(product.warung_id || 0) > 0;
-
-        if(!currentId || used.has(currentId)){
-            const oldId = currentId;
-            let newId = Date.now() + index;
-            while(used.has(newId)) newId++;
-            product.id = newId;
-            if(isSupabaseProduct && oldId > 0 && !product.supabase_id){
-                product.supabase_id = oldId;
-            }
-            changed = true;
-        }
-
-        used.add(Number(product.id));
-    });
-
-    if(changed || !localStorage.getItem(PRODUCT_KEY)){
-        localStorage.setItem(PRODUCT_KEY, JSON.stringify(data));
-    }
-
-    return data;
+    return [...defaultProducts];
 
 }
 
@@ -2887,13 +2807,12 @@ function showPage(id,button){
 
     if(id==="operasional"){
         renderOperasional();
-    }
-
-    if(id==="komisidepositv26"){
-        muatKomisiDepositV26();
+    }    if(id==="pengaturanongkir"){
+        muatPengaturanOngkir();
     }
 
 }
+
 
 
 function showPageById(id){
@@ -2978,17 +2897,6 @@ function statusHTML(status){
         `;
 
     }
-
-    if(s==="siap_diantar" || s==="siap diantar" || s==="siap-diantar"){
-
-        return `
-            <span class="status status-siap-diantar">
-                Siap Diantar
-            </span>
-        `;
-
-    }
-
 
 
     if(s==="batal"){
@@ -3603,15 +3511,6 @@ function detailPesanan(index){
 
 
             <button
-                class="btn btn-blue"
-                onclick="ubahStatus(${index},'siap_diantar')">
-
-                📦 Siap Diantar
-
-            </button>
-
-
-            <button
                 class="btn btn-success"
                 onclick="ubahStatus(${index},'selesai')">
 
@@ -3687,15 +3586,6 @@ function detailPesanan(index){
 
 
 /* =====================================================
-   NORMALISASI STATUS PAYA RENGAS
-===================================================== */
-window.normalisasiStatusPRD = function(status){
-    const s = String(status || "baru").toLowerCase().trim();
-    if(s === "siap diantar" || s === "siap-diantar") return "siap_diantar";
-    return s;
-};
-
-/* =====================================================
    UBAH STATUS
 ===================================================== */
 
@@ -3711,9 +3601,7 @@ function ubahStatus(index,status){
 
 
     orders[index].status =
-        (typeof window.normalisasiStatusPRD === "function")
-            ? window.normalisasiStatusPRD(status)
-            : status;
+        status;
 
     orders[index].statusUpdatedAt = new Date().toISOString();
 
@@ -4378,15 +4266,12 @@ function renderProducts(){
         .trim();
 
 
-    const products = getProducts();
-
-    const filteredProducts =
-        products
-        .map((product, originalIndex) => ({product, originalIndex}))
-        .filter(item=>{
+    const products =
+        getProducts()
+        .filter(product=>{
 
             return String(
-                item.product.nama || ""
+                product.nama || ""
             )
             .toLowerCase()
             .includes(keyword);
@@ -4413,10 +4298,8 @@ function renderProducts(){
 
 
     grid.innerHTML =
-        filteredProducts
-        .map(item=>{
-            const product = item.product;
-            const originalIndex = item.originalIndex;
+        products
+        .map(product=>{
 
             const status =
                 String(
@@ -4536,9 +4419,8 @@ function renderProducts(){
                             style="margin-top:10px">
 
                             <button
-                                class="btn btn-warning pRD-edit-btn"
-                                type="button"
-                                data-product-id="${Number(product.id)}">
+                                class="btn btn-warning"
+                                onclick="editProduct(${product.id})">
 
                                 ✏️ Edit
 
@@ -4546,9 +4428,8 @@ function renderProducts(){
 
 
                             <button
-                                class="btn btn-danger pRD-delete-btn"
-                                type="button"
-                                data-product-id="${Number(product.id)}">
+                                class="btn btn-danger"
+                                onclick="deleteProduct(${product.id})">
 
                                 🗑 Hapus
 
@@ -4633,256 +4514,71 @@ async function simpanProduk(event){
 
     event.preventDefault();
 
+    const nama = document.getElementById("namaProduk").value.trim();
+    const harga = Number(document.getElementById("hargaProduk").value);
+    const deskripsi = document.getElementById("deskripsiProduk").value.trim();
+    const warungId = Number(document.getElementById("warungProduk")?.value || 0);
+    const kategori = document.getElementById("kategoriProduk").value;
+    const rating = Number(document.getElementById("ratingProduk").value);
+    const status = document.getElementById("statusProduk").value;
+    const stok = Math.max(0, Number(document.getElementById("stokProduk")?.value || 0));
+    const gambar = selectedNewImage || "banner.jpg";
 
-    const tombol =
-        event.submitter ||
-        document.querySelector('#tambah form button[type="submit"]');
+    if(!nama){ alert("Nama produk wajib diisi."); return; }
+    if(harga <= 0){ alert("Harga produk harus diisi."); return; }
+    if(!deskripsi){ alert("Deskripsi produk wajib diisi."); return; }
+    if(!warungId){ alert("Pilih Warung Mitra terlebih dahulu."); return; }
 
+    const tombol = document.querySelector('#tambah button[type="submit"]');
+    if(tombol){ tombol.disabled=true; tombol.dataset.oldText=tombol.innerHTML; tombol.innerHTML="⏳ Menyimpan..."; }
 
-    const warungSelect =
-        document.getElementById("warungProduk");
+    try{
+        const hasil = await supabaseClient
+            .from("produk")
+            .insert({
+                warung_id: warungId,
+                nama: nama,
+                kategori: kategori,
+                harga: harga,
+                deskripsi: deskripsi,
+                gambar: gambar,
+                status: status
+            })
+            .select("id,warung_id,nama,kategori,harga,deskripsi,gambar,status")
+            .single();
 
-    const warungId =
-        Number(warungSelect?.value || 0);
+        if(hasil.error) throw new Error(hasil.error.message);
 
-    const warungNama =
-        warungSelect?.selectedOptions?.[0]?.textContent?.trim() || "";
-
-
-    const nama =
-        document.getElementById(
-            "namaProduk"
-        ).value.trim();
-
-
-    const harga =
-        Number(
-            document.getElementById(
-                "hargaProduk"
-            ).value
-        );
-
-
-    const deskripsi =
-        document.getElementById(
-            "deskripsiProduk"
-        ).value.trim();
-
-
-    const kategori =
-        document.getElementById(
-            "kategoriProduk"
-        ).value;
-
-
-    const status =
-        document.getElementById(
-            "statusProduk"
-        ).value;
-
-
-    const rating =
-        Number(
-            document.getElementById(
-                "ratingProduk"
-            ).value
-        );
-
-
-    const stok =
-        Math.max(
-            0,
-            Number(
-                document.getElementById(
-                    "stokProduk"
-                )?.value || 0
-            )
-        );
-
-
-    if(!warungId){
-
-        alert(
-            "Silakan pilih Warung Mitra terlebih dahulu."
-        );
-
-        warungSelect?.focus();
-        return;
-
-    }
-
-
-    if(!nama){
-
-        alert(
-            "Nama produk wajib diisi."
-        );
-
-        return;
-
-    }
-
-
-    if(harga<=0){
-
-        alert(
-            "Harga produk harus diisi."
-        );
-
-        return;
-
-    }
-
-
-    if(!deskripsi){
-
-        alert(
-            "Deskripsi produk wajib diisi."
-        );
-
-        return;
-
-    }
-
-
-    if(tombol){
-        tombol.disabled = true;
-        tombol.dataset.oldText = tombol.innerHTML;
-        tombol.innerHTML = "⏳ Menyimpan...";
-    }
-
-
-    try {
-
-        const gambar =
-            selectedNewImage ||
-            "banner.jpg";
-
-
-        const hasil =
-            await supabaseClient
-                .from("produk")
-                .insert({
-                    warung_id: warungId,
-                    nama: nama,
-                    kategori: kategori,
-                    harga: harga,
-                    deskripsi: deskripsi,
-                    gambar: gambar,
-                    status: status,
-                    modal: 0
-                })
-                .select()
-                .single();
-
-
-        if(hasil.error){
-            throw new Error(hasil.error.message);
-        }
-
-
-        const products =
-            getProducts();
-
-
+        const products = getProducts();
         products.push({
-
-            /* ID lokal unik untuk tombol Edit/Hapus */
-            id:
-                Date.now(),
-
-            /* ID asli dari tabel Supabase */
-            supabase_id:
-                hasil.data.id,
-
-            warung_id:
-                warungId,
-
-            warung_nama:
-                warungNama,
-
-            nama:
-                nama,
-
-            harga:
-                harga,
-
-            kategori:
-                kategori,
-
-            rating:
-                rating,
-
-            status:
-                status,
-
-            stok:
-                stok,
-
-            deskripsi:
-                deskripsi,
-
-            gambar:
-                gambar,
-
-            modal:
-                Number(hasil.data.modal || 0)
-
+            id: 1000000000 + Number(hasil.data.id),
+            supabase_id: hasil.data.id,
+            warung_id: hasil.data.warung_id,
+            nama: hasil.data.nama,
+            harga: Number(hasil.data.harga || harga),
+            kategori: hasil.data.kategori || kategori,
+            rating: rating,
+            status: hasil.data.status || status,
+            stok: stok,
+            deskripsi: hasil.data.deskripsi || deskripsi,
+            gambar: hasil.data.gambar || gambar
         });
 
-
-        saveProducts(
-            products
-        );
-
-
+        saveProducts(products);
         resetForm();
-
         renderProducts();
-
         updateDashboard();
+        toast("Produk berhasil disimpan ke Supabase.");
+        showPageById("produk");
 
-
-        toast(
-            "Produk berhasil disimpan ke Supabase."
-        );
-
-        alert(
-            "✅ Produk berhasil disimpan untuk " +
-            warungNama +
-            ".\n\nID Produk: " +
-            hasil.data.id
-        );
-
-
-        showPageById(
-            "produk"
-        );
-
-    } catch(error) {
-
-        console.error(
-            "ERROR SIMPAN PRODUK:",
-            error
-        );
-
-        alert(
-            "❌ Gagal menyimpan produk ke Supabase:\n\n" +
-            error.message
-        );
-
-    } finally {
-
-        if(tombol){
-            tombol.disabled = false;
-            tombol.innerHTML =
-                tombol.dataset.oldText || "💾 Simpan Produk";
-        }
-
+    }catch(error){
+        console.error("ERROR TAMBAH PRODUK:", error);
+        alert("❌ Gagal menyimpan produk ke Supabase:\n\n" + error.message);
+    }finally{
+        if(tombol){ tombol.disabled=false; tombol.innerHTML=tombol.dataset.oldText || "💾 Simpan Produk"; }
     }
 
 }
-
 
 function resetForm(){
 
@@ -4919,69 +4615,7 @@ function resetForm(){
    EDIT PRODUK
 ===================================================== */
 
-function editProductByIndex(index){
-
-    const products = getProducts();
-
-    if(index < 0 || index >= products.length){
-        return;
-    }
-
-    const product = products[index];
-    editingProductIndex = index;
-
-    document.getElementById("editId").value = product.id;
-    document.getElementById("editNama").value = product.nama || "";
-    document.getElementById("editHarga").value = product.harga || 0;
-    document.getElementById("editKategori").value = product.kategori || "Makanan";
-    document.getElementById("editRating").value = product.rating || 5;
-    document.getElementById("editStatus").value = product.status || "tersedia";
-
-    const editStok = document.getElementById("editStok");
-    if(editStok) editStok.value = Number(product.stok ?? 0);
-
-    document.getElementById("editDeskripsi").value = product.deskripsi || "";
-    selectedEditImage = "";
-    document.getElementById("editFile").value = "";
-    document.getElementById("previewEditImg").src = imagePath(product.gambar);
-    document.getElementById("modalEdit").classList.add("show");
-}
-
-function deleteProductByIndex(index){
-
-    const products = getProducts();
-    if(index < 0 || index >= products.length) return;
-
-    const product = products[index];
-    if(!confirm("Hapus produk \"" + product.nama + "\"?")) return;
-
-    const dbId = Number(product.supabase_id || 0);
-
-    (async function(){
-        try{
-            if(dbId > 0){
-                const hasil = await supabaseClient
-                    .from("produk")
-                    .delete()
-                    .eq("id", dbId);
-                if(hasil.error) throw new Error(hasil.error.message);
-            }
-
-            products.splice(index, 1);
-            saveProducts(products);
-            renderProducts();
-            updateDashboard();
-            toast(dbId > 0 ? "Produk berhasil dihapus dari Supabase." : "Produk berhasil dihapus.");
-        }catch(error){
-            console.error("ERROR HAPUS PRODUK:", error);
-            alert("❌ Gagal menghapus produk di Supabase:\n\n" + error.message);
-        }
-    })();
-}
-
 function editProduct(id){
-
-    editingProductIndex = -1;
 
     const products =
         getProducts();
@@ -5010,6 +4644,21 @@ function editProduct(id){
         "editNama"
     ).value =
         product.nama || "";
+
+
+    const editWarung = document.getElementById("editWarungProduk");
+    if(editWarung){
+        editWarung.innerHTML = '<option value="">Produk lama / tanpa Warung Mitra</option>';
+        supabaseClient.from("warung").select("id,nama,alamat").order("id", {ascending:true}).then(({data})=>{
+            (data || []).forEach(w=>{
+                const opt=document.createElement("option");
+                opt.value=w.id;
+                opt.textContent=w.nama + (w.alamat ? " — " + w.alamat : "");
+                editWarung.appendChild(opt);
+            });
+            if(product.warung_id) editWarung.value=String(product.warung_id);
+        });
+    }
 
 
     document.getElementById(
@@ -5127,28 +4776,18 @@ function previewEdit(event){
 }
 
 
-function simpanEdit(event){
+async function simpanEdit(event){
 
     event.preventDefault();
 
-    const id = Number(
-        document.getElementById("editId").value
-    );
-
+    const id = Number(document.getElementById("editId").value);
     const products = getProducts();
+    const index = products.findIndex(p => Number(p.id) === id);
 
-    const index = (editingProductIndex >= 0 && editingProductIndex < products.length)
-        ? editingProductIndex
-        : products.findIndex(p => Number(p.id) === id);
-
-    if(index < 0){
-        alert("Produk tidak ditemukan.");
-        return;
-    }
+    if(index < 0){ alert("Produk tidak ditemukan."); return; }
 
     const product = products[index];
     const fotoLama = product.gambar;
-
     const nama = document.getElementById("editNama").value.trim();
     const harga = Number(document.getElementById("editHarga").value);
     const kategori = document.getElementById("editKategori").value;
@@ -5156,90 +4795,64 @@ function simpanEdit(event){
     const status = document.getElementById("editStatus").value;
     const stok = Math.max(0, Number(document.getElementById("editStok")?.value || 0));
     const deskripsi = document.getElementById("editDeskripsi").value.trim();
-    const gambar = selectedEditImage || fotoLama;
+    const gambar = selectedEditImage || fotoLama || "banner.jpg";
+    const warungId = Number(document.getElementById("editWarungProduk")?.value || product.warung_id || 0);
 
-    if(!nama){
-        alert("Nama produk wajib diisi.");
-        return;
-    }
-
-    if(harga <= 0){
-        alert("Harga produk harus diisi.");
-        return;
-    }
-
-    if(!deskripsi){
-        alert("Deskripsi produk wajib diisi.");
-        return;
-    }
+    if(!nama){ alert("Nama produk wajib diisi."); return; }
+    if(harga <= 0){ alert("Harga produk harus diisi."); return; }
+    if(!deskripsi){ alert("Deskripsi produk wajib diisi."); return; }
 
     const tombol = document.querySelector('#modalEdit button[type="submit"]');
-    if(tombol){
-        tombol.disabled = true;
-        tombol.dataset.oldText = tombol.innerHTML;
-        tombol.innerHTML = "⏳ Menyimpan...";
+    if(tombol){ tombol.disabled=true; tombol.dataset.oldText=tombol.innerHTML; tombol.innerHTML="⏳ Menyimpan..."; }
+
+    try{
+        const dbId = Number(product.supabase_id || 0);
+
+        if(dbId > 0){
+            const hasil = await supabaseClient
+                .from("produk")
+                .update({
+                    warung_id: warungId || product.warung_id,
+                    nama: nama,
+                    harga: harga,
+                    kategori: kategori,
+                    deskripsi: deskripsi,
+                    gambar: gambar,
+                    status: status
+                })
+                .eq("id", dbId)
+                .select("id")
+                .maybeSingle();
+
+            if(hasil.error) throw new Error(hasil.error.message);
+            if(!hasil.data) throw new Error("Produk tidak ditemukan di Supabase.");
+        }
+
+        product.nama = nama;
+        product.harga = harga;
+        product.kategori = kategori;
+        product.rating = rating;
+        product.status = status;
+        product.stok = stok;
+        product.deskripsi = deskripsi;
+        product.gambar = gambar;
+        if(warungId) product.warung_id = warungId;
+
+        saveProducts(products);
+        selectedEditImage = "";
+        closeModal("modalEdit");
+        renderProducts();
+        updateDashboard();
+        toast(dbId > 0 ? "Produk berhasil diperbarui dan disinkronkan ke Supabase." : "Produk lokal berhasil diperbarui.");
+
+    }catch(error){
+        console.error("ERROR EDIT PRODUK:", error);
+        alert("❌ Gagal memperbarui produk di Supabase:\n\n" + error.message);
+    }finally{
+        if(tombol){ tombol.disabled=false; tombol.innerHTML=tombol.dataset.oldText || "💾 Simpan Perubahan"; }
     }
 
-    (async function(){
-        try{
-            const dbId = Number(product.supabase_id || 0);
-
-            if(dbId > 0){
-                const hasil = await supabaseClient
-                    .from("produk")
-                    .update({
-                        warung_id: Number(product.warung_id || 0) || null,
-                        nama: nama,
-                        kategori: kategori,
-                        harga: harga,
-                        deskripsi: deskripsi,
-                        gambar: gambar,
-                        status: status,
-                        modal: Number(product.modal || 0)
-                    })
-                    .eq("id", dbId)
-                    .select("id")
-                    .maybeSingle();
-
-                if(hasil.error) throw new Error(hasil.error.message);
-                if(!hasil.data) throw new Error("Produk tidak ditemukan di Supabase.");
-            }
-
-            product.nama = nama;
-            product.harga = harga;
-            product.kategori = kategori;
-            product.rating = rating;
-            product.status = status;
-            product.stok = stok;
-            product.deskripsi = deskripsi;
-            product.gambar = gambar;
-            product.modal = Number(product.modal || 0);
-
-            saveProducts(products);
-            selectedEditImage = "";
-            editingProductIndex = -1;
-            closeModal("modalEdit");
-            renderProducts();
-            updateDashboard();
-
-            toast(dbId > 0
-                ? "Produk berhasil diperbarui dan disinkronkan ke Supabase."
-                : "Produk lokal berhasil diperbarui.");
-
-        }catch(error){
-            console.error("ERROR EDIT PRODUK:", error);
-            alert("❌ Gagal memperbarui produk di Supabase:\n\n" + error.message);
-        }finally{
-            if(tombol){
-                tombol.disabled = false;
-                tombol.innerHTML = tombol.dataset.oldText || "💾 Simpan Perubahan";
-            }
-        }
-    })();
-
 }
-
-
 
 /* =====================================================
    HAPUS PRODUK
@@ -5247,50 +4860,57 @@ function simpanEdit(event){
 
 function deleteProduct(id){
 
-    const products = getProducts();
+    const products =
+        getProducts();
 
-    const index = products.findIndex(
-        p => Number(p.id) === Number(id)
-    );
 
-    if(index < 0) return;
+    const product =
+        products.find(
+            p =>
+            Number(p.id) ===
+            Number(id)
+        );
 
-    const product = products[index];
 
-    if(!confirm("Hapus produk \"" + product.nama + "\"?")){
+    if(!product){
         return;
     }
 
-    (async function(){
-        try{
-            const dbId = Number(product.supabase_id || 0);
 
-            if(dbId > 0){
-                const hasil = await supabaseClient
-                    .from("produk")
-                    .delete()
-                    .eq("id", dbId);
+    if(
+        !confirm(
+            "Hapus produk \"" +
+            product.nama +
+            "\"?"
+        )
+    ){
+        return;
+    }
 
-                if(hasil.error) throw new Error(hasil.error.message);
-            }
 
-            products.splice(index, 1);
-            saveProducts(products);
-            renderProducts();
-            updateDashboard();
+    const newProducts =
+        products.filter(
+            p =>
+            Number(p.id) !==
+            Number(id)
+        );
 
-            toast(dbId > 0
-                ? "Produk berhasil dihapus dari Supabase."
-                : "Produk lokal berhasil dihapus.");
 
-        }catch(error){
-            console.error("ERROR HAPUS PRODUK:", error);
-            alert("❌ Gagal menghapus produk dari Supabase:\n\n" + error.message);
-        }
-    })();
+    saveProducts(
+        newProducts
+    );
+
+
+    renderProducts();
+
+    updateDashboard();
+
+
+    toast(
+        "Produk berhasil dihapus."
+    );
 
 }
-
 
 
 /* =====================================================
@@ -6085,92 +5705,88 @@ function setStok(id){
 function ubahStatusByObject(index,status){ubahStatus(index,status);renderOperasional();}
 
 /* =====================================================
-   INIT
+   WARUNG MITRA & SYNC PRODUK SUPABASE
 ===================================================== */
 
 async function loadWarungMitraProduk(){
+    const select = document.getElementById("warungProduk");
+    const status = document.getElementById("statusWarungProduk");
+    if(!select) return;
 
-    const select =
-        document.getElementById("warungProduk");
+    try{
+        const hasil = await supabaseClient
+            .from("warung")
+            .select("id,nama,alamat,status")
+            .order("id", {ascending:true});
+        if(hasil.error) throw new Error(hasil.error.message);
 
-    const status =
-        document.getElementById("statusWarungProduk");
-
-    if(!select){
-        return;
-    }
-
-    try {
-
-        const hasil =
-            await supabaseClient
-                .from("warung")
-                .select("id,nama,alamat")
-                .order("id", { ascending: true });
-
-        if(hasil.error){
-            throw new Error(hasil.error.message);
-        }
-
-        select.innerHTML =
-            '<option value="">-- Pilih Warung Mitra --</option>';
-
-        if(!hasil.data || hasil.data.length === 0){
-            select.innerHTML =
-                '<option value="">Belum ada Warung Mitra</option>';
-
-            if(status){
-                status.textContent =
-                    "⚠️ Tambahkan Warung Mitra terlebih dahulu.";
-            }
-
-            return;
-        }
-
-        hasil.data.forEach(function(warung){
-
-            const option =
-                document.createElement("option");
-
-            option.value =
-                warung.id;
-
-            option.textContent =
-                warung.nama +
-                (warung.alamat ? " — " + warung.alamat : "");
-
-            select.appendChild(option);
-
+        const warung = (hasil.data || []).filter(w => String(w.status || "aktif").toLowerCase() !== "nonaktif");
+        select.innerHTML = '<option value="">-- Pilih Warung Mitra --</option>';
+        warung.forEach(w=>{
+            const opt=document.createElement("option");
+            opt.value=w.id;
+            opt.textContent=w.nama + (w.alamat ? " — " + w.alamat : "");
+            select.appendChild(opt);
         });
-
-        if(status){
-            status.textContent =
-                "✅ " + hasil.data.length + " Warung Mitra tersedia.";
-        }
-
-    } catch(error) {
-
-        console.error(
-            "ERROR LOAD WARUNG MITRA:",
-            error
-        );
-
-        select.innerHTML =
-            '<option value="">❌ Gagal memuat warung</option>';
-
-        if(status){
-            status.textContent =
-                "❌ " + error.message;
-        }
-
+        if(status) status.textContent = warung.length ? "✅ " + warung.length + " Warung Mitra tersedia." : "⚠️ Belum ada Warung Mitra.";
+    }catch(error){
+        console.error("ERROR LOAD WARUNG MITRA:", error);
+        select.innerHTML='<option value="">❌ Gagal memuat warung</option>';
+        if(status) status.textContent="❌ " + error.message;
     }
-
 }
 
+async function sinkronkanProdukSupabaseKeAdmin(){
+    try{
+        const hasil = await supabaseClient
+            .from("produk")
+            .select("id,warung_id,nama,kategori,harga,deskripsi,gambar,status")
+            .order("id", {ascending:true});
+        if(hasil.error) throw new Error(hasil.error.message);
 
-window.loadWarungMitraProduk =
-    loadWarungMitraProduk;
+        const local = getProducts();
+        let berubah = false;
 
+        (hasil.data || []).forEach(row=>{
+            let p = local.find(x => Number(x.supabase_id) === Number(row.id));
+            if(!p){
+                p = local.find(x => Number(x.id) === Number(row.id) && x.warung_id);
+            }
+            if(!p){
+                p = {
+                    id: 1000000000 + Number(row.id),
+                    supabase_id: row.id,
+                    warung_id: row.warung_id
+                };
+                local.push(p);
+            }
+
+            p.supabase_id = row.id;
+            p.warung_id = row.warung_id;
+            p.nama = row.nama || "Produk";
+            p.harga = Number(row.harga || 0);
+            p.kategori = row.kategori || "Makanan";
+            p.status = row.status || "tersedia";
+            p.deskripsi = row.deskripsi || "";
+            p.gambar = row.gambar || "banner.jpg";
+            if(p.rating == null) p.rating = 5;
+            if(p.stok == null) p.stok = p.status === "tersedia" ? 1 : 0;
+            berubah = true;
+        });
+
+        if(berubah){
+            saveProducts(local);
+            renderProducts();
+            updateDashboard();
+        }
+    }catch(error){
+        console.warn("Sinkronisasi produk Supabase dilewati:", error.message);
+    }
+}
+
+/* =====================================================
+   INIT
+===================================================== */
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -6181,6 +5797,7 @@ document.addEventListener(
 
 
         loadWarungMitraProduk();
+        sinkronkanProdukSupabaseKeAdmin();
 
 
         updateDashboard();
@@ -6248,23 +5865,7 @@ setInterval(
     const ps=getProducts(); const p=ps.find(x=>Number(x.id)===Number(id)); if(!p)return;
     const v=prompt('Masukkan modal/HPP per unit untuk '+(p.nama||'produk')+':',Number(p.modal||0));
     if(v===null)return; const n=Number(v); if(!Number.isFinite(n)||n<0){alert('Modal harus angka 0 atau lebih.');return;}
-    const nilai=Math.round(n);
-    const dbId=Number(p.supabase_id || 0);
-    const simpanServer=async()=>{
-      if(dbId>0){
-        const hasil=await supabaseClient.from('produk').update({modal:nilai}).eq('id',dbId).select('id,modal').maybeSingle();
-        if(hasil.error)throw new Error(hasil.error.message);
-        if(!hasil.data)throw new Error('Produk tidak ditemukan di Supabase.');
-      }
-      p.modal=nilai;
-      saveProducts(ps);
-      renderProducts(); renderOperasional(); renderKeuanganV22();
-      toast('Modal/HPP produk berhasil disimpan.');
-    };
-    simpanServer().catch(error=>{
-      console.error('SIMPAN MODAL PRODUK:',error);
-      alert('❌ Modal belum tersimpan ke Supabase:\n\n'+error.message);
-    });
+    p.modal=Math.round(n); saveProducts(ps); renderProducts(); renderOperasional(); renderKeuanganV22(); toast('Modal produk diperbarui.');
   };
 
   window.tambahKategoriV22=function(){
@@ -6331,6 +5932,46 @@ setInterval(
 </script>
 <script>
 /* =====================================================
+   PENGATURAN ONGKIR - SUPABASE
+===================================================== */
+(function(){
+    const DEFAULT_ONGKIR={tarif_0_05:0,tarif_05_15:0,tarif_15_25:0,tarif_25_35:0,tarif_35_8:0,tambahan_diatas_8:10000};
+    function inputNum(id){const el=document.getElementById(id);const n=Number(el?.value);return Number.isFinite(n)&&n>=0?n:0;}
+    function setInput(id,v){const el=document.getElementById(id);if(el)el.value=Number(v??0);}
+    function pesanOngkir(text,ok){const el=document.getElementById('hasilPengaturanOngkir');if(!el)return;el.innerHTML=`<div style="padding:12px;border-radius:8px;background:${ok?'#ecfdf5':'#fef2f2'};color:${ok?'#166534':'#991b1b'}">${text}</div>`;}
+
+    window.muatPengaturanOngkir=async function(){
+        try{
+            const hasil=await supabaseClient.from('pengaturan_ongkir').select('id,tarif_0_05,tarif_05_15,tarif_15_25,tarif_25_35,tarif_35_8,tambahan_diatas_8,aktif').eq('aktif',true).order('id',{ascending:false}).limit(1);
+            if(hasil.error)throw new Error(hasil.error.message);
+            const d=hasil.data?.[0]||DEFAULT_ONGKIR;
+            setInput('ongkirTarif005',d.tarif_0_05);setInput('ongkirTarif0515',d.tarif_05_15);setInput('ongkirTarif1525',d.tarif_15_25);setInput('ongkirTarif2535',d.tarif_25_35);setInput('ongkirTarif358',d.tarif_35_8);setInput('ongkirTambahan8',d.tambahan_diatas_8??10000);
+            pesanOngkir('✅ Pengaturan ongkir berhasil dimuat dari Supabase.',true);
+        }catch(e){console.error('ERROR MUAT PENGATURAN ONGKIR:',e);pesanOngkir('❌ Gagal memuat pengaturan ongkir: '+String(e.message||e),false);}
+    };
+
+    window.simpanPengaturanOngkir=async function(){
+        const data={tarif_0_05:inputNum('ongkirTarif005'),tarif_05_15:inputNum('ongkirTarif0515'),tarif_15_25:inputNum('ongkirTarif1525'),tarif_25_35:inputNum('ongkirTarif2535'),tarif_35_8:inputNum('ongkirTarif358'),tambahan_diatas_8:inputNum('ongkirTambahan8'),aktif:true,updated_at:new Date().toISOString()};
+        if(data.tambahan_diatas_8<=0){alert('Tambahan ongkir di atas 8 km harus lebih dari Rp0.');return;}
+        try{
+            const cari=await supabaseClient.from('pengaturan_ongkir').select('id').eq('aktif',true).order('id',{ascending:false}).limit(1);
+            if(cari.error)throw new Error(cari.error.message);
+            const id=cari.data?.[0]?.id;
+            const hasil=id?await supabaseClient.from('pengaturan_ongkir').update(data).eq('id',id):await supabaseClient.from('pengaturan_ongkir').insert(data);
+            if(hasil.error)throw new Error(hasil.error.message);
+            pesanOngkir('✅ Pengaturan ongkir berhasil disimpan ke Supabase.',true);
+        }catch(e){console.error('ERROR SIMPAN PENGATURAN ONGKIR:',e);pesanOngkir('❌ Gagal menyimpan pengaturan ongkir: '+String(e.message||e),false);}
+    };
+
+    window.resetPengaturanOngkir=function(){
+        setInput('ongkirTarif005',DEFAULT_ONGKIR.tarif_0_05);setInput('ongkirTarif0515',DEFAULT_ONGKIR.tarif_05_15);setInput('ongkirTarif1525',DEFAULT_ONGKIR.tarif_15_25);setInput('ongkirTarif2535',DEFAULT_ONGKIR.tarif_25_35);setInput('ongkirTarif358',DEFAULT_ONGKIR.tarif_35_8);setInput('ongkirTambahan8',DEFAULT_ONGKIR.tambahan_diatas_8);
+        pesanOngkir('↩️ Form dikembalikan ke nilai default. Klik Simpan Pengaturan jika ingin menyimpannya.',true);
+    };
+})();
+</script>
+
+<script>
+/* =====================================================
    V23 ENHANCEMENT PACK
 ===================================================== */
 (function(){
@@ -6345,9 +5986,9 @@ setInterval(
   window.renderPusatKontrolV23=function(){
     const orders=getOrders(), products=getProducts();
     const customers=typeof buildCustomers==='function'?buildCustomers(orders):[];
-    const counts={baru:0,diproses:0,siap_diantar:0,diantar:0,selesai:0,batal:0}; let omzet=0;
+    const counts={baru:0,diproses:0,diantar:0,selesai:0,batal:0}; let omzet=0;
     orders.forEach(o=>{const st=v23Status(o);if(counts[st]!==undefined)counts[st]++;omzet+=v23Total(o);});
-    const vals=[['v23Pesanan',orders.length],['v23Pelanggan',customers.length],['v23Produk',products.length],['v23Stok',products.filter(p=>Number(p?.stok??0)<=5).length],['v23Baru',counts.baru],['v23Proses',counts.diproses],['v23SiapDiantar',counts.siap_diantar],['v23Diantar',counts.diantar],['v23Selesai',counts.selesai],['v23Batal',counts.batal],['v23Omzet',v23Money(omzet)]];
+    const vals=[['v23Pesanan',orders.length],['v23Pelanggan',customers.length],['v23Produk',products.length],['v23Stok',products.filter(p=>Number(p?.stok??0)<=5).length],['v23Baru',counts.baru],['v23Proses',counts.diproses],['v23Diantar',counts.diantar],['v23Selesai',counts.selesai],['v23Batal',counts.batal],['v23Omzet',v23Money(omzet)]];
     vals.forEach(([id,val])=>{const e=document.getElementById(id);if(e)e.textContent=val;});
 
     const q=v23Text(document.getElementById('v23CariPesanan')?.value).trim();
@@ -6406,810 +6047,64 @@ setInterval(
 <script>
 /* =====================================================
    V24 ENHANCEMENT PACK - DRIVER & DELIVERY
-   Paya Rengas Delivery - Driver + Delivery Supabase
-   Driver management and assignment are persisted in Supabase.
 ===================================================== */
 (function(){
-  const DRIVER_TABLE='driver';
-
-  let driversCache=[];
-
+  const DRIVER_KEY='payaRengasDriverV24';
+  const getDriversV24=()=>{try{const d=JSON.parse(localStorage.getItem(DRIVER_KEY)||'[]');return Array.isArray(d)?d:[]}catch(e){return[]}};
+  const saveDriversV24=d=>localStorage.setItem(DRIVER_KEY,JSON.stringify(d));
   const name=o=>o?.nama||o?.namaPelanggan||o?.customerName||'Pelanggan';
   const phone=o=>o?.whatsapp||o?.nomorWA||o?.noWa||o?.phone||o?.telepon||'-';
   const address=o=>o?.alamat||o?.alamatPengantaran||o?.address||'-';
   const total=o=>Number(o?.total||o?.totalPembayaran||o?.totalBelanja||0);
-  const status=o=>String(o?.status||'baru').toLowerCase().trim();
-  const money=n=>typeof rupiah==='function'
-    ? rupiah(Number(n)||0)
-    : 'Rp'+(Number(n)||0).toLocaleString('id-ID');
-  const esc=v=>typeof safe==='function'
-    ? safe(v)
-    : String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const status=o=>String(o?.status||'baru').toLowerCase();
+  const money=n=>typeof rupiah==='function'?rupiah(Number(n)||0):'Rp'+(Number(n)||0).toLocaleString('id-ID');
+  const esc=v=>typeof safe==='function'?safe(v):String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 
-  function normalizeDriver(row){
-    return {
-      id:Number(row?.id||0),
-      nama:String(row?.nama||'').trim(),
-      whatsapp:String(row?.no_wa||'').trim(),
-      aktif:String(row?.status||'Aktif').toLowerCase()!=='nonaktif',
-      status:row?.status||'Aktif',
-      created_at:row?.created_at||null
-    };
-  }
-
-  async function ambilDriversV24(){
-    if(typeof supabaseClient==='undefined'){
-      throw new Error('Koneksi Supabase belum tersedia.');
-    }
-
-    const hasil=await supabaseClient
-      .from(DRIVER_TABLE)
-      .select('id,nama,no_wa,status,created_at')
-      .order('id',{ascending:true});
-
-    if(hasil.error) throw new Error(hasil.error.message);
-
-    driversCache=(Array.isArray(hasil.data)?hasil.data:[]).map(normalizeDriver);
-    return driversCache;
-  }
-
-  function getDriversV24(){
-    return Array.isArray(driversCache)?driversCache:[];
-  }
-
-  async function refreshDriversV24(showError=true){
-    try{
-      await ambilDriversV24();
-      renderPengantaranV24();
-      return getDriversV24();
-    }catch(error){
-      console.error('LOAD DRIVER V24:',error);
-      if(showError) alert('❌ Gagal memuat driver dari Supabase:\n\n'+error.message);
-      return [];
-    }
-  }
-
-  async function updatePesananDriverSupabaseV24(order,driver,mode){
-    const dbId=Number(order?.supabase_id||order?.id||0);
-    if(dbId<=0 || typeof supabaseClient==='undefined'){
-      throw new Error('ID pesanan Supabase tidak tersedia.');
-    }
-
-    const payload={};
-
-    if(mode==='assign'){
-      payload.status='diantar';
-      payload.driver_id=Number(driver.id);
-      payload.driver_nama=driver.nama;
-      payload.driver_no_wa=driver.whatsapp;
-    }else if(mode==='release'){
-      payload.status='siap_diantar';
-      payload.driver_id=null;
-      payload.driver_nama=null;
-      payload.driver_no_wa=null;
-    }else if(mode==='complete'){
-      payload.status='selesai';
-      payload.driver_id=Number(driver?.id||order?.driverId||0)||null;
-      payload.driver_nama=driver?.nama||order?.driverNama||null;
-      payload.driver_no_wa=driver?.whatsapp||order?.driverWhatsApp||null;
-    }else{
-      throw new Error('Mode pengantaran tidak dikenal.');
-    }
-
-    const hasil=await supabaseClient
-      .from('pesanan')
-      .update(payload)
-      .eq('id',dbId)
-      .select('id,status,driver_id,driver_nama,driver_no_wa')
-      .maybeSingle();
-
-    if(hasil.error) throw new Error(hasil.error.message);
-    if(!hasil.data) throw new Error('Pesanan tidak ditemukan di Supabase.');
-
-    return hasil.data;
-  }
-
-  window.tambahDriverV24=async function(){
-    const nama=prompt('Nama driver:');
-    if(!nama||!nama.trim())return;
-
-    const wa=prompt('Nomor WhatsApp driver:');
-    if(!wa||!wa.trim())return;
-
-    try{
-      const hasil=await supabaseClient
-        .from(DRIVER_TABLE)
-        .insert({
-          nama:nama.trim(),
-          no_wa:wa.trim(),
-          status:'Aktif'
-        })
-        .select('id,nama,no_wa,status,created_at')
-        .single();
-
-      if(hasil.error) throw new Error(hasil.error.message);
-
-      await refreshDriversV24(false);
-      toast('Driver '+hasil.data.nama+' berhasil ditambahkan ke Supabase.');
-    }catch(error){
-      console.error('TAMBAH DRIVER:',error);
-      alert('❌ Gagal menambahkan driver ke Supabase:\n\n'+error.message);
-    }
+  window.tambahDriverV24=function(){
+    const nama=prompt('Nama driver:'); if(!nama||!nama.trim())return;
+    const wa=prompt('Nomor WhatsApp driver:'); if(!wa||!wa.trim())return;
+    const d=getDriversV24(); d.push({id:'DRV'+Date.now(),nama:nama.trim(),whatsapp:wa.trim(),aktif:true}); saveDriversV24(d); renderPengantaranV24(); toast('Driver berhasil ditambahkan.');
   };
-
-  window.hapusDriverV24=async function(id){
-    const driver=getDriversV24().find(v=>Number(v.id)===Number(id));
-    if(!driver)return;
-
-    const orders=getOrders();
-    const activeAssigned=orders.filter(o=>
-      Number(o.driverId)===Number(id) &&
-      !['selesai','batal'].includes(status(o))
-    );
-
-    if(activeAssigned.length){
-      alert('Driver masih memiliki '+activeAssigned.length+' pesanan aktif.\n\nLepas driver dari pesanan tersebut terlebih dahulu sebelum menghapus driver.');
-      return;
-    }
-
-    if(!confirm('Hapus driver '+driver.nama+' dari Supabase?'))return;
-
-    try{
-      const hasil=await supabaseClient
-        .from(DRIVER_TABLE)
-        .delete()
-        .eq('id',Number(id))
-        .select('id')
-        .maybeSingle();
-
-      if(hasil.error) throw new Error(hasil.error.message);
-      if(!hasil.data) throw new Error('Driver tidak ditemukan di Supabase.');
-
-      await refreshDriversV24(false);
-      toast('Driver '+driver.nama+' berhasil dihapus dari Supabase.');
-    }catch(error){
-      console.error('HAPUS DRIVER:',error);
-      alert('❌ Gagal menghapus driver dari Supabase:\n\n'+error.message);
-    }
+  window.hapusDriverV24=function(id){
+    const d=getDriversV24(); const x=d.find(v=>v.id===id); if(!x)return;
+    if(!confirm('Hapus driver '+x.nama+'?'))return;
+    const orders=getOrders(); orders.forEach(o=>{if(o.driverId===id){delete o.driverId;delete o.driverNama;delete o.driverWhatsApp;}}); localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+    saveDriversV24(d.filter(v=>v.id!==id)); renderPengantaranV24(); if(typeof renderPesanan==='function')renderPesanan(); toast('Driver dihapus.');
   };
+  window.toggleDriverV24=function(id){const d=getDriversV24();const x=d.find(v=>v.id===id);if(!x)return;x.aktif=!x.aktif;saveDriversV24(d);renderPengantaranV24();};
 
-  window.toggleDriverV24=async function(id){
-    const driver=getDriversV24().find(v=>Number(v.id)===Number(id));
-    if(!driver)return;
-
-    const nextStatus=driver.aktif?'Nonaktif':'Aktif';
-
-    try{
-      const hasil=await supabaseClient
-        .from(DRIVER_TABLE)
-        .update({status:nextStatus})
-        .eq('id',Number(id))
-        .select('id,nama,no_wa,status,created_at')
-        .maybeSingle();
-
-      if(hasil.error) throw new Error(hasil.error.message);
-      if(!hasil.data) throw new Error('Driver tidak ditemukan di Supabase.');
-
-      await refreshDriversV24(false);
-      toast(driver.nama+' sekarang '+nextStatus+'.');
-    }catch(error){
-      console.error('TOGGLE DRIVER:',error);
-      alert('❌ Gagal mengubah status driver:\n\n'+error.message);
-    }
-  };
-
-  /*
-   * Siap Diantar -> pilih driver -> Supabase menyimpan:
-   * status, driver_id, driver_nama, driver_no_wa.
-   */
-  window.tugaskanDriverV24=async function(orderIndex){
-    await refreshDriversV24(false);
-    const d=getDriversV24().filter(x=>x.aktif!==false);
-
-    if(!d.length){
-      alert('Belum ada driver aktif di Supabase. Tambahkan driver terlebih dahulu.');
-      return;
-    }
-
-    const orders=getOrders();
-    const o=orders[orderIndex];
-    if(!o)return;
-
-    if(!['siap_diantar','diantar'].includes(status(o))){
-      alert('Pesanan harus berstatus "Siap Diantar" sebelum ditugaskan ke driver.');
-      return;
-    }
-
+  window.tugaskanDriverV24=function(orderIndex){
+    const d=getDriversV24().filter(x=>x.aktif!==false); if(!d.length){alert('Belum ada driver aktif. Tambahkan driver terlebih dahulu.');return;}
+    const orders=getOrders(), o=orders[orderIndex]; if(!o)return;
     const pilihan=d.map((x,i)=>`${i+1}. ${x.nama} (${x.whatsapp})`).join('\n');
-    const raw=prompt('Pilih nomor driver:\n\n'+pilihan);
-    const n=Number(raw)-1;
-    if(!Number.isInteger(n)||!d[n])return;
-
-    const driver=d[n];
-
-    try{
-      await updatePesananDriverSupabaseV24(o,driver,'assign');
-
-      o.driverId=Number(driver.id);
-      o.driverNama=driver.nama;
-      o.driverWhatsApp=driver.whatsapp;
-      o.status='diantar';
-      o.deliveryStartedAt=o.deliveryStartedAt||new Date().toISOString();
-
-      localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
-
-      await sinkronkanPesananSupabase(false);
-      await refreshDriversV24(false);
-
-      toast('Pesanan ditugaskan ke '+driver.nama+'. Data driver tersimpan di Supabase.');
-    }catch(error){
-      console.error('TUGASKAN DRIVER:',error);
-      alert('❌ Gagal menugaskan driver:\n\n'+error.message);
-    }
+    const raw=prompt('Pilih nomor driver:\n\n'+pilihan); const n=Number(raw)-1; if(!Number.isInteger(n)||!d[n])return;
+    const x=d[n]; o.driverId=x.id;o.driverNama=x.nama;o.driverWhatsApp=x.whatsapp;
+    if(status(o)==='baru'||status(o)==='diproses')o.status='diantar';
+    localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+    renderPengantaranV24(); if(typeof renderPesanan==='function')renderPesanan(); if(typeof updateDashboard==='function')updateDashboard(); toast('Pesanan ditugaskan ke '+x.nama+'.');
   };
-
-  window.lepasDriverV24=async function(orderIndex){
-    const orders=getOrders();
-    const o=orders[orderIndex];
-    if(!o)return;
-
-    const driver={
-      id:o.driverId,
-      nama:o.driverNama,
-      whatsapp:o.driverWhatsApp
-    };
-
-    try{
-      await updatePesananDriverSupabaseV24(o,driver,'release');
-
-      delete o.driverId;
-      delete o.driverNama;
-      delete o.driverWhatsApp;
-      o.status='siap_diantar';
-
-      localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
-
-      await sinkronkanPesananSupabase(false);
-      await refreshDriversV24(false);
-
-      toast('Driver dilepas. Pesanan kembali ke Siap Diantar.');
-    }catch(error){
-      console.error('LEPAS DRIVER:',error);
-      alert('❌ Gagal melepas driver:\n\n'+error.message);
-    }
-  };
-
-  window.selesaikanAntarV24=async function(orderIndex){
-    const orders=getOrders();
-    const o=orders[orderIndex];
-    if(!o)return;
-
-    if(!o.driverId){
-      alert('Pesanan belum memiliki driver.');
-      return;
-    }
-
-    const driver={
-      id:o.driverId,
-      nama:o.driverNama,
-      whatsapp:o.driverWhatsApp
-    };
-
-    let hasilKomisi=null;
-    try{
-      /* Potong komisi Admin dari deposit TERLEBIH DAHULU.
-         Jika gagal, pesanan tidak boleh menjadi Selesai. */
-      if(typeof window.prosesKomisiSelesaiV26==='function'){
-        hasilKomisi=await window.prosesKomisiSelesaiV26(o);
-      }
-
-      try{
-        await updatePesananDriverSupabaseV24(o,driver,'complete');
-      }catch(updateError){
-        /* Jika status gagal disimpan setelah deposit terpotong, kembalikan deposit. */
-        if(hasilKomisi && hasilKomisi.dipotong>0 && !hasilKomisi.sudah){
-          try{
-            const dep=await supabaseClient.from('deposit_driver').select('id,saldo').eq('driver_id',Number(o.driverId)).maybeSingle();
-            if(!dep.error && dep.data){
-              const kembali=Math.round((Number(dep.data.saldo||0)+Number(hasilKomisi.dipotong))*100)/100;
-              await supabaseClient.from('deposit_driver').update({saldo:kembali,updated_at:new Date().toISOString()}).eq('id',Number(dep.data.id));
-              await supabaseClient.from('riwayat_deposit').delete().eq('driver_id',Number(o.driverId)).eq('pesanan_id',Number(o.supabase_id||o.id||0)).eq('tipe','potongan_komisi');
-            }
-          }catch(rollbackError){
-            console.error('ROLLBACK KOMISI:',rollbackError);
-          }
-        }
-        throw updateError;
-      }
-
-      o.status='selesai';
-      o.deliveryCompletedAt=new Date().toISOString();
-
-      localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
-
-      await sinkronkanPesananSupabase(false);
-      await refreshDriversV24(false);
-
-      const info=hasilKomisi&&hasilKomisi.dipotong>0
-        ? ' Komisi Admin '+money(hasilKomisi.dipotong)+' dipotong dari deposit.'
-        : '';
-      toast('Pesanan selesai. Status dan driver tersimpan di Supabase.'+info);
-    }catch(error){
-      console.error('SELESAI ANTAR:',error);
-      alert('❌ Pengantaran belum dapat diproses:\n\n'+error.message);
-    }
-  };
+  window.lepasDriverV24=function(orderIndex){const orders=getOrders(),o=orders[orderIndex];if(!o)return;delete o.driverId;delete o.driverNama;delete o.driverWhatsApp;localStorage.setItem(ORDER_KEY,JSON.stringify(orders));renderPengantaranV24();toast('Driver dilepas dari pesanan.');};
+  window.selesaikanAntarV24=function(orderIndex){const orders=getOrders(),o=orders[orderIndex];if(!o)return;o.status='selesai';o.deliveryCompletedAt=new Date().toISOString();localStorage.setItem(ORDER_KEY,JSON.stringify(orders));renderPengantaranV24();if(typeof renderPesanan==='function')renderPesanan();if(typeof renderRiwayat==='function')renderRiwayat();if(typeof updateDashboard==='function')updateDashboard();toast('Pesanan ditandai selesai.');};
 
   window.renderPengantaranV24=function(){
-    const drivers=getDriversV24();
-    const orders=getOrders();
-
-    const aktif=orders.filter(o=>
-      status(o)==='diantar' && Number(o.driverId)>0
-    ).length;
-
-    const selesai=orders.filter(o=>
-      status(o)==='selesai' && Number(o.driverId)>0
-    ).length;
-
-    const belum=orders.filter(o=>
-      !Number(o.driverId) && ['siap_diantar','diantar'].includes(status(o))
-    ).length;
-
-    [
-      ['v24DriverCount',drivers.length],
-      ['v24Aktif',aktif],
-      ['v24Selesai',selesai],
-      ['v24Belum',belum]
-    ].forEach(([id,v])=>{
-      const e=document.getElementById(id);
-      if(e)e.textContent=v;
-    });
-
+    const drivers=getDriversV24(), orders=getOrders();
+    const aktif=orders.filter(o=>['diantar','diproses'].includes(status(o))&&o.driverId).length;
+    const selesai=orders.filter(o=>status(o)==='selesai'&&o.driverId).length;
+    const belum=orders.filter(o=>!o.driverId&&!['selesai','batal'].includes(status(o))).length;
+    [['v24DriverCount',drivers.length],['v24Aktif',aktif],['v24Selesai',selesai],['v24Belum',belum]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
     const q=String(document.getElementById('v24CariDriver')?.value||'').toLowerCase().trim();
     const td=document.getElementById('tabelDriverV24');
-
-    if(td){
-      td.innerHTML=drivers
-        .filter(d=>!q||(`${d.nama} ${d.whatsapp}`).toLowerCase().includes(q))
-        .map((d,i)=>{
-          const c=orders.filter(o=>
-            Number(o.driverId)===Number(d.id) &&
-            !['selesai','batal'].includes(status(o))
-          ).length;
-
-          return `
-            <tr>
-              <td>${i+1}</td>
-              <td><strong>${esc(d.nama)}</strong></td>
-              <td>${esc(d.whatsapp)}</td>
-              <td>${d.aktif
-                ? '<span class="status status-selesai">Aktif</span>'
-                : '<span class="status status-batal">Nonaktif</span>'}
-              </td>
-              <td>${c}</td>
-              <td>
-                <button class="btn btn-small ${d.aktif?'btn-warning':'btn-success'}" onclick="toggleDriverV24('${d.id}')">
-                  ${d.aktif?'Nonaktifkan':'Aktifkan'}
-                </button>
-                <button class="btn btn-danger btn-small" onclick="hapusDriverV24('${d.id}')">Hapus</button>
-              </td>
-            </tr>`;
-        })
-        .join('') ||
-        '<tr><td colspan="6"><div class="empty">🚚 Belum ada driver.</div></td></tr>';
-    }
-
-    const sf=document.getElementById('v24FilterStatus')?.value||'semua';
-    const oq=String(document.getElementById('v24CariPesanan')?.value||'').toLowerCase().trim();
-    const tp=document.getElementById('tabelPengantaranV24');
-    if(!tp)return;
-
-    const rows=orders
-      .map((o,i)=>({o,i}))
-      .filter(({o})=>{
-        const st=status(o);
-        if(sf!=='semua'&&st!==sf)return false;
-        if(!oq)return true;
-        return `${o.id||o.orderId||''} ${name(o)} ${address(o)} ${phone(o)} ${o.driverNama||''}`.toLowerCase().includes(oq);
-      })
-      .reverse();
-
-    tp.innerHTML=rows.slice(0,150).map(({o,i},n)=>{
-      const assigned=o.driverId
-        ? `<strong>${esc(o.driverNama||'Driver')}</strong><br><small>${esc(o.driverWhatsApp||'')}</small>`
-        : '<span style="color:#999">Belum ditugaskan</span>';
-
-      let act='';
-
-      if(['siap_diantar','diantar'].includes(status(o))&&!o.driverId){
-        act+=`<button class="btn btn-primary btn-small" onclick="tugaskanDriverV24(${i})">🛵 Tugaskan</button>`;
-      }
-
-      if(o.driverId&&status(o)==='diantar'){
-        act+=`<button class="btn btn-gray btn-small" onclick="lepasDriverV24(${i})">Lepas</button>
-              <button class="btn btn-success btn-small" onclick="selesaikanAntarV24(${i})">✅ Selesai</button>`;
-      }
-
-      if(o.driverId&&status(o)==='selesai'){
-        act+='<span class="status status-selesai">Selesai</span>';
-      }
-
-      return `
-        <tr>
-          <td>${n+1}</td>
-          <td><strong>${esc(name(o))}</strong><br><small>${esc(phone(o))}</small></td>
-          <td>${esc(address(o))}</td>
-          <td><strong>${money(total(o))}</strong></td>
-          <td>${typeof statusHTML==='function'?statusHTML(o.status):esc(o.status||'baru')}</td>
-          <td>${assigned}</td>
-          <td>${act||'<span style="color:#999">-</span>'}</td>
-        </tr>`;
-    }).join('') || '<tr><td colspan="7"><div class="empty">📦 Tidak ada pesanan sesuai filter.</div></td></tr>';
+    if(td){td.innerHTML=drivers.filter(d=>!q||(`${d.nama} ${d.whatsapp}`).toLowerCase().includes(q)).map((d,i)=>{const c=orders.filter(o=>o.driverId===d.id&&!['selesai','batal'].includes(status(o))).length;return `<tr><td>${i+1}</td><td><strong>${esc(d.nama)}</strong></td><td>${esc(d.whatsapp)}</td><td>${d.aktif?'<span class="status status-selesai">Aktif</span>':'<span class="status status-batal">Nonaktif</span>'}</td><td>${c}</td><td><button class="btn btn-small ${d.aktif?'btn-warning':'btn-success'}" onclick="toggleDriverV24('${d.id}')">${d.aktif?'Nonaktifkan':'Aktifkan'}</button> <button class="btn btn-danger btn-small" onclick="hapusDriverV24('${d.id}')">Hapus</button></td></tr>`}).join('')||'<tr><td colspan="6"><div class="empty">🚚 Belum ada driver.</div></td></tr>';}
+    const sf=document.getElementById('v24FilterStatus')?.value||'semua', oq=String(document.getElementById('v24CariPesanan')?.value||'').toLowerCase().trim();
+    const tp=document.getElementById('tabelPengantaranV24'); if(!tp)return;
+    const rows=orders.map((o,i)=>({o,i})).filter(({o})=>{const st=status(o);if(sf!=='semua'&&st!==sf)return false;if(!oq)return true;return `${o.id||o.orderId||''} ${name(o)} ${address(o)} ${phone(o)} ${o.driverNama||''}`.toLowerCase().includes(oq)}).reverse();
+    tp.innerHTML=rows.slice(0,150).map(({o,i},n)=>{const assigned=o.driverId?`<strong>${esc(o.driverNama||'Driver')}</strong><br><small>${esc(o.driverWhatsApp||'')}</small>`:'<span style="color:#999">Belum ditugaskan</span>';let act=o.driverId?`<button class="btn btn-gray btn-small" onclick="lepasDriverV24(${i})">Lepas</button>`:`<button class="btn btn-primary btn-small" onclick="tugaskanDriverV24(${i})">Tugaskan</button>`;if(o.driverId&&!['selesai','batal'].includes(status(o)))act+=` <button class="btn btn-success btn-small" onclick="selesaikanAntarV24(${i})">Selesai</button>`;return `<tr><td>${n+1}</td><td><strong>${esc(name(o))}</strong><br><small>${esc(phone(o))}</small></td><td>${esc(address(o))}</td><td><strong>${money(total(o))}</strong></td><td>${typeof statusHTML==='function'?statusHTML(o.status):esc(o.status||'baru')}</td><td>${assigned}</td><td>${act}</td></tr>`}).join('')||'<tr><td colspan="7"><div class="empty">📦 Tidak ada pesanan sesuai filter.</div></td></tr>';
   };
-
-  document.addEventListener('DOMContentLoaded',async function(){
-    setTimeout(()=>refreshDriversV24(false),250);
-  });
-
-  setInterval(()=>{
-    if(document.visibilityState==='visible') refreshDriversV24(false);
-  },10000);
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(renderPengantaranV24,200));
+  setInterval(()=>{try{renderPengantaranV24()}catch(e){}},5000);
 })();
 </script>
 
-<script>
-/* =====================================================
-   V26 ENHANCEMENT PACK - KOMISI & DEPOSIT DRIVER
-   Additive only: does not replace existing V21-V25 functions.
-===================================================== */
-(function(){
-  const KOMISI_TABLE='pengaturan_komisi';
-  const DEPOSIT_TABLE='deposit_driver';
-  const RIWAYAT_TABLE='riwayat_deposit';
-  const DRIVER_TABLE_V26='driver';
-
-  const moneyV26=n=>typeof rupiah==='function'
-    ? rupiah(Number(n)||0)
-    : 'Rp'+(Number(n)||0).toLocaleString('id-ID');
-
-  const escV26=v=>typeof safe==='function'
-    ? safe(v)
-    : String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-
-  function setV26(id,value){
-    const el=document.getElementById(id);
-    if(el)el.textContent=value;
-  }
-
-  function setInputV26(id,value){
-    const el=document.getElementById(id);
-    if(el)el.value=value??0;
-  }
-
-  async function ambilDriversV26(){
-    const hasil=await supabaseClient
-      .from(DRIVER_TABLE_V26)
-      .select('id,nama,no_wa,status,created_at')
-      .order('id',{ascending:true});
-    if(hasil.error)throw new Error(hasil.error.message);
-    return Array.isArray(hasil.data)?hasil.data:[];
-  }
-
-  /* =====================================================
-     PROSES KOMISI OTOMATIS SAAT PESANAN SELESAI
-     Potongan yang dibebankan ke deposit driver = bagian Admin.
-  ===================================================== */
-  window.prosesKomisiSelesaiV26=async function(order){
-    const dbId=Number(order?.supabase_id||order?.id||0);
-    const driverId=Number(order?.driverId||0);
-    if(dbId<=0) throw new Error('ID pesanan Supabase tidak tersedia untuk komisi.');
-    if(driverId<=0) throw new Error('Pesanan belum memiliki driver.');
-
-    const komisiRes=await supabaseClient
-      .from('pengaturan_komisi')
-      .select('id,admin_ongkir_persen,driver_ongkir_persen,admin_produk_per_porsi,driver_produk_per_porsi,aktif')
-      .eq('id',1)
-      .maybeSingle();
-    if(komisiRes.error) throw new Error(komisiRes.error.message);
-    const komisi=komisiRes.data;
-    if(!komisi || !komisi.aktif) return {dipotong:0,aktif:false};
-
-    const sudahRes=await supabaseClient
-      .from('riwayat_deposit')
-      .select('id,jumlah,saldo_sesudah')
-      .eq('driver_id',driverId)
-      .eq('pesanan_id',dbId)
-      .eq('tipe','potongan_komisi')
-      .limit(1);
-    if(sudahRes.error) throw new Error(sudahRes.error.message);
-    if((sudahRes.data||[]).length) return {dipotong:Number(sudahRes.data[0].jumlah||0),sudah:true};
-
-    const ongkir=Number(order?.ongkir||order?.biayaKirim||0)||0;
-    const items=Array.isArray(order?.items)
-      ? order.items
-      : (Array.isArray(order?.keranjang)?order.keranjang:(Array.isArray(order?.detailPesanan)?order.detailPesanan:[]));
-    const porsi=items.reduce((sum,item)=>{
-      const q=Number(item?.jumlah??item?.qty??item?.quantity??1);
-      return sum+(Number.isFinite(q)&&q>0?q:0);
-    },0);
-
-    const adminOngkir=ongkir*Number(komisi.admin_ongkir_persen||0)/100;
-    const adminProduk=porsi*Number(komisi.admin_produk_per_porsi||0);
-    const potongan=Math.round((adminOngkir+adminProduk)*100)/100;
-    if(potongan<=0) return {dipotong:0,aktif:true};
-
-    const depRes=await supabaseClient
-      .from('deposit_driver')
-      .select('id,driver_id,saldo')
-      .eq('driver_id',driverId)
-      .maybeSingle();
-    if(depRes.error) throw new Error(depRes.error.message);
-    if(!depRes.data) throw new Error('Deposit driver belum tersedia.');
-
-    const sebelum=Number(depRes.data.saldo||0);
-    if(sebelum<potongan){
-      throw new Error('Deposit driver tidak mencukupi. Saldo '+moneyV26(sebelum)+' sedangkan komisi Admin '+moneyV26(potongan)+'.');
-    }
-    const sesudah=Math.round((sebelum-potongan)*100)/100;
-
-    const upd=await supabaseClient
-      .from('deposit_driver')
-      .update({saldo:sesudah,updated_at:new Date().toISOString()})
-      .eq('id',Number(depRes.data.id))
-      .select('id,driver_id,saldo')
-      .single();
-    if(upd.error) throw new Error(upd.error.message);
-
-    const detail='Potongan komisi pesanan #'+dbId+
-      ' — Admin ongkir '+moneyV26(adminOngkir)+
-      ' + Admin produk '+moneyV26(adminProduk);
-
-    const hist=await supabaseClient
-      .from('riwayat_deposit')
-      .insert({
-        driver_id:driverId,
-        tipe:'potongan_komisi',
-        jumlah:potongan,
-        saldo_sebelum:sebelum,
-        saldo_sesudah:sesudah,
-        pesanan_id:dbId,
-        keterangan:detail
-      })
-      .select('id')
-      .single();
-
-    if(hist.error){
-      await supabaseClient
-        .from('deposit_driver')
-        .update({saldo:sebelum,updated_at:new Date().toISOString()})
-        .eq('id',Number(depRes.data.id));
-      throw new Error('Riwayat komisi gagal disimpan. Saldo deposit dikembalikan. '+hist.error.message);
-    }
-
-    return {dipotong:potongan,adminOngkir,adminProduk,saldoSebelum:sebelum,saldoSesudah:sesudah};
-  };
-
-  async function ambilKomisiV26(){
-    const hasil=await supabaseClient
-      .from(KOMISI_TABLE)
-      .select('id,admin_ongkir_persen,driver_ongkir_persen,admin_produk_per_porsi,driver_produk_per_porsi,aktif,updated_at')
-      .eq('id',1)
-      .maybeSingle();
-    if(hasil.error)throw new Error(hasil.error.message);
-    return hasil.data||null;
-  }
-
-  async function ambilDepositV26(){
-    const hasil=await supabaseClient
-      .from(DEPOSIT_TABLE)
-      .select('id,driver_id,saldo,created_at,updated_at')
-      .order('driver_id',{ascending:true});
-    if(hasil.error)throw new Error(hasil.error.message);
-    return Array.isArray(hasil.data)?hasil.data:[];
-  }
-
-  function renderDepositV26(drivers,deposit){
-    const tbody=document.getElementById('tabelDepositDriverV26');
-    if(!tbody)return;
-
-    const map=new Map(deposit.map(x=>[Number(x.driver_id),x]));
-
-    tbody.innerHTML=drivers.map((d,i)=>{
-      const dep=map.get(Number(d.id));
-      const saldo=Number(dep?.saldo||0);
-      const status=String(d.status||'Aktif').toLowerCase()==='nonaktif'
-        ? '<span class="status status-batal">Nonaktif</span>'
-        : '<span class="status status-selesai">Aktif</span>';
-
-      return `<tr>
-        <td>${i+1}</td>
-        <td><strong>${escV26(d.nama)}</strong></td>
-        <td>${escV26(d.no_wa||'-')}</td>
-        <td>${status}</td>
-        <td><strong>${moneyV26(saldo)}</strong></td>
-        <td>
-          <button class="btn btn-success btn-small" onclick="tambahDepositV26(${Number(d.id)})">➕ Tambah Deposit</button>
-          <button class="btn btn-blue btn-small" onclick="lihatRiwayatDepositV26(${Number(d.id)})">📜 Riwayat</button>
-        </td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="6"><div class="empty">🚚 Belum ada driver.</div></td></tr>';
-  }
-
-  async function muatKomisiDepositV26(){
-    try{
-      if(typeof supabaseClient==='undefined')throw new Error('Koneksi Supabase belum tersedia.');
-
-      const [komisi,drivers,deposit]=await Promise.all([
-        ambilKomisiV26(),
-        ambilDriversV26(),
-        ambilDepositV26()
-      ]);
-
-      if(komisi){
-        setInputV26('v26AdminOngkir',komisi.admin_ongkir_persen);
-        setInputV26('v26DriverOngkir',komisi.driver_ongkir_persen);
-        setInputV26('v26AdminProduk',komisi.admin_produk_per_porsi);
-        setInputV26('v26DriverProduk',komisi.driver_produk_per_porsi);
-        const aktif=document.getElementById('v26KomisiAktif');
-        if(aktif)aktif.checked=Boolean(komisi.aktif);
-        setV26('v26StatusKomisi',komisi.aktif?'Aktif':'Nonaktif');
-      }
-
-      setV26('v26TotalDriver',drivers.length);
-      const totalDeposit=deposit.reduce((sum,x)=>sum+Number(x.saldo||0),0);
-      setV26('v26TotalDeposit',moneyV26(totalDeposit));
-      renderDepositV26(drivers,deposit);
-
-      const pesan=document.getElementById('v26PesanKomisi');
-      if(pesan)pesan.textContent='✅ Data komisi dan deposit berhasil dimuat dari Supabase.';
-    }catch(error){
-      console.error('LOAD KOMISI DEPOSIT V26:',error);
-      const pesan=document.getElementById('v26PesanKomisi');
-      if(pesan)pesan.textContent='❌ '+error.message;
-    }
-  }
-
-  window.muatKomisiDepositV26=muatKomisiDepositV26;
-
-  window.simpanKomisiV26=async function(){
-    const adminOngkir=Number(document.getElementById('v26AdminOngkir')?.value||0);
-    const driverOngkir=Number(document.getElementById('v26DriverOngkir')?.value||0);
-    const adminProduk=Number(document.getElementById('v26AdminProduk')?.value||0);
-    const driverProduk=Number(document.getElementById('v26DriverProduk')?.value||0);
-    const aktif=Boolean(document.getElementById('v26KomisiAktif')?.checked);
-
-    if(!Number.isFinite(adminOngkir)||adminOngkir<0||adminOngkir>100||
-       !Number.isFinite(driverOngkir)||driverOngkir<0||driverOngkir>100||
-       !Number.isFinite(adminProduk)||adminProduk<0||
-       !Number.isFinite(driverProduk)||driverProduk<0){
-      alert('❌ Nilai komisi tidak valid. Persentase ongkir harus 0–100 dan komisi produk tidak boleh negatif.');
-      return;
-    }
-
-    try{
-      const hasil=await supabaseClient
-        .from(KOMISI_TABLE)
-        .update({
-          admin_ongkir_persen:adminOngkir,
-          driver_ongkir_persen:driverOngkir,
-          admin_produk_per_porsi:adminProduk,
-          driver_produk_per_porsi:driverProduk,
-          aktif:aktif,
-          updated_at:new Date().toISOString()
-        })
-        .eq('id',1)
-        .select()
-        .maybeSingle();
-
-      if(hasil.error)throw new Error(hasil.error.message);
-      if(!hasil.data)throw new Error('Pengaturan komisi ID 1 tidak ditemukan.');
-
-      setV26('v26StatusKomisi',aktif?'Aktif':'Nonaktif');
-      const pesan=document.getElementById('v26PesanKomisi');
-      if(pesan)pesan.textContent='✅ Pengaturan komisi berhasil disimpan ke Supabase.';
-      toast('Pengaturan komisi berhasil disimpan.');
-    }catch(error){
-      console.error('SIMPAN KOMISI V26:',error);
-      alert('❌ Gagal menyimpan pengaturan komisi:\n\n'+error.message);
-    }
-  };
-
-  window.tambahDepositV26=async function(driverId){
-    const drivers=await ambilDriversV26();
-    const driver=drivers.find(x=>Number(x.id)===Number(driverId));
-    if(!driver)return;
-
-    const raw=prompt('Nominal deposit untuk '+driver.nama+':','50000');
-    if(raw===null)return;
-
-    const jumlah=Math.round(Number(raw));
-    if(!Number.isFinite(jumlah)||jumlah<=0){
-      alert('Nominal deposit harus lebih dari Rp0.');
-      return;
-    }
-
-    try{
-      let depRes=await supabaseClient
-        .from(DEPOSIT_TABLE)
-        .select('id,driver_id,saldo')
-        .eq('driver_id',Number(driverId))
-        .maybeSingle();
-
-      if(depRes.error)throw new Error(depRes.error.message);
-
-      let deposit=depRes.data;
-      if(!deposit){
-        const buat=await supabaseClient
-          .from(DEPOSIT_TABLE)
-          .insert({driver_id:Number(driverId),saldo:0})
-          .select('id,driver_id,saldo')
-          .single();
-        if(buat.error)throw new Error(buat.error.message);
-        deposit=buat.data;
-      }
-
-      const sebelum=Number(deposit.saldo||0);
-      const sesudah=sebelum+jumlah;
-
-      const update=await supabaseClient
-        .from(DEPOSIT_TABLE)
-        .update({saldo:sesudah,updated_at:new Date().toISOString()})
-        .eq('id',Number(deposit.id))
-        .select('id,driver_id,saldo')
-        .single();
-      if(update.error)throw new Error(update.error.message);
-
-      const riwayat=await supabaseClient
-        .from(RIWAYAT_TABLE)
-        .insert({
-          driver_id:Number(driverId),
-          tipe:'deposit',
-          jumlah:jumlah,
-          saldo_sebelum:sebelum,
-          saldo_sesudah:sesudah,
-          keterangan:'Deposit driver melalui Dashboard Admin'
-        });
-      if(riwayat.error)throw new Error(riwayat.error.message);
-
-      await muatKomisiDepositV26();
-      toast('Deposit '+driver.nama+' berhasil ditambahkan: '+moneyV26(jumlah));
-    }catch(error){
-      console.error('TAMBAH DEPOSIT V26:',error);
-      alert('❌ Gagal menambah deposit:\n\n'+error.message);
-    }
-  };
-
-  window.lihatRiwayatDepositV26=async function(driverId){
-    try{
-      const drivers=await ambilDriversV26();
-      const driver=drivers.find(x=>Number(x.id)===Number(driverId));
-      const hasil=await supabaseClient
-        .from(RIWAYAT_TABLE)
-        .select('id,tipe,jumlah,saldo_sebelum,saldo_sesudah,pesanan_id,keterangan,created_at')
-        .eq('driver_id',Number(driverId))
-        .order('created_at',{ascending:false})
-        .limit(20);
-      if(hasil.error)throw new Error(hasil.error.message);
-
-      const rows=(hasil.data||[]).map((x,i)=>
-        `${i+1}. ${x.tipe} — ${moneyV26(x.jumlah)} — saldo ${moneyV26(x.saldo_sesudah)}${x.keterangan?' — '+x.keterangan:''}`
-      ).join('\n');
-
-      alert('📜 Riwayat Deposit '+(driver?.nama||'Driver')+'\n\n'+(rows||'Belum ada transaksi.'));
-    }catch(error){
-      alert('❌ Gagal memuat riwayat:\n\n'+error.message);
-    }
-  };
-
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(function(){
-      const page=document.getElementById('komisidepositv26');
-      if(page)muatKomisiDepositV26();
-    },350);
-  });
-})();
-</script>
 <script>
 /* =====================================================
    V25 ENHANCEMENT PACK - CRM PELANGGAN
@@ -7271,46 +6166,11 @@ setInterval(
   };
   document.addEventListener('DOMContentLoaded',()=>setTimeout(renderCRMV25,250));
   setInterval(()=>{try{renderCRMV25()}catch(e){}},5000);
-  window.ambilGPSWarung = function() {
-    const status = document.getElementById("statusGPSWarung");
-    const latEl = document.getElementById("latitudeWarung");
-    const lonEl = document.getElementById("longitudeWarung");
-
-    if (!navigator.geolocation) {
-      status.textContent = "❌ Browser ini tidak mendukung GPS.";
-      return;
-    }
-
-    status.textContent = "⏳ Mengambil lokasi GPS... Izinkan akses lokasi jika diminta browser.";
-
-    navigator.geolocation.getCurrentPosition(
-      function(position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        latEl.value = lat.toFixed(7);
-        lonEl.value = lon.toFixed(7);
-        status.textContent = "✅ Lokasi warung berhasil diambil.";
-      },
-      function(error) {
-        let pesan = "❌ Gagal mengambil lokasi GPS.";
-        if (error.code === 1) pesan = "❌ Izin lokasi ditolak. Izinkan lokasi untuk situs ini lalu coba lagi.";
-        if (error.code === 2) pesan = "❌ Lokasi tidak tersedia. Pastikan GPS/lokasi perangkat aktif.";
-        if (error.code === 3) pesan = "❌ Pengambilan lokasi terlalu lama. Coba lagi.";
-        status.textContent = pesan;
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  };
-
   window.tambahWarung = async function() {
 
     const nama = document.getElementById("namaWarung").value.trim();
     const alamat = document.getElementById("alamatWarung").value.trim();
     const noWa = document.getElementById("noWaWarung").value.trim();
-    const latText = document.getElementById("latitudeWarung").value.trim();
-    const lonText = document.getElementById("longitudeWarung").value.trim();
-    const latitude = latText ? Number(latText) : null;
-    const longitude = lonText ? Number(lonText) : null;
 
     if (!nama) {
         alert("Silakan isi nama warung.");
@@ -7322,11 +6182,6 @@ setInterval(
         return;
     }
 
-    if ((latText && !Number.isFinite(latitude)) || (lonText && !Number.isFinite(longitude))) {
-        alert("Koordinat GPS tidak valid. Silakan ambil lokasi GPS lagi.");
-        return;
-    }
-
     try {
 
         const hasil = await supabaseClient
@@ -7334,9 +6189,7 @@ setInterval(
             .insert({
                 nama: nama,
                 alamat: alamat,
-                no_wa: noWa || null,
-                latitude: latitude,
-                longitude: longitude
+                no_wa: noWa || null
             })
             .select()
             .single();
@@ -7347,17 +6200,11 @@ setInterval(
 
         document.getElementById("hasilWarung").innerHTML =
             "✅ Warung berhasil disimpan. ID Warung: " +
-            hasil.data.id +
-            (hasil.data.latitude != null && hasil.data.longitude != null
-              ? "<br>📍 GPS: " + hasil.data.latitude + ", " + hasil.data.longitude
-              : "<br>📍 GPS belum diisi.");
+            hasil.data.id;
 
         document.getElementById("namaWarung").value = "";
         document.getElementById("alamatWarung").value = "";
         document.getElementById("noWaWarung").value = "";
-        document.getElementById("latitudeWarung").value = "";
-        document.getElementById("longitudeWarung").value = "";
-        document.getElementById("statusGPSWarung").textContent = "";
 
         alert("✅ Warung berhasil disimpan ke Supabase.");
 
@@ -7372,390 +6219,6 @@ setInterval(
     }
 };
 
-})();
-</script>
-
-
-<script>
-/* Paya Rengas Delivery - tombol produk bridge fix */
-window.__pRD_editProductById = function(id){
-    try {
-        const products = typeof getProducts === "function" ? getProducts() : [];
-        id = Number(id);
-        const index = products.findIndex(p => Number(p.id) === id);
-        if (index < 0) {
-            alert("Produk tidak ditemukan.");
-            return;
-        }
-        const product = products[index];
-        window.editingProductIndex = index;
-        const set = (id, value) => { const el=document.getElementById(id); if(el) el.value=value; };
-        set("editId", product.id);
-        set("editNama", product.nama || "");
-        set("editHarga", product.harga || 0);
-        set("editKategori", product.kategori || "Makanan");
-        set("editRating", product.rating || 5);
-        set("editStatus", product.status || "tersedia");
-        set("editStok", Number(product.stok ?? 0));
-        set("editDeskripsi", product.deskripsi || "");
-        if(typeof selectedEditImage !== "undefined") window.selectedEditImage = "";
-        const file=document.getElementById("editFile"); if(file) file.value="";
-        const img=document.getElementById("previewEditImg"); if(img && typeof imagePath === "function") img.src=imagePath(product.gambar);
-        const modal=document.getElementById("modalEdit");
-        if(!modal){ alert("Form Edit Produk tidak ditemukan."); return; }
-        modal.classList.add("show");
-    } catch(e){
-        console.error("EDIT PRODUK:",e);
-        alert("Gagal membuka Edit Produk: " + e.message);
-    }
-};
-window.__pRD_deleteProductById = function(id){
-    try {
-        const products = typeof getProducts === "function" ? getProducts() : [];
-        id = Number(id);
-        const index = products.findIndex(p => Number(p.id) === id);
-        if(index < 0){
-            alert("Produk tidak ditemukan.");
-            return;
-        }
-        if(typeof deleteProductByIndex === "function") return deleteProductByIndex(index);
-        alert("Fungsi Hapus Produk tidak tersedia.");
-    } catch(e){ console.error("HAPUS PRODUK:",e); alert("Gagal menghapus produk: " + e.message); }
-};
-</script>
-
-<script>
-/* Paya Rengas Delivery - direct product button events */
-document.addEventListener("click", function(event){
-    const editBtn = event.target.closest(".pRD-edit-btn");
-    if(editBtn){
-        event.preventDefault();
-        event.stopPropagation();
-        const id = Number(editBtn.dataset.productId);
-        if(typeof window.__pRD_editProductById === "function"){
-            window.__pRD_editProductById(id);
-        } else if(typeof window.editProduct === "function"){
-            window.editProduct(id);
-        }
-        return;
-    }
-
-    const deleteBtn = event.target.closest(".pRD-delete-btn");
-    if(deleteBtn){
-        event.preventDefault();
-        event.stopPropagation();
-        const id = Number(deleteBtn.dataset.productId);
-        if(typeof window.__pRD_deleteProductById === "function"){
-            window.__pRD_deleteProductById(id);
-        }
-    }
-});
-</script>
-
-<script>
-/* Paya Rengas Delivery - Pesanan Supabase Sync */
-(function(){
-    "use strict";
-
-    async function ambilPesananSupabase(){
-        const hasil = await supabaseClient
-            .from("pesanan")
-            .select("id,created_at,pelanggan_id,warung_id,nama_pelanggan,no_wa,\"alamat pengantara\",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,latitude,longitude,driver_id,driver_nama,driver_no_wa,items")
-            .order("created_at", {ascending:false});
-
-        if(hasil.error){
-            throw new Error(hasil.error.message);
-        }
-        return Array.isArray(hasil.data) ? hasil.data : [];
-    }
-
-    function ubahPesananSupabaseKeFormatAdmin(row){
-        return {
-            id: Number(row.id),
-            supabase_id: Number(row.id),
-            created_at: row.created_at,
-            nama: row.nama_pelanggan || "Pelanggan",
-            namaPelanggan: row.nama_pelanggan || "Pelanggan",
-            whatsapp: row.no_wa || "",
-            noWhatsapp: row.no_wa || "",
-            alamat: row["alamat pengantara"] || "",
-            alamatPengantaran: row["alamat pengantara"] || "",
-            catatan: row.catatan || "",
-            totalBelanja: Number(row.total_belanja || 0),
-            ongkir: Number(row.ongkir || 0),
-            totalPembayaran: Number(row.total_pembayaran || 0),
-            total: Number(row.total_pembayaran || 0),
-            status: row.status || "baru",
-            metodePembayaran: row.metode_pembayaran || "WhatsApp",
-            latitude: row.latitude ?? null,
-            longitude: row.longitude ?? null,
-            driverId: row.driver_id ?? null,
-            driverNama: row.driver_nama || "",
-            driverWhatsApp: row.driver_no_wa || "",
-            pelanggan_id: row.pelanggan_id ?? null,
-            warung_id: row.warung_id ?? null,
-            items: Array.isArray(row.items) ? row.items : []
-        };
-    }
-
-    function gabungkanPesanan(localOrders, remoteRows){
-        const local = Array.isArray(localOrders) ? localOrders : [];
-        const byDbId = new Map();
-
-        local.forEach(o=>{
-            const id = Number(o?.supabase_id || o?.id || 0);
-            if(id > 0) byDbId.set(id, o);
-        });
-
-        const hasil = remoteRows.map(row=>{
-            const remote = ubahPesananSupabaseKeFormatAdmin(row);
-            const lama = byDbId.get(remote.supabase_id);
-
-            if(lama){
-                return Object.assign({}, lama, remote, {
-                    items: Array.isArray(remote.items) && remote.items.length
-                        ? remote.items
-                        : (Array.isArray(lama.items) ? lama.items : [])
-                });
-            }
-
-            return remote;
-        });
-
-        /*
-         * Pertahankan hanya pesanan lokal lama yang memang BELUM punya ID
-         * Supabase. Kalau sebuah pesanan sudah punya supabase_id lalu tidak
-         * ada lagi di server, berarti data tersebut memang sudah dihapus dari
-         * Supabase dan jangan dimunculkan kembali oleh cache browser.
-         */
-        const remoteIds = new Set(remoteRows.map(r=>Number(r.id)));
-        local.forEach(o=>{
-            const id = Number(o?.supabase_id || o?.id || 0);
-            if(id <= 0){
-                hasil.push(o);
-            }
-        });
-
-        return hasil.sort((a,b)=>{
-            const da = new Date(a?.created_at || 0).getTime();
-            const db = new Date(b?.created_at || 0).getTime();
-            return db - da;
-        });
-    }
-
-    async function sinkronkanPesananSupabase(showError){
-        try{
-            const remoteRows = await ambilPesananSupabase();
-            const lokal = getOrders();
-            const gabungan = gabungkanPesanan(lokal, remoteRows);
-
-            localStorage.setItem(
-                ORDER_KEY,
-                JSON.stringify(gabungan)
-            );
-
-            if(typeof renderPesanan === "function") renderPesanan();
-            if(typeof renderPesananTerbaru === "function") renderPesananTerbaru();
-            if(typeof renderRiwayat === "function") renderRiwayat();
-            if(typeof renderLaporan === "function") renderLaporan();
-            if(typeof updateDashboard === "function") updateDashboard();
-            if(typeof renderOperasional === "function") renderOperasional();
-            if(typeof renderPengantaranV24 === "function") renderPengantaranV24();
-
-            return gabungan;
-        }catch(error){
-            console.error("SYNC PESANAN SUPABASE:", error);
-            if(showError){
-                alert("❌ Gagal mengambil pesanan dari Supabase:\n\n" + error.message);
-            }
-            return null;
-        }
-    }
-
-    /* Simpan fungsi lama untuk tetap mempertahankan UI/status lokal. */
-    const ubahStatusLokalLama = window.ubahStatus;
-
-    window.ubahStatus = async function(index,status){
-        const orders = getOrders();
-        const order = orders[index];
-
-        if(!order){
-            return;
-        }
-
-        const dbId = Number(order.supabase_id || order.id || 0);
-
-        try{
-            if(dbId > 0){
-                const hasil = await supabaseClient
-                    .from("pesanan")
-                    .update({
-                        status: String(status || "baru")
-                    })
-                    .eq("id", dbId)
-                    .select("id,status")
-                    .maybeSingle();
-
-                if(hasil.error){
-                    throw new Error(hasil.error.message);
-                }
-
-                if(!hasil.data){
-                    throw new Error("Pesanan tidak ditemukan di Supabase.");
-                }
-            }
-
-            /* Setelah server berhasil, pertahankan alur lokal lama. */
-            if(typeof ubahStatusLokalLama === "function"){
-                ubahStatusLokalLama(index,status);
-            }else{
-                orders[index].status = status;
-                orders[index].statusUpdatedAt = new Date().toISOString();
-                localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
-                if(typeof renderPesanan === "function") renderPesanan();
-            }
-
-            /* Ambil kembali data server agar status Admin benar-benar sama dengan Supabase. */
-            await sinkronkanPesananSupabase(false);
-
-            toast("Status pesanan berhasil diperbarui di Supabase.");
-        }catch(error){
-            console.error("UPDATE STATUS PESANAN:", error);
-            alert("❌ Gagal memperbarui status pesanan di Supabase:\n\n" + error.message);
-        }
-    };
-
-    window.sinkronkanPesananSupabase = function(){
-        return sinkronkanPesananSupabase(true);
-    };
-
-    /*
-     * Hapus pesanan: Supabase menjadi sumber data utama.
-     * Data lokal baru dihapus setelah penghapusan di server berhasil.
-     */
-    const hapusPesananLokalLama = window.hapusPesanan;
-
-    window.hapusPesanan = async function(index){
-        const orders = getOrders();
-        const order = orders[index];
-
-        if(!order){
-            return;
-        }
-
-        if(!confirm("Yakin ingin menghapus pesanan ini?")){
-            return;
-        }
-
-        const dbId = Number(order.supabase_id || order.id || 0);
-
-        try{
-            if(dbId > 0){
-                const hasil = await supabaseClient
-                    .from("pesanan")
-                    .delete()
-                    .eq("id", dbId)
-                    .select("id")
-                    .maybeSingle();
-
-                if(hasil.error){
-                    throw new Error(hasil.error.message);
-                }
-
-                if(!hasil.data){
-                    throw new Error("Pesanan tidak ditemukan di Supabase.");
-                }
-            }
-
-            /* Hanya hapus cache lokal setelah server berhasil. */
-            if(typeof hapusPesananLokalLama === "function"){
-                hapusPesananLokalLama(index);
-            }else{
-                orders.splice(index,1);
-                localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
-            }
-
-            /* Pastikan semua panel Admin membaca keadaan terbaru dari server. */
-            await sinkronkanPesananSupabase(false);
-
-            toast(dbId > 0
-                ? "Pesanan berhasil dihapus dari Supabase."
-                : "Pesanan lokal berhasil dihapus.");
-
-        }catch(error){
-            console.error("HAPUS PESANAN:", error);
-            alert("❌ Gagal menghapus pesanan di Supabase:\n\n" + error.message);
-        }
-    };
-
-    document.addEventListener("DOMContentLoaded", function(){
-        setTimeout(function(){
-            sinkronkanPesananSupabase(false);
-        }, 300);
-    });
-
-    /* Pesanan baru dari pelanggan akan muncul otomatis di Admin. */
-    setInterval(function(){
-        if(document.visibilityState === "visible"){
-            sinkronkanPesananSupabase(false);
-        }
-    }, 10000);
-})();
-</script>
-
-
-
-<script>
-/* Paya Rengas Delivery - V27 Produk Modal/HPP Sync */
-(function(){
-    "use strict";
-
-    async function sinkronkanModalProdukV27(){
-        try{
-            if(!supabaseClient || typeof getProducts!=="function" || typeof saveProducts!=="function") return;
-            const hasil=await supabaseClient
-                .from("produk")
-                .select("id,modal");
-            if(hasil.error) throw new Error(hasil.error.message);
-
-            const rows=Array.isArray(hasil.data)?hasil.data:[];
-            if(!rows.length) return;
-
-            const map=new Map(rows.map(r=>[Number(r.id),Number(r.modal||0)]));
-            const products=getProducts();
-            let berubah=false;
-
-            products.forEach(p=>{
-                const dbId=Number(p.supabase_id||0);
-                if(dbId>0 && map.has(dbId)){
-                    const modal=map.get(dbId);
-                    if(Number(p.modal||0)!==modal){
-                        p.modal=modal;
-                        berubah=true;
-                    }
-                }
-            });
-
-            if(berubah){
-                saveProducts(products);
-                if(typeof renderProducts==="function") renderProducts();
-                if(typeof renderOperasional==="function") renderOperasional();
-            }
-            if(typeof renderKeuanganV22==="function") renderKeuanganV22();
-        }catch(error){
-            console.warn("SYNC MODAL PRODUK V27:",error);
-        }
-    }
-
-    window.sinkronkanModalProdukV27=sinkronkanModalProdukV27;
-
-    document.addEventListener("DOMContentLoaded",function(){
-        setTimeout(sinkronkanModalProdukV27,500);
-    });
-
-    setInterval(function(){
-        if(document.visibilityState==="visible") sinkronkanModalProdukV27();
-    },10000);
 })();
 </script>
 
