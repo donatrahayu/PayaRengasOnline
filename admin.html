@@ -2075,15 +2075,15 @@ tr:hover td{
                 <input id="ongkirTarif5565" type="number" min="0" step="1000" placeholder="Masukkan tarif">
             </div>
             <div class="form-group">
-                <label for="ongkirTambahan65">&gt;6,5 km — tambahan setiap 1 km</label>
-                <input id="ongkirTambahan65" type="number" min="0" step="1000" placeholder="Masukkan tambahan per 1 km">
+                <label for="ongkirTambahan65">Di atas 6,5 km — tambahan setiap 1 km</label>
+                <input id="ongkirTambahan65" type="number" min="0" step="1000" value="10000">
             </div>
         </div>
 
         <div class="summary-grid" style="margin-top:18px">
             <div class="summary-box"><h4>📍 Dasar Perhitungan</h4><span>Jarak dihitung otomatis dari GPS pelanggan ke GPS Warung Mitra.</span></div>
             <div class="summary-box"><h4>🚚 Sampai 6,5 km</h4><span>Tarif setiap zona dapat diubah oleh admin.</span></div>
-            <div class="summary-box"><h4>➕ Di atas 6,5 km</h4><span>Tambahan setiap 1 km dapat diatur oleh admin.</span></div>
+            <div class="summary-box"><h4>➕ Di atas 6,5 km</h4><span>Tambahan untuk setiap 1 km setelah 6,5 km.</span></div>
         </div>
 
         <div class="form-buttons">
@@ -5943,23 +5943,24 @@ setInterval(
    PENGATURAN ONGKIR - SUPABASE
 ===================================================== */
 (function(){
-    const DEFAULT_ONGKIR={tarif_0_05:0,tarif_05_15:0,tarif_15_25:0,tarif_25_35:0,tarif_35_45:0,tarif_45_55:0,tarif_55_65:0,tambahan_diatas_8:0};
+    const DEFAULT_ONGKIR={tarif_0_05:0,tarif_05_15:0,tarif_15_25:0,tarif_25_35:0,tarif_35_45:0,tarif_45_55:0,tarif_55_65:0,tambahan_diatas_65:10000};
     function inputNum(id){const el=document.getElementById(id);const n=Number(el?.value);return Number.isFinite(n)&&n>=0?n:0;}
     function setInput(id,v){const el=document.getElementById(id);if(el)el.value=Number(v??0);}
     function pesanOngkir(text,ok){const el=document.getElementById('hasilPengaturanOngkir');if(!el)return;el.innerHTML=`<div style="padding:12px;border-radius:8px;background:${ok?'#ecfdf5':'#fef2f2'};color:${ok?'#166534':'#991b1b'}">${text}</div>`;}
 
     window.muatPengaturanOngkir=async function(){
         try{
-            const hasil=await supabaseClient.from('pengaturan_ongkir').select('id,tarif_0_05,tarif_05_15,tarif_15_25,tarif_25_35,tarif_35_45,tarif_45_55,tarif_55_65,tambahan_diatas_8,aktif').eq('aktif',true).order('id',{ascending:false}).limit(1);
+            const hasil=await supabaseClient.from('pengaturan_ongkir').select('id,tarif_0_05,tarif_05_15,tarif_15_25,tarif_25_35,tarif_35_45,tarif_45_55,tarif_55_65,tambahan_diatas_65,aktif').eq('aktif',true).order('id',{ascending:false}).limit(1);
             if(hasil.error)throw new Error(hasil.error.message);
             const d=hasil.data?.[0]||DEFAULT_ONGKIR;
-            setInput('ongkirTarif005',d.tarif_0_05);setInput('ongkirTarif0515',d.tarif_05_15);setInput('ongkirTarif1525',d.tarif_15_25);setInput('ongkirTarif2535',d.tarif_25_35);setInput('ongkirTarif3545',d.tarif_35_45);setInput('ongkirTarif4555',d.tarif_45_55);setInput('ongkirTarif5565',d.tarif_55_65);setInput('ongkirTambahan65',d.tambahan_diatas_8??0);
+            setInput('ongkirTarif005',d.tarif_0_05);setInput('ongkirTarif0515',d.tarif_05_15);setInput('ongkirTarif1525',d.tarif_15_25);setInput('ongkirTarif2535',d.tarif_25_35);setInput('ongkirTarif3545',d.tarif_35_45);setInput('ongkirTarif4555',d.tarif_45_55);setInput('ongkirTarif5565',d.tarif_55_65);setInput('ongkirTambahan65',d.tambahan_diatas_65??10000);
             pesanOngkir('✅ Pengaturan ongkir berhasil dimuat dari Supabase.',true);
         }catch(e){console.error('ERROR MUAT PENGATURAN ONGKIR:',e);pesanOngkir('❌ Gagal memuat pengaturan ongkir: '+String(e.message||e),false);}
     };
 
     window.simpanPengaturanOngkir=async function(){
-        const data={tarif_0_05:inputNum('ongkirTarif005'),tarif_05_15:inputNum('ongkirTarif0515'),tarif_15_25:inputNum('ongkirTarif1525'),tarif_25_35:inputNum('ongkirTarif2535'),tarif_35_45:inputNum('ongkirTarif3545'),tarif_45_55:inputNum('ongkirTarif4555'),tarif_55_65:inputNum('ongkirTarif5565'),tambahan_diatas_8:inputNum('ongkirTambahan65'),aktif:true,updated_at:new Date().toISOString()};
+        const data={tarif_0_05:inputNum('ongkirTarif005'),tarif_05_15:inputNum('ongkirTarif0515'),tarif_15_25:inputNum('ongkirTarif1525'),tarif_25_35:inputNum('ongkirTarif2535'),tarif_35_45:inputNum('ongkirTarif3545'),tarif_45_55:inputNum('ongkirTarif4555'),tarif_55_65:inputNum('ongkirTarif5565'),tambahan_diatas_65:inputNum('ongkirTambahan65'),aktif:true,updated_at:new Date().toISOString()};
+        if(data.tambahan_diatas_65<=0){alert('Tambahan ongkir di atas 6,5 km harus lebih dari Rp0.');return;}
         try{
             const cari=await supabaseClient.from('pengaturan_ongkir').select('id').eq('aktif',true).order('id',{ascending:false}).limit(1);
             if(cari.error)throw new Error(cari.error.message);
@@ -5971,7 +5972,7 @@ setInterval(
     };
 
     window.resetPengaturanOngkir=function(){
-        setInput('ongkirTarif005',DEFAULT_ONGKIR.tarif_0_05);setInput('ongkirTarif0515',DEFAULT_ONGKIR.tarif_05_15);setInput('ongkirTarif1525',DEFAULT_ONGKIR.tarif_15_25);setInput('ongkirTarif2535',DEFAULT_ONGKIR.tarif_25_35);setInput('ongkirTarif3545',DEFAULT_ONGKIR.tarif_35_45);setInput('ongkirTarif4555',DEFAULT_ONGKIR.tarif_45_55);setInput('ongkirTarif5565',DEFAULT_ONGKIR.tarif_55_65);setInput('ongkirTambahan65',DEFAULT_ONGKIR.tambahan_diatas_8);
+        setInput('ongkirTarif005',DEFAULT_ONGKIR.tarif_0_05);setInput('ongkirTarif0515',DEFAULT_ONGKIR.tarif_05_15);setInput('ongkirTarif1525',DEFAULT_ONGKIR.tarif_15_25);setInput('ongkirTarif2535',DEFAULT_ONGKIR.tarif_25_35);setInput('ongkirTarif3545',DEFAULT_ONGKIR.tarif_35_45);setInput('ongkirTarif4555',DEFAULT_ONGKIR.tarif_45_55);setInput('ongkirTarif5565',DEFAULT_ONGKIR.tarif_55_65);setInput('ongkirTambahan65',DEFAULT_ONGKIR.tambahan_diatas_65);
         pesanOngkir('↩️ Form dikembalikan ke nilai default. Klik Simpan Pengaturan jika ingin menyimpannya.',true);
     };
 })();
