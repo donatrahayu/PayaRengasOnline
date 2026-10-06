@@ -25,7 +25,7 @@ const supabaseClient =
    PENGATURAN
 ===================================================== */
 
-const NOMOR_WA = "6285260984737";
+const NOMOR_WA = "6283851564958";
 
 /*
    ID WARUNG
@@ -80,18 +80,57 @@ function hitungJarakPelangganKeWarung() {
     return hitungJarakKm(latWarung, lonWarung, latPelanggan, lonPelanggan);
 }
 
+/* =====================================================
+   ONGKIR DARI PENGATURAN ADMIN / SUPABASE
+===================================================== */
+let pengaturanOngkirPelanggan = null;
+
+async function muatPengaturanOngkirPelanggan() {
+    try {
+        const hasil = await supabaseClient
+            .from("pengaturan_ongkir")
+            .select("tarif_0_05,tarif_05_15,tarif_15_25,tarif_25_35,tarif_35_45,tarif_45_55,tarif_55_65,tambahan_diatas_65,aktif")
+            .eq("aktif", true)
+            .order("id", { ascending: false })
+            .limit(1);
+
+        if (hasil.error) throw new Error(hasil.error.message);
+
+        pengaturanOngkirPelanggan = hasil.data?.[0] || null;
+
+        if (!pengaturanOngkirPelanggan) {
+            console.warn("Pengaturan ongkir aktif belum tersedia di Supabase.");
+        }
+
+        return pengaturanOngkirPelanggan;
+    } catch (error) {
+        console.error("GAGAL MEMUAT PENGATURAN ONGKIR:", error);
+        pengaturanOngkirPelanggan = null;
+        return null;
+    }
+}
+
 function tentukanOngkirDariJarak(jarakKm) {
     if (!Number.isFinite(Number(jarakKm))) return null;
+
     const jarak = Number(jarakKm);
     if (jarak < 0) return null;
-    if (jarak <= 2) return 5000;
-    if (jarak <= 4) return 8000;
-    if (jarak <= 5) return 10000;
-    if (jarak <= 7) return 15000;
-    if (jarak <= 9) return 25000;
-    if (jarak <= 10) return 30000;
-    if (jarak <= 15) return 50000;
-    return null;
+
+    const o = pengaturanOngkirPelanggan;
+    if (!o) return null;
+
+    if (jarak <= 0.5) return Number(o.tarif_0_05 || 0);
+    if (jarak <= 1.5) return Number(o.tarif_05_15 || 0);
+    if (jarak <= 2.5) return Number(o.tarif_15_25 || 0);
+    if (jarak <= 3.5) return Number(o.tarif_25_35 || 0);
+    if (jarak <= 4.5) return Number(o.tarif_35_45 || 0);
+    if (jarak <= 5.5) return Number(o.tarif_45_55 || 0);
+    if (jarak <= 6.5) return Number(o.tarif_55_65 || 0);
+
+    const tambahanPerKm = Number(o.tambahan_diatas_65 || 0);
+    if (tambahanPerKm <= 0) return null;
+
+    return tambahanPerKm * Math.ceil(jarak - 6.5);
 }
 
 function formatJarakKm(jarakKm) {
@@ -2516,6 +2555,12 @@ document.addEventListener(
     "DOMContentLoaded",
 
     async function() {
+
+        /*
+           MUAT PENGATURAN ONGKIR DARI ADMIN
+        */
+
+        await muatPengaturanOngkirPelanggan();
 
         /*
            TAMPILKAN KERANJANG
