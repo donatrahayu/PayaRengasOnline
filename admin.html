@@ -2095,43 +2095,71 @@ tr:hover td{
 </section>
 
 <!-- =========================
-     TAMBAH WARUNG
+     WARUNG MITRA
 ========================= -->
 <section id="warung" class="page">
     <div class="page-title">
-        <h2>🏪 Tambah Warung</h2>
-        <p>Tambah data warung ke Paya Rengas Delivery.</p>
+        <h2>🏪 Warung Mitra</h2>
+        <p>Tambah warung dan atur status Aktif/Nonaktif serta Buka/Tutup.</p>
     </div>
 
     <div class="panel">
+        <div class="panel-header">
+            <h3>➕ Tambah Warung</h3>
+        </div>
 
-        <input
-            type="text"
-            id="namaWarung"
-            placeholder="Nama Warung">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="namaWarung">Nama Warung</label>
+                <input type="text" id="namaWarung" placeholder="Nama Warung">
+            </div>
 
-        <input
-            type="text"
-            id="alamatWarung"
-            placeholder="Alamat Warung">
+            <div class="form-group">
+                <label for="alamatWarung">Alamat Warung</label>
+                <input type="text" id="alamatWarung" placeholder="Alamat Warung">
+            </div>
 
-        <input
-            type="text"
-            id="noWaWarung"
-            placeholder="Nomor WhatsApp Warung">
+            <div class="form-group">
+                <label for="noWaWarung">Nomor WhatsApp Warung</label>
+                <input type="text" id="noWaWarung" placeholder="Nomor WhatsApp Warung">
+            </div>
+        </div>
 
-        <button
-            class="btn btn-primary"
-            onclick="tambahWarung()">
+        <div class="form-buttons">
+            <button class="btn btn-primary" type="button" onclick="tambahWarung()">
+                ➕ Simpan Warung
+            </button>
+            <button class="btn btn-gray" type="button" onclick="muatDaftarWarung()">
+                🔄 Muat Warung
+            </button>
+        </div>
 
-            ➕ Simpan Warung
-
-        </button>
-
-        <div id="hasilWarung"></div>
-
+        <div id="hasilWarung" style="margin-top:12px"></div>
     </div>
 
+    <div class="panel">
+        <div class="panel-header">
+            <h3>⚙️ Kontrol Status Warung</h3>
+            <button class="btn btn-gray" type="button" onclick="muatDaftarWarung()">🔄 Refresh</button>
+        </div>
+
+        <div class="table-scroll">
+            <table style="min-width:900px">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Warung</th>
+                        <th>Alamat</th>
+                        <th>WhatsApp</th>
+                        <th>Status</th>
+                        <th>Operasional</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelWarung"></tbody>
+            </table>
+        </div>
+    </div>
 </section>
 
 
@@ -6174,8 +6202,125 @@ setInterval(
   };
   document.addEventListener('DOMContentLoaded',()=>setTimeout(renderCRMV25,250));
   setInterval(()=>{try{renderCRMV25()}catch(e){}},5000);
-  window.tambahWarung = async function() {
+  function escapeWarungHTML(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
+function badgeWarungStatus(status) {
+    const aktif = String(status || "Aktif").toLowerCase() !== "nonaktif";
+    return aktif
+        ? '<span class="status status-selesai">🟢 Aktif</span>'
+        : '<span class="status status-batal">🔴 Nonaktif</span>';
+}
+
+function badgeWarungBuka(buka) {
+    return Boolean(buka)
+        ? '<span class="status status-selesai">🔓 Buka</span>'
+        : '<span class="status status-batal">🔒 Tutup</span>';
+}
+
+window.muatDaftarWarung = async function() {
+    const tbody = document.getElementById("tabelWarung");
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">⏳ Memuat warung...</td></tr>';
+
+    try {
+        const hasil = await supabaseClient
+            .from("warung")
+            .select("id,nama,alamat,no_wa,status,buka")
+            .order("id", { ascending: true });
+
+        if (hasil.error) throw new Error(hasil.error.message);
+
+        const data = hasil.data || [];
+
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="7"><div class="empty">🏪 Belum ada Warung Mitra.</div></td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map((warung, index) => {
+            const aktif = String(warung.status || "Aktif").toLowerCase() !== "nonaktif";
+            const buka = warung.buka !== false;
+
+            return `<tr>
+                <td>${index + 1}</td>
+                <td><strong>${escapeWarungHTML(warung.nama || "-")}</strong></td>
+                <td>${escapeWarungHTML(warung.alamat || "-")}</td>
+                <td>${escapeWarungHTML(warung.no_wa || "-")}</td>
+                <td>${badgeWarungStatus(warung.status)}</td>
+                <td>${badgeWarungBuka(buka)}</td>
+                <td>
+                    <button class="btn ${aktif ? "btn-danger" : "btn-success"} btn-small"
+                        type="button"
+                        onclick="toggleStatusWarung(${Number(warung.id)}, ${aktif})">
+                        ${aktif ? "🔴 Nonaktifkan" : "🟢 Aktifkan"}
+                    </button>
+                    <button class="btn ${buka ? "btn-warning" : "btn-blue"} btn-small"
+                        type="button"
+                        onclick="toggleBukaWarung(${Number(warung.id)}, ${buka})">
+                        ${buka ? "🔒 Tutup" : "🔓 Buka"}
+                    </button>
+                </td>
+            </tr>`;
+        }).join("");
+
+    } catch (error) {
+        console.error("ERROR MUAT WARUNG:", error);
+        tbody.innerHTML = '<tr><td colspan="7" style="color:#b91c1c">❌ Gagal memuat warung: ' +
+            escapeWarungHTML(error.message) + '</td></tr>';
+    }
+};
+
+window.toggleStatusWarung = async function(id, sedangAktif) {
+    const nilaiBaru = sedangAktif ? "Nonaktif" : "Aktif";
+
+    if (!confirm("Ubah status warung menjadi " + nilaiBaru + "?")) return;
+
+    try {
+        const hasil = await supabaseClient
+            .from("warung")
+            .update({ status: nilaiBaru })
+            .eq("id", Number(id));
+
+        if (hasil.error) throw new Error(hasil.error.message);
+
+        await muatDaftarWarung();
+        if (typeof toast === "function") toast("Status warung menjadi " + nilaiBaru + ".");
+    } catch (error) {
+        console.error("ERROR STATUS WARUNG:", error);
+        alert("❌ Gagal mengubah status warung:\n\n" + error.message);
+    }
+};
+
+window.toggleBukaWarung = async function(id, sedangBuka) {
+    const nilaiBaru = !sedangBuka;
+
+    if (!confirm("Ubah warung menjadi " + (nilaiBaru ? "Buka" : "Tutup") + "?")) return;
+
+    try {
+        const hasil = await supabaseClient
+            .from("warung")
+            .update({ buka: nilaiBaru })
+            .eq("id", Number(id));
+
+        if (hasil.error) throw new Error(hasil.error.message);
+
+        await muatDaftarWarung();
+        if (typeof toast === "function") toast("Warung sekarang " + (nilaiBaru ? "Buka" : "Tutup") + ".");
+    } catch (error) {
+        console.error("ERROR BUKA/TUTUP WARUNG:", error);
+        alert("❌ Gagal mengubah status buka/tutup:\n\n" + error.message);
+    }
+};
+
+window.tambahWarung = async function() {
     const nama = document.getElementById("namaWarung").value.trim();
     const alamat = document.getElementById("alamatWarung").value.trim();
     const noWa = document.getElementById("noWaWarung").value.trim();
@@ -6191,41 +6336,40 @@ setInterval(
     }
 
     try {
-
         const hasil = await supabaseClient
             .from("warung")
             .insert({
                 nama: nama,
                 alamat: alamat,
-                no_wa: noWa || null
+                no_wa: noWa || null,
+                status: "Aktif",
+                buka: true
             })
             .select()
             .single();
 
-        if (hasil.error) {
-            throw new Error(hasil.error.message);
-        }
+        if (hasil.error) throw new Error(hasil.error.message);
 
         document.getElementById("hasilWarung").innerHTML =
-            "✅ Warung berhasil disimpan. ID Warung: " +
-            hasil.data.id;
+            "✅ Warung berhasil disimpan. ID Warung: " + hasil.data.id;
 
         document.getElementById("namaWarung").value = "";
         document.getElementById("alamatWarung").value = "";
         document.getElementById("noWaWarung").value = "";
 
+        await muatDaftarWarung();
         alert("✅ Warung berhasil disimpan ke Supabase.");
-
     } catch (error) {
-
         console.error("ERROR TAMBAH WARUNG:", error);
-
-        alert(
-            "❌ Gagal menyimpan warung:\n\n" +
-            error.message
-        );
+        alert("❌ Gagal menyimpan warung:\n\n" + error.message);
     }
 };
+
+document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(function() {
+        if (typeof muatDaftarWarung === "function") muatDaftarWarung();
+    }, 300);
+});
 
 })();
 </script>
