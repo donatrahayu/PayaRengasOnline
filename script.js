@@ -237,6 +237,17 @@ function tambahKeranjang(nama, harga, warungId) {
 
     const idWarung = Number(warungId || selectedWarungId || 0);
 
+    const warungAktif = warungMitraList.find(
+        item => Number(item.id) === idWarung
+    );
+
+    if (!warungAktif ||
+        String(warungAktif.status || "Aktif").toLowerCase() === "nonaktif" ||
+        warungAktif.buka === false) {
+        alert("🏪 Warung ini sedang tutup atau nonaktif. Silakan pilih Warung Mitra lain.");
+        return;
+    }
+
 
     if (!idWarung) {
 
@@ -1816,6 +1827,14 @@ function buatPesanKeranjang() {
 
 async function konfirmasiPesan() {
 
+    const warungSekarang = getWarungTerpilih();
+    if (!warungSekarang ||
+        String(warungSekarang.status || "Aktif").toLowerCase() === "nonaktif" ||
+        warungSekarang.buka === false) {
+        alert("🏪 Warung yang dipilih sedang tutup atau nonaktif. Silakan pilih Warung Mitra lain.");
+        return;
+    }
+
     /*
        VALIDASI
     */
@@ -2120,7 +2139,7 @@ async function muatWarungMitra() {
         const hasil =
             await supabaseClient
                 .from("warung")
-                .select("id,nama,alamat,status,latitude,longitude")
+                .select("id,nama,alamat,status,buka,latitude,longitude")
                 .order("nama", { ascending: true });
 
 
@@ -2132,7 +2151,8 @@ async function muatWarungMitra() {
         warungMitraList =
             (hasil.data || []).filter(
                 warung =>
-                    String(warung.status || "Aktif").toLowerCase() !== "nonaktif"
+                    String(warung.status || "Aktif").toLowerCase() !== "nonaktif" &&
+                    warung.buka !== false
             );
 
 
@@ -2150,7 +2170,8 @@ async function muatWarungMitra() {
 
             option.textContent =
                 warung.nama +
-                (warung.alamat ? " — " + warung.alamat : "");
+                (warung.alamat ? " — " + warung.alamat : "") +
+                " — 🟢 Buka";
 
             select.appendChild(option);
 
@@ -2250,7 +2271,8 @@ function tampilkanInfoWarung() {
         "🏪 <strong>" +
         escapeHTML(warung.nama) +
         "</strong>" +
-        (warung.alamat ? " — " + escapeHTML(warung.alamat) : "");
+        (warung.alamat ? " — " + escapeHTML(warung.alamat) : "") +
+        " — 🟢 Buka";
 
 }
 
