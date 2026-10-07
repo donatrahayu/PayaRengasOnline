@@ -25,7 +25,7 @@ const supabaseClient =
    PENGATURAN
 ===================================================== */
 
-const NOMOR_WA = "6283851564958";
+const NOMOR_WA = "6285260984737";
 
 /*
    ID WARUNG
