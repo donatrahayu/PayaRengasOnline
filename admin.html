@@ -2123,6 +2123,28 @@ tr:hover td{
                 <label for="noWaWarung">Nomor WhatsApp Warung</label>
                 <input type="text" id="noWaWarung" placeholder="Nomor WhatsApp Warung">
             </div>
+
+            <div class="form-group full">
+                <label>📍 Titik Koordinat Warung</label>
+                <div style="padding:14px;border:1px solid #ddd;border-radius:12px;background:#f8fafc;">
+                    <div style="font-size:13px;color:#666;margin-bottom:10px;">
+                        Ambil titik GPS saat abang berada tepat di lokasi warung.
+                    </div>
+                    <button
+                        class="btn btn-primary"
+                        type="button"
+                        onclick="ambilGPSWarung()">
+                        📍 Ambil Titik Koordinat
+                    </button>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+                        <input type="text" id="latitudeWarung" placeholder="Latitude" readonly>
+                        <input type="text" id="longitudeWarung" placeholder="Longitude" readonly>
+                    </div>
+
+                    <div id="statusGPSWarung" style="margin-top:8px;font-size:13px;"></div>
+                </div>
+            </div>
         </div>
 
         <div class="form-buttons">
@@ -6320,10 +6342,47 @@ window.toggleBukaWarung = async function(id, sedangBuka) {
     }
 };
 
+window.ambilGPSWarung = function() {
+    const status = document.getElementById("statusGPSWarung");
+    const latEl = document.getElementById("latitudeWarung");
+    const lonEl = document.getElementById("longitudeWarung");
+
+    if (!navigator.geolocation) {
+        status.textContent = "❌ Browser ini tidak mendukung GPS.";
+        return;
+    }
+
+    status.textContent = "⏳ Mengambil lokasi GPS... Izinkan akses lokasi jika diminta browser.";
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            latEl.value = lat.toFixed(7);
+            lonEl.value = lon.toFixed(7);
+            status.textContent = "✅ Titik koordinat berhasil diambil.";
+        },
+        function(error) {
+            let pesan = "❌ Gagal mengambil lokasi GPS.";
+            if (error.code === 1) pesan = "❌ Izin lokasi ditolak. Izinkan lokasi untuk situs ini lalu coba lagi.";
+            if (error.code === 2) pesan = "❌ Lokasi tidak tersedia. Pastikan GPS/lokasi perangkat aktif.";
+            if (error.code === 3) pesan = "❌ Pengambilan lokasi terlalu lama. Coba lagi.";
+            status.textContent = pesan;
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+};
+
 window.tambahWarung = async function() {
     const nama = document.getElementById("namaWarung").value.trim();
     const alamat = document.getElementById("alamatWarung").value.trim();
     const noWa = document.getElementById("noWaWarung").value.trim();
+
+    const latText = document.getElementById("latitudeWarung").value.trim();
+    const lonText = document.getElementById("longitudeWarung").value.trim();
+    const latitude = latText ? Number(latText) : null;
+    const longitude = lonText ? Number(lonText) : null;
 
     if (!nama) {
         alert("Silakan isi nama warung.");
@@ -6335,6 +6394,16 @@ window.tambahWarung = async function() {
         return;
     }
 
+    if (!latText || !lonText) {
+        alert("📍 Silakan ambil Titik Koordinat warung terlebih dahulu.");
+        return;
+    }
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        alert("Koordinat GPS tidak valid. Silakan ambil titik GPS lagi.");
+        return;
+    }
+
     try {
         const hasil = await supabaseClient
             .from("warung")
@@ -6342,6 +6411,8 @@ window.tambahWarung = async function() {
                 nama: nama,
                 alamat: alamat,
                 no_wa: noWa || null,
+                latitude: latitude,
+                longitude: longitude,
                 status: "Aktif",
                 buka: true
             })
@@ -6351,11 +6422,15 @@ window.tambahWarung = async function() {
         if (hasil.error) throw new Error(hasil.error.message);
 
         document.getElementById("hasilWarung").innerHTML =
-            "✅ Warung berhasil disimpan. ID Warung: " + hasil.data.id;
+            "✅ Warung berhasil disimpan. ID Warung: " + hasil.data.id +
+            "<br>📍 GPS: " + hasil.data.latitude + ", " + hasil.data.longitude;
 
         document.getElementById("namaWarung").value = "";
         document.getElementById("alamatWarung").value = "";
         document.getElementById("noWaWarung").value = "";
+        document.getElementById("latitudeWarung").value = "";
+        document.getElementById("longitudeWarung").value = "";
+        document.getElementById("statusGPSWarung").textContent = "";
 
         await muatDaftarWarung();
         alert("✅ Warung berhasil disimpan ke Supabase.");
