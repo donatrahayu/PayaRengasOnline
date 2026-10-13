@@ -2701,10 +2701,14 @@ function getProducts(){
 
     }catch(e){}
 
-    localStorage.setItem(
-        PRODUCT_KEY,
-        JSON.stringify(defaultProducts)
-    );
+    try{
+        localStorage.setItem(
+            PRODUCT_KEY,
+            JSON.stringify(defaultProducts)
+        );
+    }catch(storageError){
+        console.warn("Cache produk lokal belum bisa dibuat:", storageError);
+    }
 
     return [...defaultProducts];
 
@@ -2734,12 +2738,47 @@ function getOrders(){
 
 
 function saveProducts(data){
+    /*
+      Supabase adalah penyimpanan utama produk.
+      Cache browser dicoba dengan gambar lengkap terlebih dahulu.
+      Jika kuota localStorage penuh, simpan metadata produk tanpa
+      string gambar base64 yang berukuran besar. Gambar aslinya tetap
+      berada di Supabase; penanda dipakai agar edit tidak menimpa foto
+      Supabase dengan gambar pengganti dari cache.
+    */
+    const list = Array.isArray(data) ? data : [];
 
-    localStorage.setItem(
-        PRODUCT_KEY,
-        JSON.stringify(data)
-    );
+    try{
+        const fullData = list.map(product=>{
+            const copy = {...product};
+            if(typeof copy.gambar === "string" && /^data:image\\//i.test(copy.gambar)){
+                delete copy._gambarDiSupabase;
+            }
+            return copy;
+        });
 
+        localStorage.setItem(PRODUCT_KEY, JSON.stringify(fullData));
+        return {saved:true, compacted:false};
+    }catch(error){
+        console.warn("Kuota cache produk penuh; mencoba cache ringkas:", error);
+    }
+
+    try{
+        const compactData = list.map(product=>{
+            const copy = {...product};
+            if(typeof copy.gambar === "string" && /^data:image\\//i.test(copy.gambar)){
+                copy.gambar = "banner.jpg";
+                copy._gambarDiSupabase = true;
+            }
+            return copy;
+        });
+
+        localStorage.setItem(PRODUCT_KEY, JSON.stringify(compactData));
+        return {saved:true, compacted:true};
+    }catch(compactError){
+        console.error("Cache produk lokal tetap gagal disimpan:", compactError);
+        return {saved:false, compacted:true};
+    }
 }
 
 
@@ -4622,11 +4661,17 @@ async function simpanProduk(event){
             gambar: hasil.data.gambar || gambar
         });
 
-        saveProducts(products);
+        const cacheStatus = saveProducts(products);
         resetForm();
         renderProducts();
         updateDashboard();
-        toast("Produk berhasil disimpan ke Supabase.");
+        if(!cacheStatus.saved){
+            toast("Produk tersimpan di Supabase, tetapi cache browser gagal diperbarui. Muat ulang admin.");
+        }else if(cacheStatus.compacted){
+            toast("Produk tersimpan ke Supabase. Cache diringkas agar tidak penuh.");
+        }else{
+            toast("Produk berhasil disimpan ke Supabase.");
+        }
         showPageById("produk");
 
     }catch(error){
@@ -4875,7 +4920,7 @@ async function simpanEdit(event){
                     harga: harga,
                     kategori: kategori,
                     deskripsi: deskripsi,
-                    gambar: gambar,
+                    ...(product._gambarDiSupabase && !selectedEditImage ? {} : {gambar: gambar}),
                     status: status
                 })
                 .eq("id", dbId)
@@ -4893,15 +4938,24 @@ async function simpanEdit(event){
         product.status = status;
         product.stok = stok;
         product.deskripsi = deskripsi;
-        product.gambar = gambar;
+        if(product._gambarDiSupabase && !selectedEditImage){
+            product.gambar = "banner.jpg";
+        }else{
+            product.gambar = gambar;
+            if(selectedEditImage) delete product._gambarDiSupabase;
+        }
         if(warungId) product.warung_id = warungId;
 
-        saveProducts(products);
+        const cacheStatus = saveProducts(products);
         selectedEditImage = "";
         closeModal("modalEdit");
         renderProducts();
         updateDashboard();
-        toast(dbId > 0 ? "Produk berhasil diperbarui dan disinkronkan ke Supabase." : "Produk lokal berhasil diperbarui.");
+        if(dbId > 0 && cacheStatus.compacted){
+            toast("Produk diperbarui di Supabase. Cache diringkas agar tidak penuh.");
+        }else{
+            toast(dbId > 0 ? "Produk berhasil diperbarui dan disinkronkan ke Supabase." : "Produk lokal berhasil diperbarui.");
+        }
 
     }catch(error){
         console.error("ERROR EDIT PRODUK:", error);
