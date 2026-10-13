@@ -2736,6 +2736,71 @@ function getOrders(){
 
 }
 
+/* =====================================================
+   PESANAN SUPABASE - sumber data utama
+   Cache lokal hanya untuk menjaga kompatibilitas modul lama.
+===================================================== */
+let pesananSupabaseSiap = false;
+let pesananSupabaseMemuat = false;
+
+function normalisasiPesananSupabase(row){
+    return {
+        ...row,
+        supabaseOrderId: Number(row.id),
+        id: Number(row.id),
+        nama: row.nama_pelanggan || "Pelanggan",
+        namaPelanggan: row.nama_pelanggan || "Pelanggan",
+        whatsapp: row.no_wa || "",
+        noWhatsapp: row.no_wa || "",
+        nomorWhatsApp: row.no_wa || "",
+        alamat: row["alamat pengantara"] || "",
+        alamatPengantaran: row["alamat pengantara"] || "",
+        catatan: row.catatan || "",
+        totalBelanja: Number(row.total_belanja || 0),
+        ongkir: Number(row.ongkir || 0),
+        total: Number(row.total_pembayaran || 0),
+        totalPembayaran: Number(row.total_pembayaran || 0),
+        status: row.status || "baru",
+        metodePembayaran: row.metode_pembayaran || "WhatsApp",
+        items: Array.isArray(row.items) ? row.items : [],
+        created_at: row.created_at || null,
+        latitude: row.latitude ?? null,
+        longitude: row.longitude ?? null,
+        driverId: row.driver_id ?? null,
+        driverNama: row.driver_nama || "",
+        driverWhatsApp: row.driver_no_wa || ""
+    };
+}
+
+async function muatPesananDariSupabase({diam=false}={}){
+    if(pesananSupabaseMemuat) return;
+    pesananSupabaseMemuat = true;
+    const tbody = document.getElementById("tabelPesanan");
+    if(tbody && !diam) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:18px">⏳ Memuat pesanan dari Supabase...</td></tr>';
+    try{
+        const hasil = await supabaseClient
+            .from("pesanan")
+            .select('id,created_at,pelanggan_id,warung_id,nama_pelanggan,no_wa,\"alamat pengantara\",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,latitude,longitude,driver_id,driver_nama,driver_no_wa,jarak_km,items')
+            .order("created_at", {ascending:false});
+        if(hasil.error) throw new Error(hasil.error.message);
+        const orders = (hasil.data || []).map(normalisasiPesananSupabase);
+        localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
+        pesananSupabaseSiap = true;
+        lastOrderCount = orders.length;
+        if(typeof renderPesanan === "function") renderPesanan();
+        if(typeof renderRiwayat === "function") renderRiwayat();
+        if(typeof renderLaporan === "function") renderLaporan();
+        if(typeof renderOperasional === "function") renderOperasional();
+        if(typeof renderPengantaranV24 === "function") renderPengantaranV24();
+        if(typeof updateDashboard === "function") updateDashboard();
+    }catch(error){
+        console.error("GAGAL MEMUAT PESANAN SUPABASE:", error);
+        if(tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#b91c1c;padding:18px">❌ Pesanan dari Supabase gagal dimuat: '+String(error.message || error).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+'<br>Periksa koneksi Supabase lalu muat ulang.</td></tr>';
+    }finally{
+        pesananSupabaseMemuat = false;
+    }
+}
+
 
 function saveProducts(data){
     /*
@@ -3686,47 +3751,36 @@ function detailPesanan(index){
    UBAH STATUS
 ===================================================== */
 
-function ubahStatus(index,status){
+async function ubahStatus(index,status){
+    const orders = getOrders();
+    const order = orders[index];
+    if(!order) return;
 
-    const orders =
-        getOrders();
+    const statusLama = order.status || "baru";
+    order.status = status;
+    order.statusUpdatedAt = new Date().toISOString();
 
-
-    if(!orders[index]){
-        return;
+    try{
+        if(order.supabaseOrderId || order.id){
+            const hasil = await supabaseClient.from("pesanan")
+                .update({status: status})
+                .eq("id", Number(order.supabaseOrderId || order.id));
+            if(hasil.error) throw new Error(hasil.error.message);
+        }
+        localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
+        closeModal("modalPesanan");
+        renderPesanan();
+        renderRiwayat();
+        renderLaporan();
+        updateDashboard();
+        if(typeof renderOperasional === "function") renderOperasional();
+        toast("Status pesanan berhasil disimpan.");
+    }catch(error){
+        order.status = statusLama;
+        localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
+        alert("Status pesanan gagal disimpan ke Supabase. Status lokal dikembalikan.\n\n" + error.message);
+        console.error("GAGAL UBAH STATUS PESANAN:", error);
     }
-
-
-    orders[index].status =
-        status;
-
-    orders[index].statusUpdatedAt = new Date().toISOString();
-
-
-    localStorage.setItem(
-        ORDER_KEY,
-        JSON.stringify(orders)
-    );
-
-
-    closeModal(
-        "modalPesanan"
-    );
-
-
-    renderPesanan();
-
-    renderRiwayat();
-
-    renderLaporan();
-
-    updateDashboard();
-
-
-    toast(
-        "Status pesanan berhasil diubah."
-    );
-
 }
 
 
@@ -3734,44 +3788,25 @@ function ubahStatus(index,status){
    HAPUS PESANAN
 ===================================================== */
 
-function hapusPesanan(index){
-
-    if(
-        !confirm(
-            "Yakin ingin menghapus pesanan ini?"
-        )
-    ){
-        return;
+async function hapusPesanan(index){
+    if(!confirm("Yakin ingin menghapus pesanan ini dari Supabase? Tindakan ini tidak bisa dibatalkan.")) return;
+    const orders = getOrders();
+    const order = orders[index];
+    if(!order) return;
+    try{
+        if(order.supabaseOrderId || order.id){
+            const hasil = await supabaseClient.from("pesanan").delete().eq("id", Number(order.supabaseOrderId || order.id));
+            if(hasil.error) throw new Error(hasil.error.message);
+        }
+        orders.splice(index, 1);
+        localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
+        renderPesanan(); renderRiwayat(); updateDashboard();
+        if(typeof renderOperasional === "function") renderOperasional();
+        toast("Pesanan berhasil dihapus dari Supabase.");
+    }catch(error){
+        alert("Pesanan gagal dihapus dari Supabase.\n\n" + error.message);
+        console.error("GAGAL HAPUS PESANAN:", error);
     }
-
-
-    const orders =
-        getOrders();
-
-
-    orders.splice(
-        index,
-        1
-    );
-
-
-    localStorage.setItem(
-        ORDER_KEY,
-        JSON.stringify(orders)
-    );
-
-
-    renderPesanan();
-
-    renderRiwayat();
-
-    updateDashboard();
-
-
-    toast(
-        "Pesanan berhasil dihapus."
-    );
-
 }
 
 
@@ -5907,6 +5942,7 @@ document.addEventListener(
         lastOrderCount =
             getOrders().length;
 
+        muatPesananDariSupabase();
 
         loadWarungMitraProduk();
         sinkronkanProdukSupabaseKeAdmin();
@@ -6499,6 +6535,14 @@ document.addEventListener("DOMContentLoaded", function() {
         if (typeof muatDaftarWarung === "function") muatDaftarWarung();
     }, 300);
 });
+
+// Sinkronisasi daftar pesanan secara berkala agar pesanan pelanggan baru muncul di Admin.
+setInterval(function(){
+    if(document.visibilityState === "hidden") return;
+    const modal = document.getElementById("modalPesanan");
+    if(modal && modal.classList.contains("active")) return;
+    muatPesananDariSupabase({diam:true});
+}, 30000);
 
 })();
 </script>
