@@ -2701,14 +2701,10 @@ function getProducts(){
 
     }catch(e){}
 
-    try{
-        localStorage.setItem(
-            PRODUCT_KEY,
-            JSON.stringify(defaultProducts)
-        );
-    }catch(storageError){
-        console.warn("Cache produk lokal belum bisa dibuat:", storageError);
-    }
+    localStorage.setItem(
+        PRODUCT_KEY,
+        JSON.stringify(defaultProducts)
+    );
 
     return [...defaultProducts];
 
@@ -2736,114 +2732,14 @@ function getOrders(){
 
 }
 
-/* =====================================================
-   PESANAN SUPABASE - sumber data utama
-   Cache lokal hanya untuk menjaga kompatibilitas modul lama.
-===================================================== */
-let pesananSupabaseSiap = false;
-let pesananSupabaseMemuat = false;
-
-function normalisasiPesananSupabase(row){
-    return {
-        ...row,
-        supabaseOrderId: Number(row.id),
-        id: Number(row.id),
-        nama: row.nama_pelanggan || "Pelanggan",
-        namaPelanggan: row.nama_pelanggan || "Pelanggan",
-        whatsapp: row.no_wa || "",
-        noWhatsapp: row.no_wa || "",
-        nomorWhatsApp: row.no_wa || "",
-        alamat: row["alamat pengantara"] || "",
-        alamatPengantaran: row["alamat pengantara"] || "",
-        catatan: row.catatan || "",
-        totalBelanja: Number(row.total_belanja || 0),
-        ongkir: Number(row.ongkir || 0),
-        total: Number(row.total_pembayaran || 0),
-        totalPembayaran: Number(row.total_pembayaran || 0),
-        status: row.status || "baru",
-        metodePembayaran: row.metode_pembayaran || "WhatsApp",
-        items: Array.isArray(row.items) ? row.items : [],
-        created_at: row.created_at || null,
-        latitude: row.latitude ?? null,
-        longitude: row.longitude ?? null,
-        driverId: row.driver_id ?? null,
-        driverNama: row.driver_nama || "",
-        driverWhatsApp: row.driver_no_wa || ""
-    };
-}
-
-async function muatPesananDariSupabase({diam=false}={}){
-    if(pesananSupabaseMemuat) return;
-    pesananSupabaseMemuat = true;
-    const tbody = document.getElementById("tabelPesanan");
-    if(tbody && !diam) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:18px">⏳ Memuat pesanan dari Supabase...</td></tr>';
-    try{
-        const hasil = await supabaseClient
-            .from("pesanan")
-            .select('id,created_at,pelanggan_id,warung_id,nama_pelanggan,no_wa,\"alamat pengantara\",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,latitude,longitude,driver_id,driver_nama,driver_no_wa,jarak_km,items')
-            .order("created_at", {ascending:false});
-        if(hasil.error) throw new Error(hasil.error.message);
-        const orders = (hasil.data || []).map(normalisasiPesananSupabase);
-        localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
-        pesananSupabaseSiap = true;
-        lastOrderCount = orders.length;
-        if(typeof renderPesanan === "function") renderPesanan();
-        if(typeof renderRiwayat === "function") renderRiwayat();
-        if(typeof renderLaporan === "function") renderLaporan();
-        if(typeof renderOperasional === "function") renderOperasional();
-        if(typeof renderPengantaranV24 === "function") renderPengantaranV24();
-        if(typeof updateDashboard === "function") updateDashboard();
-    }catch(error){
-        console.error("GAGAL MEMUAT PESANAN SUPABASE:", error);
-        if(tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#b91c1c;padding:18px">❌ Pesanan dari Supabase gagal dimuat: '+String(error.message || error).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+'<br>Periksa koneksi Supabase lalu muat ulang.</td></tr>';
-    }finally{
-        pesananSupabaseMemuat = false;
-    }
-}
-
 
 function saveProducts(data){
-    /*
-      Supabase adalah penyimpanan utama produk.
-      Cache browser dicoba dengan gambar lengkap terlebih dahulu.
-      Jika kuota localStorage penuh, simpan metadata produk tanpa
-      string gambar base64 yang berukuran besar. Gambar aslinya tetap
-      berada di Supabase; penanda dipakai agar edit tidak menimpa foto
-      Supabase dengan gambar pengganti dari cache.
-    */
-    const list = Array.isArray(data) ? data : [];
 
-    try{
-        const fullData = list.map(product=>{
-            const copy = {...product};
-            if(typeof copy.gambar === "string" && /^data:image\\//i.test(copy.gambar)){
-                delete copy._gambarDiSupabase;
-            }
-            return copy;
-        });
+    localStorage.setItem(
+        PRODUCT_KEY,
+        JSON.stringify(data)
+    );
 
-        localStorage.setItem(PRODUCT_KEY, JSON.stringify(fullData));
-        return {saved:true, compacted:false};
-    }catch(error){
-        console.warn("Kuota cache produk penuh; mencoba cache ringkas:", error);
-    }
-
-    try{
-        const compactData = list.map(product=>{
-            const copy = {...product};
-            if(typeof copy.gambar === "string" && /^data:image\\//i.test(copy.gambar)){
-                copy.gambar = "banner.jpg";
-                copy._gambarDiSupabase = true;
-            }
-            return copy;
-        });
-
-        localStorage.setItem(PRODUCT_KEY, JSON.stringify(compactData));
-        return {saved:true, compacted:true};
-    }catch(compactError){
-        console.error("Cache produk lokal tetap gagal disimpan:", compactError);
-        return {saved:false, compacted:true};
-    }
 }
 
 
@@ -3751,36 +3647,47 @@ function detailPesanan(index){
    UBAH STATUS
 ===================================================== */
 
-async function ubahStatus(index,status){
-    const orders = getOrders();
-    const order = orders[index];
-    if(!order) return;
+function ubahStatus(index,status){
 
-    const statusLama = order.status || "baru";
-    order.status = status;
-    order.statusUpdatedAt = new Date().toISOString();
+    const orders =
+        getOrders();
 
-    try{
-        if(order.supabaseOrderId || order.id){
-            const hasil = await supabaseClient.from("pesanan")
-                .update({status: status})
-                .eq("id", Number(order.supabaseOrderId || order.id));
-            if(hasil.error) throw new Error(hasil.error.message);
-        }
-        localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
-        closeModal("modalPesanan");
-        renderPesanan();
-        renderRiwayat();
-        renderLaporan();
-        updateDashboard();
-        if(typeof renderOperasional === "function") renderOperasional();
-        toast("Status pesanan berhasil disimpan.");
-    }catch(error){
-        order.status = statusLama;
-        localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
-        alert("Status pesanan gagal disimpan ke Supabase. Status lokal dikembalikan.\n\n" + error.message);
-        console.error("GAGAL UBAH STATUS PESANAN:", error);
+
+    if(!orders[index]){
+        return;
     }
+
+
+    orders[index].status =
+        status;
+
+    orders[index].statusUpdatedAt = new Date().toISOString();
+
+
+    localStorage.setItem(
+        ORDER_KEY,
+        JSON.stringify(orders)
+    );
+
+
+    closeModal(
+        "modalPesanan"
+    );
+
+
+    renderPesanan();
+
+    renderRiwayat();
+
+    renderLaporan();
+
+    updateDashboard();
+
+
+    toast(
+        "Status pesanan berhasil diubah."
+    );
+
 }
 
 
@@ -3788,25 +3695,44 @@ async function ubahStatus(index,status){
    HAPUS PESANAN
 ===================================================== */
 
-async function hapusPesanan(index){
-    if(!confirm("Yakin ingin menghapus pesanan ini dari Supabase? Tindakan ini tidak bisa dibatalkan.")) return;
-    const orders = getOrders();
-    const order = orders[index];
-    if(!order) return;
-    try{
-        if(order.supabaseOrderId || order.id){
-            const hasil = await supabaseClient.from("pesanan").delete().eq("id", Number(order.supabaseOrderId || order.id));
-            if(hasil.error) throw new Error(hasil.error.message);
-        }
-        orders.splice(index, 1);
-        localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
-        renderPesanan(); renderRiwayat(); updateDashboard();
-        if(typeof renderOperasional === "function") renderOperasional();
-        toast("Pesanan berhasil dihapus dari Supabase.");
-    }catch(error){
-        alert("Pesanan gagal dihapus dari Supabase.\n\n" + error.message);
-        console.error("GAGAL HAPUS PESANAN:", error);
+function hapusPesanan(index){
+
+    if(
+        !confirm(
+            "Yakin ingin menghapus pesanan ini?"
+        )
+    ){
+        return;
     }
+
+
+    const orders =
+        getOrders();
+
+
+    orders.splice(
+        index,
+        1
+    );
+
+
+    localStorage.setItem(
+        ORDER_KEY,
+        JSON.stringify(orders)
+    );
+
+
+    renderPesanan();
+
+    renderRiwayat();
+
+    updateDashboard();
+
+
+    toast(
+        "Pesanan berhasil dihapus."
+    );
+
 }
 
 
@@ -4696,17 +4622,11 @@ async function simpanProduk(event){
             gambar: hasil.data.gambar || gambar
         });
 
-        const cacheStatus = saveProducts(products);
+        saveProducts(products);
         resetForm();
         renderProducts();
         updateDashboard();
-        if(!cacheStatus.saved){
-            toast("Produk tersimpan di Supabase, tetapi cache browser gagal diperbarui. Muat ulang admin.");
-        }else if(cacheStatus.compacted){
-            toast("Produk tersimpan ke Supabase. Cache diringkas agar tidak penuh.");
-        }else{
-            toast("Produk berhasil disimpan ke Supabase.");
-        }
+        toast("Produk berhasil disimpan ke Supabase.");
         showPageById("produk");
 
     }catch(error){
@@ -4955,7 +4875,7 @@ async function simpanEdit(event){
                     harga: harga,
                     kategori: kategori,
                     deskripsi: deskripsi,
-                    ...(product._gambarDiSupabase && !selectedEditImage ? {} : {gambar: gambar}),
+                    gambar: gambar,
                     status: status
                 })
                 .eq("id", dbId)
@@ -4973,24 +4893,15 @@ async function simpanEdit(event){
         product.status = status;
         product.stok = stok;
         product.deskripsi = deskripsi;
-        if(product._gambarDiSupabase && !selectedEditImage){
-            product.gambar = "banner.jpg";
-        }else{
-            product.gambar = gambar;
-            if(selectedEditImage) delete product._gambarDiSupabase;
-        }
+        product.gambar = gambar;
         if(warungId) product.warung_id = warungId;
 
-        const cacheStatus = saveProducts(products);
+        saveProducts(products);
         selectedEditImage = "";
         closeModal("modalEdit");
         renderProducts();
         updateDashboard();
-        if(dbId > 0 && cacheStatus.compacted){
-            toast("Produk diperbarui di Supabase. Cache diringkas agar tidak penuh.");
-        }else{
-            toast(dbId > 0 ? "Produk berhasil diperbarui dan disinkronkan ke Supabase." : "Produk lokal berhasil diperbarui.");
-        }
+        toast(dbId > 0 ? "Produk berhasil diperbarui dan disinkronkan ke Supabase." : "Produk lokal berhasil diperbarui.");
 
     }catch(error){
         console.error("ERROR EDIT PRODUK:", error);
@@ -5884,83 +5795,69 @@ async function loadWarungMitraProduk(){
 }
 
 async function sinkronkanProdukSupabaseKeAdmin(){
-    const statusEl = document.getElementById("statusWarungProduk");
+    const grid = document.getElementById("produkGrid");
     try{
-        // Ambil daftar lengkap dari Supabase. Jangan ubah cache jika query gagal.
+        // Ambil seluruh produk dari Supabase. Database adalah sumber utama.
         const hasil = await supabaseClient
             .from("produk")
             .select("id,warung_id,nama,kategori,harga,deskripsi,gambar,status")
             .order("id", { ascending: true });
 
-        if(hasil.error) throw new Error(hasil.error.message);
+        if(hasil.error){
+            throw new Error(hasil.error.message || "Gagal membaca tabel produk.");
+        }
 
         const rows = Array.isArray(hasil.data) ? hasil.data : [];
         const local = getProducts();
 
-        // Supabase menentukan produk mana yang benar-benar ada.
-        // Cocokkan berdasarkan supabase_id, lalu dukung format ID lokal lama.
-        const synced = rows.map(row => {
-            const dbId = Number(row.id);
-            let previous = local.find(p => Number(p.supabase_id) === dbId);
-
-            if(!previous){
-                previous = local.find(p =>
-                    Number(p.id) === 1000000000 + dbId
-                );
-            }
-            if(!previous){
-                previous = local.find(p =>
+        // Bangun ulang daftar dari Supabase; data lokal lama yang tidak ada
+        // di database tidak ikut ditampilkan lagi.
+        const daftarBaru = rows.map(row => {
+            const idDB = Number(row.id);
+            let lama = local.find(p => Number(p.supabase_id) === idDB);
+            if(!lama){
+                lama = local.find(p =>
                     !p.supabase_id &&
-                    Number(p.id) === dbId &&
+                    Number(p.id) === idDB &&
                     Number(p.warung_id) === Number(row.warung_id)
                 );
             }
 
-            const product = { ...(previous || {}) };
-            product.id = 1000000000 + dbId;
-            product.supabase_id = dbId;
-            product.warung_id = row.warung_id;
-            product.nama = row.nama || "Produk";
-            product.kategori = row.kategori || "Makanan";
-            product.harga = Number(row.harga || 0);
-            product.deskripsi = row.deskripsi || "";
-            product.status = row.status || "tersedia";
+            const gambarDB = row.gambar || "banner.jpg";
+            const gambarLama = lama && lama._gambarDiSupabase ? gambarDB : (lama && lama.gambar);
 
-            // Pertahankan gambar cache yang valid. Jika cache hanya memiliki
-            // gambar pengganti, gunakan gambar yang tersimpan di Supabase.
-            if(row.gambar && (!product.gambar || product._gambarDiSupabase)){
-                product.gambar = row.gambar;
-            } else if(!product.gambar){
-                product.gambar = row.gambar || "banner.jpg";
-            }
-            delete product._gambarDiSupabase;
-
-            // Stok saat ini belum menjadi kolom tabel produk; pertahankan
-            // nilai stok lokal yang ada, jangan mengarang nilai baru jika ada.
-            if(product.stok == null){
-                product.stok = String(product.status).toLowerCase() === "tersedia" ? 1 : 0;
-            }
-            if(product.rating == null) product.rating = 5;
-            return product;
+            return {
+                ...(lama || {}),
+                id: 1000000000 + idDB,
+                supabase_id: idDB,
+                warung_id: row.warung_id,
+                nama: row.nama || "Produk",
+                kategori: row.kategori || "Makanan",
+                harga: Number(row.harga || 0),
+                deskripsi: row.deskripsi || "",
+                gambar: gambarDB || gambarLama || "banner.jpg",
+                status: row.status || "tersedia",
+                rating: lama && lama.rating != null ? lama.rating : 5,
+                stok: lama && lama.stok != null ? lama.stok : (String(row.status || "tersedia").toLowerCase() === "tersedia" ? 1 : 0)
+            };
         });
 
-        const saved = saveProducts(synced);
-        if(!saved || !saved.saved){
-            throw new Error("Cache browser gagal disimpan. Daftar lokal lama dipertahankan.");
-        }
-
+        saveProducts(daftarBaru);
         renderProducts();
         updateDashboard();
-        renderOperasional();
-        if(statusEl){
-            statusEl.textContent = "✅ " + synced.length + " produk disinkronkan dari Supabase.";
+
+        console.info("Produk admin disinkronkan dari Supabase:", daftarBaru.length);
+        if(grid){
+            grid.dataset.sinkronisasiProduk = "berhasil";
         }
-        console.info("Sinkronisasi produk Supabase berhasil:", synced.length);
+        return daftarBaru;
     }catch(error){
-        console.error("Gagal sinkronisasi produk Supabase:", error);
-        if(statusEl){
-            statusEl.textContent = "⚠️ Sinkronisasi produk gagal: " + error.message;
+        console.error("GAGAL SINKRONISASI PRODUK SUPABASE:", error);
+        if(grid){
+            grid.dataset.sinkronisasiProduk = "gagal";
+            grid.innerHTML = `<div class="empty">⚠️ Produk dari Supabase belum dapat dimuat.<br>Periksa koneksi lalu muat ulang halaman.<br><small>${safe(error.message || "Kesalahan tidak diketahui")}</small></div>`;
         }
+        return null;
     }
 }
 
@@ -5975,7 +5872,6 @@ document.addEventListener(
         lastOrderCount =
             getOrders().length;
 
-        muatPesananDariSupabase();
 
         loadWarungMitraProduk();
         sinkronkanProdukSupabaseKeAdmin();
@@ -6568,14 +6464,6 @@ document.addEventListener("DOMContentLoaded", function() {
         if (typeof muatDaftarWarung === "function") muatDaftarWarung();
     }, 300);
 });
-
-// Sinkronisasi daftar pesanan secara berkala agar pesanan pelanggan baru muncul di Admin.
-setInterval(function(){
-    if(document.visibilityState === "hidden") return;
-    const modal = document.getElementById("modalPesanan");
-    if(modal && modal.classList.contains("active")) return;
-    muatPesananDariSupabase({diam:true});
-}, 30000);
 
 })();
 </script>
