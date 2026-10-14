@@ -2684,7 +2684,13 @@ const defaultProducts = [
    DATA
 ===================================================== */
 
+let produkDalamMemori = null;
+
 function getProducts(){
+
+    // Gunakan data lengkap di memori agar gambar base64 tidak perlu disimpan
+    // kembali ke localStorage yang kuotanya terbatas.
+    if(Array.isArray(produkDalamMemori)) return produkDalamMemori;
 
     try{
 
@@ -2803,9 +2809,13 @@ async function muatPesananDariSupabase({diam=false}={}){
 
 
 function saveProducts(data){
+    // Simpan versi lengkap di memori untuk tampilan saat ini. Cache browser
+    // boleh diringkas tanpa gambar base64 agar tidak melewati kuota.
+    const list = Array.isArray(data) ? data : [];
+    produkDalamMemori = list;
+
     // Cache produk hanya pelengkap; Supabase tetap sumber data utama.
     // Hindari memenuhi localStorage dengan gambar base64 berukuran besar.
-    const list = Array.isArray(data) ? data : [];
     const compact = list.map(product => {
         const copy = { ...product };
         if (typeof copy.gambar === "string" && copy.gambar.startsWith("data:image/")) {
