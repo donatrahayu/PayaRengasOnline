@@ -81,6 +81,19 @@ img{
     font-size:12px;
 }
 
+.btn-auth{
+    border:0;background:#222;color:#fff;padding:10px 12px;border-radius:9px;font-weight:bold;margin-right:8px;
+}
+.auth-status{font-size:11px;display:block;margin-top:3px;}
+.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:16px;z-index:6000;}
+.auth-modal.show{display:flex;}
+.auth-card{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:390px;box-shadow:0 10px 40px rgba(0,0,0,.25);}
+.auth-card h2{color:#ff5722;margin-bottom:8px;}
+.auth-card p{font-size:13px;color:#666;line-height:1.5;margin-bottom:14px;}
+.auth-card label{display:block;font-size:12px;font-weight:bold;margin:10px 0 5px;}
+.auth-card input{width:100%;padding:11px;border:1px solid #ddd;border-radius:8px;}
+.auth-actions{display:flex;gap:8px;margin-top:16px;}
+.auth-actions button{flex:1;padding:10px;border:0;border-radius:8px;font-weight:bold;}
 .btn-toko{
     border:0;
     background:white;
@@ -860,6 +873,8 @@ tr:hover td{
 
     </div>
 
+    <div style="display:flex;align-items:center;gap:6px;">
+    <button id="btnAuthAdmin" class="btn-auth" type="button" onclick="bukaLoginAdmin()">🔐 Login Admin</button>
     <button
         class="btn-toko"
         onclick="keToko()">
@@ -2602,7 +2617,105 @@ let selectedNewImage = "";
 
 let selectedEditImage = "";
 
+
 let lastOrderCount = 0;
+
+// Akun yang diizinkan sesuai kebijakan Storage yang telah dibuat di Supabase.
+const ADMIN_STORAGE_UID = "97ab6cf8-5fa3-446b-a3ff-757d8c9e8733";
+let sesiAdminStorage = null;
+
+window.bukaLoginAdmin = function() {
+    const modal = document.getElementById("authAdminModal");
+    const pesan = document.getElementById("authAdminMessage");
+    if (modal) modal.classList.add("show");
+    if (pesan) pesan.textContent = "";
+};
+window.tutupLoginAdmin = function() {
+    const modal = document.getElementById("authAdminModal");
+    if (modal) modal.classList.remove("show");
+};
+window.loginAdminSupabase = async function(event) {
+    event.preventDefault();
+    const email = document.getElementById("authAdminEmail").value.trim();
+    const password = document.getElementById("authAdminPassword").value;
+    const pesan = document.getElementById("authAdminMessage");
+    const tombol = document.querySelector("#formLoginAdmin button[type=submit]");
+    if (tombol) { tombol.disabled = true; tombol.textContent = "Memeriksa..."; }
+    if (pesan) pesan.textContent = "";
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        if (!data.user || data.user.id !== ADMIN_STORAGE_UID) {
+            await supabaseClient.auth.signOut();
+            throw new Error("Akun ini tidak memiliki izin unggah foto admin.");
+        }
+        sesiAdminStorage = data.session;
+        perbaruiStatusLoginAdmin(data.user);
+        tutupLoginAdmin();
+        alert("Login admin berhasil. Unggah foto produk sekarang dapat menggunakan Supabase Storage.");
+    } catch (error) {
+        if (pesan) pesan.textContent = "Login gagal: " + (error.message || "Periksa email dan kata sandi.");
+    } finally {
+        if (tombol) { tombol.disabled = false; tombol.textContent = "Masuk"; }
+    }
+};
+window.logoutAdminStorage = async function() {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) { alert("Gagal logout: " + error.message); return; }
+    sesiAdminStorage = null;
+    perbaruiStatusLoginAdmin(null);
+};
+function perbaruiStatusLoginAdmin(user) {
+    const tombol = document.getElementById("btnAuthAdmin");
+    if (!tombol) return;
+    if (user && user.id === ADMIN_STORAGE_UID) {
+        tombol.textContent = "🔓 Logout Admin";
+        tombol.onclick = window.logoutAdminStorage;
+        tombol.title = "Login sebagai admin Storage";
+    } else {
+        tombol.textContent = "🔐 Login Admin";
+        tombol.onclick = window.bukaLoginAdmin;
+        tombol.title = "Login untuk unggah foto produk";
+    }
+}
+async function pastikanSesiAdminStorage() {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+    const session = data && data.session;
+    if (!session || !session.user || session.user.id !== ADMIN_STORAGE_UID) {
+        throw new Error("Login Admin terlebih dahulu melalui tombol 🔐 Login Admin sebelum mengunggah foto.");
+    }
+    sesiAdminStorage = session;
+    return session;
+}
+async function uploadFotoProdukKeStorage(dataUrl) {
+    if (!dataUrl || !String(dataUrl).startsWith("data:image/")) return dataUrl || "banner.jpg";
+    const session = await pastikanSesiAdminStorage();
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    if (!blob.type.startsWith("image/")) throw new Error("Format foto tidak dikenali.");
+    const ekstensi = blob.type === "image/png" ? "png" : "jpg";
+    const namaFile = "produk/" + Date.now() + "-" + Math.random().toString(36).slice(2, 10) + "." + ekstensi;
+    const { error } = await supabaseClient.storage
+        .from("foto-produk")
+        .upload(namaFile, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false });
+    if (error) throw new Error("Gagal mengunggah foto ke Storage: " + error.message);
+    const { data } = supabaseClient.storage.from("foto-produk").getPublicUrl(namaFile);
+    if (!data || !data.publicUrl) throw new Error("Foto terunggah tetapi URL publik tidak berhasil dibuat.");
+    return data.publicUrl;
+}
+supabaseClient.auth.getSession().then(({data, error}) => {
+    if (error) { console.warn("Status login admin tidak dapat dibaca:", error.message); return; }
+    const user = data && data.session && data.session.user;
+    if (user && user.id === ADMIN_STORAGE_UID) sesiAdminStorage = data.session;
+    perbaruiStatusLoginAdmin(user && user.id === ADMIN_STORAGE_UID ? user : null);
+}).catch(error => console.warn("Status login admin:", error.message));
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+    const user = session && session.user;
+    sesiAdminStorage = user && user.id === ADMIN_STORAGE_UID ? session : null;
+    perbaruiStatusLoginAdmin(user && user.id === ADMIN_STORAGE_UID ? user : null);
+});
+
 
 
 /* =====================================================
@@ -4657,7 +4770,7 @@ async function simpanProduk(event){
     const rating = Number(document.getElementById("ratingProduk").value);
     const status = document.getElementById("statusProduk").value;
     const stok = Math.max(0, Number(document.getElementById("stokProduk")?.value || 0));
-    const gambar = selectedNewImage || "banner.jpg";
+    let gambar = selectedNewImage || "banner.jpg";
 
     if(!nama){ alert("Nama produk wajib diisi."); return; }
     if(harga <= 0){ alert("Harga produk harus diisi."); return; }
@@ -4668,6 +4781,9 @@ async function simpanProduk(event){
     if(tombol){ tombol.disabled=true; tombol.dataset.oldText=tombol.innerHTML; tombol.innerHTML="⏳ Menyimpan..."; }
 
     try{
+        if (selectedNewImage && selectedNewImage.startsWith("data:image/")) {
+            gambar = await uploadFotoProdukKeStorage(selectedNewImage);
+        }
         const hasil = await supabaseClient
             .from("produk")
             .insert({
@@ -4906,7 +5022,7 @@ async function simpanEdit(event){
     const status = document.getElementById("editStatus").value;
     const stok = Math.max(0, Number(document.getElementById("editStok")?.value || 0));
     const deskripsi = document.getElementById("editDeskripsi").value.trim();
-    const gambar = selectedEditImage || fotoLama || "banner.jpg";
+    let gambar = selectedEditImage || fotoLama || "banner.jpg";
     const warungId = Number(document.getElementById("editWarungProduk")?.value || product.warung_id || 0);
 
     if(!nama){ alert("Nama produk wajib diisi."); return; }
@@ -4917,6 +5033,9 @@ async function simpanEdit(event){
     if(tombol){ tombol.disabled=true; tombol.dataset.oldText=tombol.innerHTML; tombol.innerHTML="⏳ Menyimpan..."; }
 
     try{
+        if (selectedEditImage && selectedEditImage.startsWith("data:image/")) {
+            gambar = await uploadFotoProdukKeStorage(selectedEditImage);
+        }
         const dbId = Number(product.supabase_id || 0);
 
         if(dbId > 0){
