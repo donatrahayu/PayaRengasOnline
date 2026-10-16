@@ -2342,62 +2342,83 @@ async function pilihWarungMitra(id) {
 
 
 async function muatProdukMitra() {
-
     const container = document.getElementById("daftarProdukSupabase");
     const status = document.getElementById("statusMenuSupabase");
-
     if (!container || !selectedWarungId) return;
 
-    // Nomor permintaan mencegah hasil permintaan lama menimpa warung terbaru.
     const requestId = ++produkMitraRequestId;
     const warungIdYangDiminta = Number(selectedWarungId);
-
+    produkMitraList = [];
     container.innerHTML = `
-        <div style="grid-column:1/-1;text-align:center;padding:30px;">
-            <div style="font-size:28px;">⏳</div>
-            <p>Memuat produk warung...</p>
+        <div style="grid-column:1/-1;text-align:center;padding:24px;">
+            <div style="font-size:28px;">⏳</div><p>Memuat daftar produk...</p>
         </div>`;
-    if (status) status.textContent = "Menghubungkan ke daftar produk...";
+    if (status) status.textContent = "Mengambil daftar produk...";
 
     try {
+        // Ambil data ringan terlebih dahulu. Jangan unduh Base64 foto pada permintaan pertama.
         const hasil = await supabaseClient
             .from("produk")
-            .select("id,warung_id,nama,kategori,harga,deskripsi,gambar,status")
+            .select("id,warung_id,nama,kategori,harga,deskripsi,status")
             .eq("warung_id", warungIdYangDiminta)
             .order("id", { ascending: true });
 
-        // Abaikan hasil lama jika pelanggan sudah memilih warung lain.
         if (requestId !== produkMitraRequestId || warungIdYangDiminta !== Number(selectedWarungId)) return;
+        if (hasil.error) throw new Error(hasil.error.message || "Koneksi daftar produk bermasalah");
 
-        if (hasil.error) throw new Error(hasil.error.message || "Koneksi produk bermasalah");
-
-        const dataProduk = Array.isArray(hasil.data) ? hasil.data : [];
-        produkMitraList = dataProduk.filter(produk =>
+        produkMitraList = (Array.isArray(hasil.data) ? hasil.data : []).filter(produk =>
             String(produk.status || "tersedia").toLowerCase() !== "habis"
         );
 
+        // Tampilkan nama/harga dahulu; foto menyusul dalam permintaan terpisah.
         renderProdukMitra(produkMitraList);
-
         if (status) {
             status.textContent = produkMitraList.length
-                ? "✅ " + produkMitraList.length + " produk tersedia di Warung Mitra ini."
-                : "ℹ️ Data produk kosong untuk warung ini. Jika tidak sesuai, tekan Muat Ulang.";
+                ? "✅ " + produkMitraList.length + " produk ditemukan. Foto sedang dimuat..."
+                : "ℹ️ Belum ada produk tersedia untuk warung ini.";
         }
+        if (!produkMitraList.length) return;
+
+        const hasilGambar = await supabaseClient
+            .from("produk")
+            .select("id,gambar")
+            .eq("warung_id", warungIdYangDiminta)
+            .order("id", { ascending: true });
+
+        if (requestId !== produkMitraRequestId || warungIdYangDiminta !== Number(selectedWarungId)) return;
+        if (hasilGambar.error) throw new Error(hasilGambar.error.message || "Daftar tampil, tetapi foto belum berhasil dimuat");
+
+        const gambarPerId = new Map((hasilGambar.data || []).map(item => [String(item.id), item.gambar || ""]));
+        produkMitraList = produkMitraList.map(produk => ({
+            ...produk,
+            gambar: gambarPerId.get(String(produk.id)) || ""
+        }));
+        renderProdukMitra(produkMitraList);
+        if (status) status.textContent = "✅ " + produkMitraList.length + " produk tersedia di Warung Mitra ini.";
+
     } catch (error) {
         if (requestId !== produkMitraRequestId || warungIdYangDiminta !== Number(selectedWarungId)) return;
-
         console.error("ERROR LOAD PRODUK MITRA:", error);
-        // Jangan mengosongkan produk secara diam-diam saat terjadi gangguan jaringan.
+        // Jika daftar produk sudah berhasil tampil tetapi foto gagal, pertahankan daftar produknya.
+        if (produkMitraList.length) {
+            if (status) status.textContent = "⚠️ Daftar produk sudah tampil, tetapi foto gagal dimuat. Tekan Muat Ulang untuk mencoba lagi.";
+            const images = container.querySelectorAll("img[data-product-image]");
+            images.forEach(img => { img.alt = "Foto belum berhasil dimuat"; });
+            const retry = document.createElement("button");
+            retry.type = "button";
+            retry.textContent = "↻ Muat Ulang Foto";
+            retry.style.cssText = "grid-column:1/-1;border:0;border-radius:8px;padding:11px 18px;background:#16803c;color:white;font-weight:600;cursor:pointer;";
+            retry.onclick = () => muatProdukMitra();
+            container.appendChild(retry);
+            return;
+        }
         if (status) status.textContent = "⚠️ Produk belum berhasil dimuat. Periksa koneksi lalu coba lagi.";
         container.innerHTML = `
             <div style="grid-column:1/-1;text-align:center;padding:30px;">
                 <div style="font-size:40px;">📶</div>
                 <h3>Produk belum berhasil dimuat</h3>
-                <p>Kemungkinan koneksi sedang lambat. Data produk tidak dihapus.</p>
-                <button type="button" onclick="muatProdukMitra()"
-                    style="border:0;border-radius:8px;padding:11px 18px;background:#16803c;color:white;font-weight:600;cursor:pointer;">
-                    ↻ Coba Muat Ulang
-                </button>
+                <p>Permintaan data gagal. Data produk tidak dihapus.</p>
+                <button type="button" onclick="muatProdukMitra()" style="border:0;border-radius:8px;padding:11px 18px;background:#16803c;color:white;font-weight:600;cursor:pointer;">↻ Coba Muat Ulang</button>
             </div>`;
     }
 }
@@ -2464,6 +2485,7 @@ function renderProdukMitra(products) {
                 <div class="card" data-kategori="${escapeHTML(kategori)}" data-nama="${escapeHTML(product.nama || "")}">
 
                     <img
+                        data-product-image="${Number(product.id)}"
                         src="${gambar}"
                         loading="lazy"
                         decoding="async"
