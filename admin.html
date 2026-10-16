@@ -2673,9 +2673,12 @@ window.loginAdminSupabase = async function(event) {
     try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        if (!data.user || data.user.id !== ADMIN_STORAGE_UID) {
-            await supabaseClient.auth.signOut();
-            throw new Error("Akun ini tidak memiliki izin unggah foto admin.");
+        // Normalisasi UID untuk menghindari perbedaan format huruf/spasi.
+        const uidAktual = String(data && data.user && data.user.id || "").trim().toLowerCase();
+        const uidDiizinkan = String(ADMIN_STORAGE_UID || "").trim().toLowerCase();
+        if (!uidAktual || uidAktual !== uidDiizinkan) {
+            // Tampilkan UID aktual untuk diagnosis; kebijakan keamanan Storage tidak diubah.
+            throw new Error("UID akun login tidak cocok dengan UID admin yang diizinkan. UID login: " + (uidAktual || "(tidak tersedia)") + ". UID yang diizinkan: " + uidDiizinkan + ".");
         }
         sesiAdminStorage = data.session;
         perbaruiStatusLoginAdmin(data.user);
