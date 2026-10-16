@@ -38,6 +38,7 @@ let selectedWarungId =
 let warungMitraList = [];
 
 let produkMitraList = [];
+let produkMitraRequestId = 0;
 
 
 /* =====================================================
@@ -2342,74 +2343,64 @@ async function pilihWarungMitra(id) {
 
 async function muatProdukMitra() {
 
-    const container =
-        document.getElementById("daftarProdukSupabase");
+    const container = document.getElementById("daftarProdukSupabase");
+    const status = document.getElementById("statusMenuSupabase");
 
-    const status =
-        document.getElementById("statusMenuSupabase");
+    if (!container || !selectedWarungId) return;
 
+    // Nomor permintaan mencegah hasil permintaan lama menimpa warung terbaru.
+    const requestId = ++produkMitraRequestId;
+    const warungIdYangDiminta = Number(selectedWarungId);
 
-    if (!container || !selectedWarungId) {
-        return;
-    }
-
-
-    container.innerHTML =
-        '<div style="grid-column:1/-1;text-align:center;padding:30px;">⏳ Memuat produk...</div>';
-
+    container.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:30px;">
+            <div style="font-size:28px;">⏳</div>
+            <p>Memuat produk warung...</p>
+        </div>`;
+    if (status) status.textContent = "Menghubungkan ke daftar produk...";
 
     try {
+        const hasil = await supabaseClient
+            .from("produk")
+            .select("id,warung_id,nama,kategori,harga,deskripsi,gambar,status")
+            .eq("warung_id", warungIdYangDiminta)
+            .order("id", { ascending: true });
 
-        const hasil =
-            await supabaseClient
-                .from("produk")
-                .select("id,warung_id,nama,kategori,harga,deskripsi,gambar,status")
-                .eq("warung_id", selectedWarungId)
-                .order("id", { ascending: true });
+        // Abaikan hasil lama jika pelanggan sudah memilih warung lain.
+        if (requestId !== produkMitraRequestId || warungIdYangDiminta !== Number(selectedWarungId)) return;
 
+        if (hasil.error) throw new Error(hasil.error.message || "Koneksi produk bermasalah");
 
-        if (hasil.error) {
-            throw new Error(hasil.error.message);
-        }
-
-
-        produkMitraList =
-            (hasil.data || []).filter(
-                produk =>
-                    String(produk.status || "tersedia").toLowerCase() !== "habis"
-            );
-
+        const dataProduk = Array.isArray(hasil.data) ? hasil.data : [];
+        produkMitraList = dataProduk.filter(produk =>
+            String(produk.status || "tersedia").toLowerCase() !== "habis"
+        );
 
         renderProdukMitra(produkMitraList);
 
-
         if (status) {
-            status.textContent =
-                produkMitraList.length
-                    ? "✅ " + produkMitraList.length + " produk tersedia di Warung Mitra ini."
-                    : "ℹ️ Belum ada produk tersedia di Warung Mitra ini.";
+            status.textContent = produkMitraList.length
+                ? "✅ " + produkMitraList.length + " produk tersedia di Warung Mitra ini."
+                : "ℹ️ Data produk kosong untuk warung ini. Jika tidak sesuai, tekan Muat Ulang.";
         }
-
     } catch (error) {
+        if (requestId !== produkMitraRequestId || warungIdYangDiminta !== Number(selectedWarungId)) return;
 
-        console.error(
-            "ERROR LOAD PRODUK MITRA:",
-            error
-        );
-
-        produkMitraList = [];
-
-        renderProdukMitra([]);
-
-        if (status) {
-            status.textContent =
-                "❌ Gagal memuat produk: " + error.message;
-        }
-
+        console.error("ERROR LOAD PRODUK MITRA:", error);
+        // Jangan mengosongkan produk secara diam-diam saat terjadi gangguan jaringan.
+        if (status) status.textContent = "⚠️ Produk belum berhasil dimuat. Periksa koneksi lalu coba lagi.";
+        container.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:30px;">
+                <div style="font-size:40px;">📶</div>
+                <h3>Produk belum berhasil dimuat</h3>
+                <p>Kemungkinan koneksi sedang lambat. Data produk tidak dihapus.</p>
+                <button type="button" onclick="muatProdukMitra()"
+                    style="border:0;border-radius:8px;padding:11px 18px;background:#16803c;color:white;font-weight:600;cursor:pointer;">
+                    ↻ Coba Muat Ulang
+                </button>
+            </div>`;
     }
-
 }
-
 
 function renderProdukMitra(products) {
 
@@ -2431,7 +2422,11 @@ function renderProdukMitra(products) {
 
                 <h3>Belum ada produk</h3>
 
-                <p>Produk Warung Mitra ini akan tampil di sini setelah ditambahkan dari Admin.</p>
+                <p>Belum ada data produk yang diterima. Jika warung seharusnya memiliki produk, coba muat ulang.</p>
+                <button type="button" onclick="muatProdukMitra()"
+                    style="border:0;border-radius:8px;padding:11px 18px;background:#16803c;color:white;font-weight:600;cursor:pointer;">
+                    ↻ Muat Ulang Produk
+                </button>
 
             </div>
 
