@@ -2348,18 +2348,18 @@ async function muatProdukMitra() {
 
     const requestId = ++produkMitraRequestId;
     const warungIdYangDiminta = Number(selectedWarungId);
-    produkMitraList = [];
     container.innerHTML = `
         <div style="grid-column:1/-1;text-align:center;padding:24px;">
-            <div style="font-size:28px;">⏳</div><p>Memuat daftar produk...</p>
+            <div style="font-size:28px;">⏳</div><p>Memuat produk dan foto...</p>
         </div>`;
-    if (status) status.textContent = "Mengambil daftar produk...";
+    if (status) status.textContent = "Mengambil daftar produk beserta foto...";
 
     try {
-        // Ambil data ringan terlebih dahulu. Jangan unduh Base64 foto pada permintaan pertama.
+        // Ambil data dan foto dalam satu permintaan supaya Base64 tidak tertinggal
+        // dan kartu produk tidak perlu dirender ulang sebelum foto tersedia.
         const hasil = await supabaseClient
             .from("produk")
-            .select("id,warung_id,nama,kategori,harga,deskripsi,status")
+            .select("id,warung_id,nama,kategori,harga,deskripsi,gambar,status,rating")
             .eq("warung_id", warungIdYangDiminta)
             .order("id", { ascending: true });
 
@@ -2370,48 +2370,15 @@ async function muatProdukMitra() {
             String(produk.status || "tersedia").toLowerCase() !== "habis"
         );
 
-        // Tampilkan nama/harga dahulu; foto menyusul dalam permintaan terpisah.
         renderProdukMitra(produkMitraList);
         if (status) {
             status.textContent = produkMitraList.length
-                ? "✅ " + produkMitraList.length + " produk ditemukan. Foto sedang dimuat..."
+                ? "✅ " + produkMitraList.length + " produk tersedia di Warung Mitra ini."
                 : "ℹ️ Belum ada produk tersedia untuk warung ini.";
         }
-        if (!produkMitraList.length) return;
-
-        const hasilGambar = await supabaseClient
-            .from("produk")
-            .select("id,gambar")
-            .eq("warung_id", warungIdYangDiminta)
-            .order("id", { ascending: true });
-
-        if (requestId !== produkMitraRequestId || warungIdYangDiminta !== Number(selectedWarungId)) return;
-        if (hasilGambar.error) throw new Error(hasilGambar.error.message || "Daftar tampil, tetapi foto belum berhasil dimuat");
-
-        const gambarPerId = new Map((hasilGambar.data || []).map(item => [String(item.id), item.gambar || ""]));
-        produkMitraList = produkMitraList.map(produk => ({
-            ...produk,
-            gambar: gambarPerId.get(String(produk.id)) || ""
-        }));
-        renderProdukMitra(produkMitraList);
-        if (status) status.textContent = "✅ " + produkMitraList.length + " produk tersedia di Warung Mitra ini.";
-
     } catch (error) {
         if (requestId !== produkMitraRequestId || warungIdYangDiminta !== Number(selectedWarungId)) return;
         console.error("ERROR LOAD PRODUK MITRA:", error);
-        // Jika daftar produk sudah berhasil tampil tetapi foto gagal, pertahankan daftar produknya.
-        if (produkMitraList.length) {
-            if (status) status.textContent = "⚠️ Daftar produk sudah tampil, tetapi foto gagal dimuat. Tekan Muat Ulang untuk mencoba lagi.";
-            const images = container.querySelectorAll("img[data-product-image]");
-            images.forEach(img => { img.alt = "Foto belum berhasil dimuat"; });
-            const retry = document.createElement("button");
-            retry.type = "button";
-            retry.textContent = "↻ Muat Ulang Foto";
-            retry.style.cssText = "grid-column:1/-1;border:0;border-radius:8px;padding:11px 18px;background:#16803c;color:white;font-weight:600;cursor:pointer;";
-            retry.onclick = () => muatProdukMitra();
-            container.appendChild(retry);
-            return;
-        }
         if (status) status.textContent = "⚠️ Produk belum berhasil dimuat. Periksa koneksi lalu coba lagi.";
         container.innerHTML = `
             <div style="grid-column:1/-1;text-align:center;padding:30px;">
@@ -2486,10 +2453,10 @@ function renderProdukMitra(products) {
 
                     <img
                         data-product-image="${Number(product.id)}"
-                        src="${gambar}"
-                        loading="lazy"
+                        loading="eager"
                         decoding="async"
                         alt="${nama}"
+                        style="width:100%;height:180px;object-fit:cover;"
                         onerror="this.onerror=null;this.src='images/banner.jpg'">
 
                     <h3>${nama}</h3>
@@ -2518,6 +2485,20 @@ function renderProdukMitra(products) {
 
         })
         .join("");
+
+    // Pasang src melalui properti DOM, bukan menyisipkan Base64 besar ke innerHTML.
+    // Ini menghindari masalah parsing atribut HTML pada data foto yang panjang.
+    const fotoById = new Map(
+        products.map(product => [String(Number(product.id)), gambarProdukURL(product.gambar)])
+    );
+    container.querySelectorAll("img[data-product-image]").forEach(function(img) {
+        const foto = fotoById.get(String(img.getAttribute("data-product-image")));
+        if (foto) {
+            img.src = foto;
+        } else {
+            img.src = "images/banner.jpg";
+        }
+    });
 
 }
 
