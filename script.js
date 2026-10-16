@@ -2470,8 +2470,10 @@ function renderProdukMitra(products) {
 
                     <img
                         src="${gambar}"
+                        loading="lazy"
+                        decoding="async"
                         alt="${nama}"
-                        onerror="this.src='images/banner.jpg'">
+                        onerror="this.onerror=null;this.src='images/banner.jpg'">
 
                     <h3>${nama}</h3>
 
@@ -2582,20 +2584,13 @@ document.addEventListener(
            MUAT PENGATURAN ONGKIR DARI ADMIN
         */
 
-        await muatPengaturanOngkirPelanggan();
-
-        /*
-           TAMPILKAN KERANJANG
-        */
-
+        // Muat ongkir dan warung/produk bersamaan agar satu permintaan lambat
+        // tidak menahan tampilan produk pelanggan.
         tampilkanKeranjang();
-
-
-        /*
-           MUAT WARUNG + PRODUK DARI SUPABASE
-        */
-
-        await muatWarungMitra();
+        await Promise.allSettled([
+            muatPengaturanOngkirPelanggan(),
+            muatWarungMitra()
+        ]);
 
 
         /*
