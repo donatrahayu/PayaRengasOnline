@@ -2650,6 +2650,10 @@ let lastOrderCount = 0;
 
 // Akun yang diizinkan sesuai kebijakan Storage yang telah dibuat di Supabase.
 const ADMIN_STORAGE_UID = "97ab6cf8-5fa3-446b-a3ff-757d8c9e8733";
+// Samakan format UUID dengan membuang tanda hubung/karakter pemisah.
+function normalkanUIDAdmin(uid) {
+    return String(uid || "").toLowerCase().replace(/[^0-9a-f]/g, "");
+}
 let sesiAdminStorage = null;
 
 window.bukaLoginAdmin = function() {
@@ -2674,11 +2678,11 @@ window.loginAdminSupabase = async function(event) {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         // Normalisasi UID untuk menghindari perbedaan format huruf/spasi.
-        const uidAktual = String(data && data.user && data.user.id || "").trim().toLowerCase();
-        const uidDiizinkan = String(ADMIN_STORAGE_UID || "").trim().toLowerCase();
+        const uidAktual = normalkanUIDAdmin(data && data.user && data.user.id);
+        const uidDiizinkan = normalkanUIDAdmin(ADMIN_STORAGE_UID);
         if (!uidAktual || uidAktual !== uidDiizinkan) {
-            // Tampilkan UID aktual untuk diagnosis; kebijakan keamanan Storage tidak diubah.
-            throw new Error("UID akun login tidak cocok dengan UID admin yang diizinkan. UID login: " + (uidAktual || "(tidak tersedia)") + ". UID yang diizinkan: " + uidDiizinkan + ".");
+            // Tetap menolak akun lain; hanya normalisasi format UUID untuk pembandingan.
+            throw new Error("Akun login bukan admin yang diizinkan. UID login: " + (data && data.user && data.user.id || "(tidak tersedia)") + ". Periksa akun pada Supabase Authentication > Users.");
         }
         sesiAdminStorage = data.session;
         perbaruiStatusLoginAdmin(data.user);
@@ -2699,7 +2703,7 @@ window.logoutAdminStorage = async function() {
 function perbaruiStatusLoginAdmin(user) {
     const tombol = document.getElementById("btnAuthAdmin");
     if (!tombol) return;
-    if (user && user.id === ADMIN_STORAGE_UID) {
+    if (user && normalkanUIDAdmin(user.id) === normalkanUIDAdmin(ADMIN_STORAGE_UID)) {
         tombol.textContent = "🔓 Logout Admin";
         tombol.onclick = window.logoutAdminStorage;
         tombol.title = "Login sebagai admin Storage";
@@ -2713,7 +2717,7 @@ async function pastikanSesiAdminStorage() {
     const { data, error } = await supabaseClient.auth.getSession();
     if (error) throw error;
     const session = data && data.session;
-    if (!session || !session.user || session.user.id !== ADMIN_STORAGE_UID) {
+    if (!session || !session.user || normalkanUIDAdmin(session.user.id) !== normalkanUIDAdmin(ADMIN_STORAGE_UID)) {
         throw new Error("Login Admin terlebih dahulu melalui tombol 🔐 Login Admin sebelum mengunggah foto.");
     }
     sesiAdminStorage = session;
