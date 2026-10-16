@@ -81,19 +81,6 @@ img{
     font-size:12px;
 }
 
-.btn-auth{
-    border:0;background:#222;color:#fff;padding:10px 12px;border-radius:9px;font-weight:bold;margin-right:8px;
-}
-.auth-status{font-size:11px;display:block;margin-top:3px;}
-.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:16px;z-index:6000;}
-.auth-modal.show{display:flex;}
-.auth-card{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:390px;box-shadow:0 10px 40px rgba(0,0,0,.25);}
-.auth-card h2{color:#ff5722;margin-bottom:8px;}
-.auth-card p{font-size:13px;color:#666;line-height:1.5;margin-bottom:14px;}
-.auth-card label{display:block;font-size:12px;font-weight:bold;margin:10px 0 5px;}
-.auth-card input{width:100%;padding:11px;border:1px solid #ddd;border-radius:8px;}
-.auth-actions{display:flex;gap:8px;margin-top:16px;}
-.auth-actions button{flex:1;padding:10px;border:0;border-radius:8px;font-weight:bold;}
 .btn-toko{
     border:0;
     background:white;
@@ -873,8 +860,6 @@ tr:hover td{
 
     </div>
 
-    <div style="display:flex;align-items:center;gap:6px;">
-    <button id="btnAuthAdmin" class="btn-auth" type="button" onclick="bukaLoginAdmin()">🔐 Login Admin</button>
     <button
         class="btn-toko"
         onclick="keToko()">
@@ -2589,34 +2574,6 @@ tr:hover td{
 
 
 
-<!-- MODAL LOGIN ADMIN STORAGE -->
-<div id="authAdminModal" class="auth-admin-modal" role="dialog" aria-modal="true" aria-labelledby="authAdminTitle">
-  <div class="auth-admin-card">
-    <button type="button" class="auth-admin-close" aria-label="Tutup" onclick="tutupLoginAdmin()">&times;</button>
-    <h2 id="authAdminTitle">Login Admin</h2>
-    <p>Masuk dengan akun admin Supabase untuk mengunggah foto produk.</p>
-    <form id="formLoginAdmin" onsubmit="loginAdminSupabase(event)">
-      <label for="authAdminEmail">Email admin</label>
-      <input id="authAdminEmail" name="email" type="email" autocomplete="username" required>
-      <label for="authAdminPassword">Kata sandi</label>
-      <input id="authAdminPassword" name="password" type="password" autocomplete="current-password" required>
-      <p id="authAdminMessage" role="status" aria-live="polite"></p>
-      <button type="submit">Masuk</button>
-    </form>
-  </div>
-</div>
-<style>
-.auth-admin-modal{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:18px}
-.auth-admin-modal.show{display:flex}
-.auth-admin-card{position:relative;background:#fff;color:#222;width:min(420px,100%);padding:26px;border-radius:14px;box-shadow:0 15px 50px rgba(0,0,0,.3);font-family:Arial,sans-serif}
-.auth-admin-card h2{margin:0 0 10px;color:#ff5a1f}.auth-admin-card p{font-size:14px;line-height:1.45}
-.auth-admin-card label{display:block;margin:14px 0 6px;font-weight:600}
-.auth-admin-card input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px}
-.auth-admin-card form button[type=submit]{width:100%;margin-top:12px;padding:12px;border:0;border-radius:8px;background:#ff641f;color:white;font-weight:bold;cursor:pointer}
-.auth-admin-card form button:disabled{opacity:.65}.auth-admin-close{position:absolute;right:12px;top:8px;border:0;background:transparent;font-size:28px;cursor:pointer}
-#authAdminMessage{color:#c62828;overflow-wrap:anywhere}
-</style>
-
 <!-- SUPABASE CONNECTION -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2645,114 +2602,7 @@ let selectedNewImage = "";
 
 let selectedEditImage = "";
 
-
 let lastOrderCount = 0;
-
-// Akun yang diizinkan sesuai kebijakan Storage yang telah dibuat di Supabase.
-const ADMIN_STORAGE_UID = "97ab6cf8-5fa3-446b-a3ff-757d8c9e8733";
-function normalkanUIDAdmin(uid) {
-    // UUID canonical: buang pemisah, lalu bandingkan 32 digit heksadesimal.
-    return String(uid || "").toLowerCase().replace(/[^0-9a-f]/g, "");
-}
-let sesiAdminStorage = null;
-
-window.bukaLoginAdmin = function() {
-    const modal = document.getElementById("authAdminModal");
-    const pesan = document.getElementById("authAdminMessage");
-    if (modal) modal.classList.add("show");
-    if (pesan) pesan.textContent = "";
-};
-window.tutupLoginAdmin = function() {
-    const modal = document.getElementById("authAdminModal");
-    if (modal) modal.classList.remove("show");
-};
-window.loginAdminSupabase = async function(event) {
-    event.preventDefault();
-    const email = document.getElementById("authAdminEmail").value.trim();
-    const password = document.getElementById("authAdminPassword").value;
-    const pesan = document.getElementById("authAdminMessage");
-    const tombol = document.querySelector("#formLoginAdmin button[type=submit]");
-    if (tombol) { tombol.disabled = true; tombol.textContent = "Memeriksa..."; }
-    if (pesan) pesan.textContent = "";
-    try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        // Normalisasi UID untuk menghindari perbedaan format huruf/spasi.
-        const uidAktual = normalkanUIDAdmin(data && data.user && data.user.id);
-        const uidDiizinkan = normalkanUIDAdmin(ADMIN_STORAGE_UID);
-        if (!data || !data.user || !uidAktual || uidAktual !== uidDiizinkan) {
-            throw new Error("Akun login tidak cocok dengan UID admin yang diizinkan. UID login: " +
-                String(data && data.user && data.user.id || "(tidak tersedia)") +
-                ". UID konfigurasi: " + String(ADMIN_STORAGE_UID) +
-                ". Periksa nilai ADMIN_STORAGE_UID pada file admin.html.");
-        }
-        sesiAdminStorage = data.session;
-        perbaruiStatusLoginAdmin(data.user);
-        tutupLoginAdmin();
-        alert("Login admin berhasil. Unggah foto produk sekarang dapat menggunakan Supabase Storage.");
-    } catch (error) {
-        if (pesan) pesan.textContent = "Login gagal: " + (error.message || "Periksa email dan kata sandi.");
-    } finally {
-        if (tombol) { tombol.disabled = false; tombol.textContent = "Masuk"; }
-    }
-};
-window.logoutAdminStorage = async function() {
-    const { error } = await supabaseClient.auth.signOut();
-    if (error) { alert("Gagal logout: " + error.message); return; }
-    sesiAdminStorage = null;
-    perbaruiStatusLoginAdmin(null);
-};
-function perbaruiStatusLoginAdmin(user) {
-    const tombol = document.getElementById("btnAuthAdmin");
-    if (!tombol) return;
-    if (user && normalkanUIDAdmin(user.id) === normalkanUIDAdmin(ADMIN_STORAGE_UID)) {
-        tombol.textContent = "🔓 Logout Admin";
-        tombol.onclick = window.logoutAdminStorage;
-        tombol.title = "Login sebagai admin Storage";
-    } else {
-        tombol.textContent = "🔐 Login Admin";
-        tombol.onclick = window.bukaLoginAdmin;
-        tombol.title = "Login untuk unggah foto produk";
-    }
-}
-async function pastikanSesiAdminStorage() {
-    const { data, error } = await supabaseClient.auth.getSession();
-    if (error) throw error;
-    const session = data && data.session;
-    if (!session || !session.user || normalkanUIDAdmin(session.user.id) !== normalkanUIDAdmin(ADMIN_STORAGE_UID)) {
-        throw new Error("Login Admin terlebih dahulu melalui tombol 🔐 Login Admin sebelum mengunggah foto.");
-    }
-    sesiAdminStorage = session;
-    return session;
-}
-async function uploadFotoProdukKeStorage(dataUrl) {
-    if (!dataUrl || !String(dataUrl).startsWith("data:image/")) return dataUrl || "banner.jpg";
-    const session = await pastikanSesiAdminStorage();
-    const response = await fetch(dataUrl);
-    const blob = await response.blob();
-    if (!blob.type.startsWith("image/")) throw new Error("Format foto tidak dikenali.");
-    const ekstensi = blob.type === "image/png" ? "png" : "jpg";
-    const namaFile = "produk/" + Date.now() + "-" + Math.random().toString(36).slice(2, 10) + "." + ekstensi;
-    const { error } = await supabaseClient.storage
-        .from("foto-produk")
-        .upload(namaFile, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false });
-    if (error) throw new Error("Gagal mengunggah foto ke Storage: " + error.message);
-    const { data } = supabaseClient.storage.from("foto-produk").getPublicUrl(namaFile);
-    if (!data || !data.publicUrl) throw new Error("Foto terunggah tetapi URL publik tidak berhasil dibuat.");
-    return data.publicUrl;
-}
-supabaseClient.auth.getSession().then(({data, error}) => {
-    if (error) { console.warn("Status login admin tidak dapat dibaca:", error.message); return; }
-    const user = data && data.session && data.session.user;
-    if (user && user.id === ADMIN_STORAGE_UID) sesiAdminStorage = data.session;
-    perbaruiStatusLoginAdmin(user && user.id === ADMIN_STORAGE_UID ? user : null);
-}).catch(error => console.warn("Status login admin:", error.message));
-supabaseClient.auth.onAuthStateChange((_event, session) => {
-    const user = session && session.user;
-    sesiAdminStorage = user && user.id === ADMIN_STORAGE_UID ? session : null;
-    perbaruiStatusLoginAdmin(user && user.id === ADMIN_STORAGE_UID ? user : null);
-});
-
 
 
 /* =====================================================
@@ -4602,8 +4452,6 @@ function renderProducts(){
 
                         <img
                             src="${imagePath(product.gambar)}"
-                            loading="lazy"
-                            decoding="async"
                             alt="${safe(product.nama)}"
                             onerror="this.onerror=null;this.src='images/banner.jpg';">
 
@@ -4731,69 +4579,62 @@ function renderProducts(){
    TAMBAH PRODUK
 ===================================================== */
 
-// Optimasi foto produk di browser sebelum disimpan ke Supabase.
-// Foto lama tidak diubah; helper ini hanya dipakai untuk foto yang baru dipilih.
-function optimalkanFotoProduk(file, batasSisi = 1000, kualitas = 0.78) {
-    return new Promise((resolve, reject) => {
-        if (!file || !file.type || !file.type.startsWith("image/")) {
-            reject(new Error("File harus berupa gambar."));
-            return;
-        }
-        const reader = new FileReader();
-        reader.onerror = () => reject(new Error("Foto gagal dibaca. Coba pilih foto lain."));
-        reader.onload = () => {
-            const img = new Image();
-            img.onerror = () => reject(new Error("Foto tidak dapat dibuka. Coba gunakan JPG atau PNG."));
-            img.onload = () => {
-                const skala = Math.min(1, batasSisi / Math.max(img.naturalWidth, img.naturalHeight));
-                const canvas = document.createElement("canvas");
-                canvas.width = Math.max(1, Math.round(img.naturalWidth * skala));
-                canvas.height = Math.max(1, Math.round(img.naturalHeight * skala));
-                const ctx = canvas.getContext("2d");
-                if (!ctx) { reject(new Error("Browser tidak mendukung pemrosesan foto.")); return; }
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                canvas.toBlob(blob => {
-                    if (!blob) { reject(new Error("Foto gagal dioptimalkan.")); return; }
-                    // Hindari hasil yang lebih besar daripada file asli untuk gambar kecil.
-                    if (blob.size >= file.size && file.size < 350 * 1024) {
-                        resolve(reader.result);
-                        return;
-                    }
-                    const hasil = new FileReader();
-                    hasil.onerror = () => reject(new Error("Hasil foto gagal diproses."));
-                    hasil.onload = () => resolve(hasil.result);
-                    hasil.readAsDataURL(blob);
-                }, "image/jpeg", kualitas);
-            };
-            img.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-    });
-}
+function previewTambah(event){
 
-async function previewTambah(event){
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-        alert("File harus berupa gambar.");
-        event.target.value = "";
+    const file =
+        event.target.files?.[0];
+
+
+    if(!file){
         return;
     }
-    try {
-        selectedNewImage = await optimalkanFotoProduk(file);
-        document.getElementById("previewTambahImg").src = selectedNewImage;
-        document.getElementById("previewTambahBox").style.display = "block";
-        const ukuranAwal = (file.size / 1024 / 1024).toFixed(2);
-        const ukuranHasil = (selectedNewImage.length * 0.75 / 1024 / 1024).toFixed(2);
-        console.info(`Foto produk dioptimalkan: ${ukuranAwal} MB -> sekitar ${ukuranHasil} MB`);
-    } catch (error) {
-        selectedNewImage = "";
-        event.target.value = "";
-        alert("Foto belum bisa diproses: " + error.message);
+
+
+    if(
+        !file.type.startsWith("image/")
+    ){
+
+        alert(
+            "File harus berupa gambar."
+        );
+
+        event.target.value =
+            "";
+
+        return;
+
     }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e){
+
+            selectedNewImage =
+                e.target.result;
+
+
+            document.getElementById(
+                "previewTambahImg"
+            ).src =
+                selectedNewImage;
+
+
+            document.getElementById(
+                "previewTambahBox"
+            ).style.display =
+                "block";
+
+        };
+
+
+    reader.readAsDataURL(file);
+
 }
+
 
 async function simpanProduk(event){
 
@@ -4807,7 +4648,7 @@ async function simpanProduk(event){
     const rating = Number(document.getElementById("ratingProduk").value);
     const status = document.getElementById("statusProduk").value;
     const stok = Math.max(0, Number(document.getElementById("stokProduk")?.value || 0));
-    let gambar = selectedNewImage || "banner.jpg";
+    const gambar = selectedNewImage || "banner.jpg";
 
     if(!nama){ alert("Nama produk wajib diisi."); return; }
     if(harga <= 0){ alert("Harga produk harus diisi."); return; }
@@ -4818,9 +4659,6 @@ async function simpanProduk(event){
     if(tombol){ tombol.disabled=true; tombol.dataset.oldText=tombol.innerHTML; tombol.innerHTML="⏳ Menyimpan..."; }
 
     try{
-        if (selectedNewImage && selectedNewImage.startsWith("data:image/")) {
-            gambar = await uploadFotoProdukKeStorage(selectedNewImage);
-        }
         const hasil = await supabaseClient
             .from("produk")
             .insert({
@@ -5019,26 +4857,56 @@ function editProduct(id){
 }
 
 
-async function previewEdit(event){
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-        alert("File harus berupa gambar.");
-        event.target.value = "";
+function previewEdit(event){
+
+    const file =
+        event.target.files?.[0];
+
+
+    if(!file){
         return;
     }
-    try {
-        selectedEditImage = await optimalkanFotoProduk(file);
-        document.getElementById("previewEditImg").src = selectedEditImage;
-        const ukuranAwal = (file.size / 1024 / 1024).toFixed(2);
-        const ukuranHasil = (selectedEditImage.length * 0.75 / 1024 / 1024).toFixed(2);
-        console.info(`Foto edit dioptimalkan: ${ukuranAwal} MB -> sekitar ${ukuranHasil} MB`);
-    } catch (error) {
-        selectedEditImage = "";
-        event.target.value = "";
-        alert("Foto belum bisa diproses: " + error.message);
+
+
+    if(
+        !file.type.startsWith("image/")
+    ){
+
+        alert(
+            "File harus berupa gambar."
+        );
+
+        event.target.value =
+            "";
+
+        return;
+
     }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e){
+
+            selectedEditImage =
+                e.target.result;
+
+
+            document.getElementById(
+                "previewEditImg"
+            ).src =
+                selectedEditImage;
+
+        };
+
+
+    reader.readAsDataURL(file);
+
 }
+
 
 async function simpanEdit(event){
 
@@ -5059,7 +4927,7 @@ async function simpanEdit(event){
     const status = document.getElementById("editStatus").value;
     const stok = Math.max(0, Number(document.getElementById("editStok")?.value || 0));
     const deskripsi = document.getElementById("editDeskripsi").value.trim();
-    let gambar = selectedEditImage || fotoLama || "banner.jpg";
+    const gambar = selectedEditImage || fotoLama || "banner.jpg";
     const warungId = Number(document.getElementById("editWarungProduk")?.value || product.warung_id || 0);
 
     if(!nama){ alert("Nama produk wajib diisi."); return; }
@@ -5070,9 +4938,6 @@ async function simpanEdit(event){
     if(tombol){ tombol.disabled=true; tombol.dataset.oldText=tombol.innerHTML; tombol.innerHTML="⏳ Menyimpan..."; }
 
     try{
-        if (selectedEditImage && selectedEditImage.startsWith("data:image/")) {
-            gambar = await uploadFotoProdukKeStorage(selectedEditImage);
-        }
         const dbId = Number(product.supabase_id || 0);
 
         if(dbId > 0){
