@@ -6474,7 +6474,7 @@ window.simpanWarung = async function() {
         if (file) {
             const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
             const path = `${warungSedangDiedit}/${Date.now()}.${ext}`;
-            const upload = await supabaseClient.storage.from("foto-warung").upload(path, file, {upsert:true, contentType:file.type});
+            const upload = await supabaseClient.storage.from("foto-warung").upload(path, file, {upsert:false, contentType:file.type});
             if (upload.error) throw new Error("Upload foto gagal: " + upload.error.message);
             const publicResult = supabaseClient.storage.from("foto-warung").getPublicUrl(path);
             foto_url = publicResult.data.publicUrl;
@@ -6603,7 +6603,7 @@ window.tambahWarung = async function() {
         if (file) {
             const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
             const path = `${hasil.data.id}/${Date.now()}.${ext}`;
-            const upload = await supabaseClient.storage.from("foto-warung").upload(path, file, {upsert:true, contentType:file.type});
+            const upload = await supabaseClient.storage.from("foto-warung").upload(path, file, {upsert:false, contentType:file.type});
             if (upload.error) throw new Error("Warung tersimpan, tetapi upload foto gagal: " + upload.error.message);
             const url = supabaseClient.storage.from("foto-warung").getPublicUrl(path).data.publicUrl;
             const updateFoto = await supabaseClient.from("warung").update({foto_url:url}).eq("id", hasil.data.id);
