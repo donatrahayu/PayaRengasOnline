@@ -2128,7 +2128,7 @@ async function muatWarungMitra() {
 
     try {
         const hasil = await supabaseClient.from("warung")
-            .select("id,nama,alamat,status,buka,latitude,longitude")
+            .select("id,nama,alamat,status,buka,latitude,longitude,foto_url")
             .order("nama", { ascending: true });
         if (hasil.error) throw new Error(hasil.error.message);
 
@@ -2201,9 +2201,13 @@ function renderKartuWarungMitra(warungs) {
         const selected = Number(w.id) === Number(selectedWarungId);
         const name = escapeHTML(w.nama || "Warung Mitra");
         const address = escapeHTML(w.alamat || "Warung mitra PINTAR");
+        const fotoUrl = String(w.foto_url || "").trim();
+        const gambarWarung = fotoUrl
+            ? `<img src="${escapeHTML(fotoUrl)}" alt="Foto ${name}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="pintar-food-emoji" style="display:none;">🍲</span>`
+            : `<span class="pintar-food-emoji">🍲</span>`;
         return `<button type="button" class="pintar-warung-card ${selected ? "is-selected" : ""}"
             onclick="pilihWarungMitra(${Number(w.id)})" aria-label="Pilih ${name}">
-            <div class="pintar-warung-art"><span class="pintar-food-emoji">🍲</span></div>
+            <div class="pintar-warung-art">${gambarWarung}</div>
             <div class="pintar-warung-copy">
               <div class="pintar-warung-name">${name}</div>
               <div class="pintar-warung-address">${address}</div>
