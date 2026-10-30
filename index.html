@@ -1309,28 +1309,25 @@ footer h2,footer a{color:#ffc400!important}
       <button type="button" class="back-food" onclick="tutupPesanMakanan()">← Kembali</button>
     </div>
 
-    <div class="warung-box" style="max-width:1200px;margin:0 auto 20px;padding:16px;border-radius:14px;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.06);">
-
-        <label for="pilihWarungMitra" style="display:block;font-weight:600;margin-bottom:8px;">
-            🏪 Pilih Warung Mitra
-        </label>
-
-        <select
-            id="pilihWarungMitra"
-            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:15px;">
-
-            <option value="">⏳ Memuat Warung Mitra...</option>
-
-        </select>
-
-        <div
-            id="infoWarungMitra"
-            style="margin-top:8px;color:#666;font-size:13px;">
-
-            Produk akan tampil sesuai Warung Mitra yang dipilih.
-
+    <div class="pintar-warung-section">
+      <div class="pintar-warung-heading">
+        <div>
+          <span class="pintar-eyebrow">PILIH FAVORITMU</span>
+          <h3>Warung sekitar kamu</h3>
+          <p>Pilih warung, lalu lihat menu yang tersedia.</p>
         </div>
-
+        <div class="pintar-search-wrap">
+          <span aria-hidden="true">⌕</span>
+          <input id="pintarCariWarung" type="search" placeholder="Cari nama warung..." aria-label="Cari nama warung">
+        </div>
+      </div>
+      <div id="daftarWarungMitra" class="pintar-warung-grid">
+        <div class="pintar-warung-loading">🍽️ Memuat warung...</div>
+      </div>
+      <div id="infoWarungMitra" class="pintar-warung-info">Pilih warung untuk melihat menunya.</div>
+      <select id="pilihWarungMitra" aria-hidden="true" tabindex="-1" style="display:none">
+        <option value="">Memuat...</option>
+      </select>
     </div>
 
     <div
@@ -1965,4 +1962,32 @@ document.addEventListener("DOMContentLoaded",function(){
  .banner > .prd-hero-logo{width:76px!important; max-width:76px!important; max-height:86px!important}
  .banner .prd-brand-title{font-size:clamp(21px,5.6vw,29px)!important}
 }
+</style>
+
+<style id="pintar-warung-cards">
+:root{--pintar-yellow:#ffc928;--pintar-ink:#171717;--pintar-muted:#777}
+.pintar-warung-section{width:min(1200px,94%);margin:0 auto 24px;padding:clamp(16px,3vw,26px);border-radius:24px;background:#fff;box-shadow:0 12px 38px rgba(24,24,24,.07);border:1px solid #f0f0f0}
+.pintar-warung-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:20px}
+.pintar-eyebrow{font-size:11px;font-weight:800;letter-spacing:1.7px;color:#a47700}
+.pintar-warung-heading h3{font-size:clamp(21px,3vw,29px);font-weight:800;color:#171717;margin:5px 0}
+.pintar-warung-heading p{margin:0;color:#777;font-size:13px}
+.pintar-search-wrap{display:flex;align-items:center;gap:9px;background:#f7f7f7;border:1px solid #eee;border-radius:13px;padding:0 13px;min-width:min(270px,100%)}
+.pintar-search-wrap span{font-size:23px;color:#777}
+.pintar-search-wrap input{width:100%;min-width:0;border:0;outline:0;background:transparent;padding:13px 0;font:inherit;font-size:13px}
+.pintar-warung-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.pintar-warung-card{display:block;text-align:left;padding:0;overflow:hidden;border:1px solid #eee;border-radius:18px;background:#fff;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;color:#171717}
+.pintar-warung-card:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(0,0,0,.09);border-color:#f3c52c}
+.pintar-warung-card.is-selected{border:2px solid #eab900;box-shadow:0 0 0 3px rgba(255,201,40,.16)}
+.pintar-warung-art{height:132px;display:grid;place-items:center;background:linear-gradient(135deg,#fff4c8,#ffe28a);position:relative;font-size:55px}
+.pintar-warung-art:after{content:"";position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.32);right:-30px;top:-38px}
+.pintar-warung-art .pintar-food-emoji{z-index:1;filter:drop-shadow(0 5px 5px rgba(90,60,0,.12))}
+.pintar-warung-copy{padding:13px 14px 15px}
+.pintar-warung-name{font-size:15px;font-weight:800;line-height:1.35;margin-bottom:6px;overflow-wrap:anywhere}
+.pintar-warung-address{font-size:11px;color:#777;min-height:29px;line-height:1.4}
+.pintar-warung-status{display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:800;background:#e9f8ed;color:#23733c}
+.pintar-warung-status.closed{background:#f1f1f1;color:#777}
+.pintar-warung-loading,.pintar-warung-empty{grid-column:1/-1;padding:30px;text-align:center;color:#777;background:#fafafa;border-radius:16px}
+.pintar-warung-info{margin-top:14px;padding:12px 14px;background:#fff9e5;border-radius:12px;color:#6b5700;font-size:13px}
+@media(max-width:900px){.pintar-warung-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.pintar-warung-heading{align-items:stretch;flex-direction:column}.pintar-search-wrap{min-width:0}.pintar-warung-art{height:105px;font-size:45px}.pintar-warung-copy{padding:11px}.pintar-warung-name{font-size:13px}}
 </style>
