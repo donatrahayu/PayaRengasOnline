@@ -2545,38 +2545,31 @@ document.addEventListener(
     async function() {
 
         /*
-           MUAT PENGATURAN ONGKIR DARI ADMIN
-        */
-
-        await muatPengaturanOngkirPelanggan();
-
-        /*
-           TAMPILKAN KERANJANG
+           STARTUP CEPAT:
+           Dashboard dan event dipasang segera. Data Supabase serta GPS
+           berjalan paralel agar tampilan tidak menunggu jaringan.
         */
 
         tampilkanKeranjang();
-
-
-        /*
-           MUAT WARUNG + PRODUK DARI SUPABASE
-        */
-
-        await muatWarungMitra();
-
-
-        /*
-           MUAT GPS
-        */
-
-        muatLokasi();
-
-
-        /*
-           UPDATE CHECKOUT
-        */
-
         updateInfoJarakOngkir();
         updateCheckout();
+
+        // Ambil pengaturan ongkir dan warung secara bersamaan, tanpa await.
+        // Kedua fungsi memiliki penanganan error masing-masing.
+        void Promise.allSettled([
+            muatPengaturanOngkirPelanggan(),
+            muatWarungMitra()
+        ]).then(() => {
+            updateInfoJarakOngkir();
+            updateCheckout();
+        });
+
+        // GPS tidak boleh menahan dashboard atau pemuatan warung.
+        try {
+            muatLokasi();
+        } catch (error) {
+            console.warn("GPS belum dapat dimuat:", error);
+        }
 
 
         /*
