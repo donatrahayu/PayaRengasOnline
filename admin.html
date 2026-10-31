@@ -1978,7 +1978,7 @@ tr:hover td{
   <div class="panel">
     <div class="panel-header"><h3>👤 Daftar Driver</h3><button class="btn btn-success" onclick="tambahDriverV24()">➕ Tambah Driver</button></div>
     <div class="toolbar"><input id="v24CariDriver" class="search" placeholder="Cari nama atau WhatsApp driver..." oninput="renderPengantaranV24()"><button class="btn btn-gray" onclick="renderPengantaranV24()">🔄 Refresh</button></div>
-    <div class="table-scroll"><table style="min-width:750px"><thead><tr><th>#</th><th>Driver</th><th>WhatsApp</th><th>Status</th><th>Pesanan Aktif</th><th>Aksi</th></tr></thead><tbody id="tabelDriverV24"></tbody></table></div>
+    <div class="table-scroll"><table style="min-width:750px"><thead><tr><th>#</th><th>Foto</th><th>Driver</th><th>WhatsApp</th><th>No. Polisi</th><th>Kendaraan</th><th>Status</th><th>Pesanan Aktif</th><th>Aksi</th></tr></thead><tbody id="tabelDriverV24"></tbody></table></div>
   </div>
 
   <div class="panel">
@@ -6243,10 +6243,23 @@ setInterval(
   const money=n=>typeof rupiah==='function'?rupiah(Number(n)||0):'Rp'+(Number(n)||0).toLocaleString('id-ID');
   const esc=v=>typeof safe==='function'?safe(v):String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 
-  window.tambahDriverV24=function(){
+  window.tambahDriverV24=async function(){
     const nama=prompt('Nama driver:'); if(!nama||!nama.trim())return;
     const wa=prompt('Nomor WhatsApp driver:'); if(!wa||!wa.trim())return;
-    const d=getDriversV24(); d.push({id:'DRV'+Date.now(),nama:nama.trim(),whatsapp:wa.trim(),aktif:true}); saveDriversV24(d); renderPengantaranV24(); toast('Driver berhasil ditambahkan.');
+    const nopol=prompt('Nomor polisi kendaraan (contoh: BK 1234 ABC):'); if(nopol===null)return;
+    const kendaraan=prompt('Jenis kendaraan (Motor/Mobil):','Motor'); if(kendaraan===null)return;
+    const email=prompt('Email login driver (akun login perlu diaktifkan melalui Supabase):',''); if(email===null)return;
+    const fileInput=document.createElement('input'); fileInput.type='file'; fileInput.accept='image/*';
+    const foto=await new Promise(resolve=>{
+      fileInput.onchange=()=>{
+        const file=fileInput.files&&fileInput.files[0]; if(!file){resolve('');return;}
+        if(file.size>700000){alert('Foto terlalu besar untuk penyimpanan browser. Pilih foto maksimal 700 KB.');resolve('');return;}
+        const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result||'')); reader.onerror=()=>resolve(''); reader.readAsDataURL(file);
+      };
+      fileInput.click();
+    });
+    const d=getDriversV24(); d.push({id:'DRV'+Date.now(),nama:nama.trim(),whatsapp:wa.trim(),nopol:nopol.trim(),kendaraan:kendaraan.trim(),email:email.trim(),foto,aktif:true,akunLogin:'belum_dibuat'});
+    saveDriversV24(d); renderPengantaranV24(); toast('Data driver tersimpan di browser. Akun login Supabase belum dibuat.');
   };
   window.hapusDriverV24=function(id){
     const d=getDriversV24(); const x=d.find(v=>v.id===id); if(!x)return;
@@ -6277,7 +6290,7 @@ setInterval(
     [['v24DriverCount',drivers.length],['v24Aktif',aktif],['v24Selesai',selesai],['v24Belum',belum]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
     const q=String(document.getElementById('v24CariDriver')?.value||'').toLowerCase().trim();
     const td=document.getElementById('tabelDriverV24');
-    if(td){td.innerHTML=drivers.filter(d=>!q||(`${d.nama} ${d.whatsapp}`).toLowerCase().includes(q)).map((d,i)=>{const c=orders.filter(o=>o.driverId===d.id&&!['selesai','batal'].includes(status(o))).length;return `<tr><td>${i+1}</td><td><strong>${esc(d.nama)}</strong></td><td>${esc(d.whatsapp)}</td><td>${d.aktif?'<span class="status status-selesai">Aktif</span>':'<span class="status status-batal">Nonaktif</span>'}</td><td>${c}</td><td><button class="btn btn-small ${d.aktif?'btn-warning':'btn-success'}" onclick="toggleDriverV24('${d.id}')">${d.aktif?'Nonaktifkan':'Aktifkan'}</button> <button class="btn btn-danger btn-small" onclick="hapusDriverV24('${d.id}')">Hapus</button></td></tr>`}).join('')||'<tr><td colspan="6"><div class="empty">🚚 Belum ada driver.</div></td></tr>';}
+    if(td){td.innerHTML=drivers.filter(d=>!q||(`${d.nama} ${d.whatsapp} ${d.nopol||''} ${d.email||''}`).toLowerCase().includes(q)).map((d,i)=>{const c=orders.filter(o=>o.driverId===d.id&&!['selesai','batal'].includes(status(o))).length;return `<tr><td>${i+1}</td><td>${d.foto?`<img src="${d.foto}" alt="Foto ${esc(d.nama)}" style="width:48px;height:48px;object-fit:cover;border-radius:50%">`:'—'}</td><td><strong>${esc(d.nama)}</strong><br><small>${esc(d.email||'')}</small></td><td>${esc(d.whatsapp)}</td><td>${esc(d.nopol||'—')}</td><td>${esc(d.kendaraan||'—')}</td><td>${d.aktif?'<span class="status status-selesai">Aktif</span>':'<span class="status status-batal">Nonaktif</span>'}</td><td>${c}</td><td><button class="btn btn-small ${d.aktif?'btn-warning':'btn-success'}" onclick="toggleDriverV24('${d.id}')">${d.aktif?'Nonaktifkan':'Aktifkan'}</button> <button class="btn btn-danger btn-small" onclick="hapusDriverV24('${d.id}')">Hapus</button></td></tr>`}).join('')||'<tr><td colspan="9"><div class="empty">🚚 Belum ada driver.</div></td></tr>';}
     const sf=document.getElementById('v24FilterStatus')?.value||'semua', oq=String(document.getElementById('v24CariPesanan')?.value||'').toLowerCase().trim();
     const tp=document.getElementById('tabelPengantaranV24'); if(!tp)return;
     const rows=orders.map((o,i)=>({o,i})).filter(({o})=>{const st=status(o);if(sf!=='semua'&&st!==sf)return false;if(!oq)return true;return `${o.id||o.orderId||''} ${name(o)} ${address(o)} ${phone(o)} ${o.driverNama||''}`.toLowerCase().includes(oq)}).reverse();
