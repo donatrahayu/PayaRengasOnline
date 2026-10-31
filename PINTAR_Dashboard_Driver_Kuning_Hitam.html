@@ -31,7 +31,7 @@ footer{text-align:center;color:#777;font-size:12px;padding:16px}
 <label class="sub" for="email">Email akun driver</label><input id="email" type="email" placeholder="driver@email.com" autocomplete="username">
 <label class="sub" for="password">Password</label><input id="password" type="password" placeholder="Password" autocomplete="current-password">
 <button id="loginBtn" style="width:100%">Masuk</button>
-<div id="loginMsg" class="notice">Mode contoh: hubungkan konfigurasi Supabase sebelum digunakan.</div>
+<div id="loginMsg" class="notice">Silakan masuk menggunakan akun driver PINTAR.</div>
 </section>
 <section id="profileCard" class="card hidden">
 <div class="profiletop"><div class="avatar" id="avatar">👤</div><div class="identity"><b id="displayName">Profil Driver</b><p id="displayId">ID Driver: —</p><span class="pill">Akun Driver</span></div></div>
@@ -41,18 +41,89 @@ footer{text-align:center;color:#777;font-size:12px;padding:16px}
 <div class="field"><label>Nomor WhatsApp</label><input id="wa" placeholder="08xxxxxxxxxx" inputmode="tel"></div>
 <div class="field"><label>Jenis kendaraan</label><select id="kendaraan"><option value="">Pilih kendaraan</option><option>Sepeda motor</option><option>Mobil</option><option>Lainnya</option></select></div>
 <div class="field"><label>Nomor polisi</label><input id="plat" placeholder="Contoh: BK 1234 ABC"></div>
-<div class="field"><label>Foto profil</label><input id="foto" type="file" accept="image/*"></div>
+<div class="field"><label>Foto profil (pratinjau saja)</label><input id="foto" type="file" accept="image/*"></div>
 </div>
 <div class="actions"><button id="saveBtn">Simpan Profil</button><button class="dark" id="logoutBtn">Keluar</button></div>
-<div class="notice">Contoh antarmuka tahap 1. Fitur simpan/login belum tersambung sampai URL dan anon key Supabase serta skema tabel dikonfirmasi.</div>
+<div id="profileMsg" class="notice">Profil terhubung dengan akun Supabase yang sedang masuk.</div>
 </section>
 </main><footer>PINTAR · Versi uji coba driver</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* Integrasi Supabase belum diaktifkan. Jangan masukkan service_role key ke browser. */
-const $=id=>document.getElementById(id);
-$("loginBtn").addEventListener("click",()=>{$("loginMsg").textContent="Login belum tersambung. Tahap berikutnya: isi konfigurasi Supabase Auth dan pastikan akun driver sudah dibuat admin."});
-$("foto").addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const u=URL.createObjectURL(f);$("avatar").innerHTML="";const img=document.createElement("img");img.src=u;$("avatar").appendChild(img)});
-$("saveBtn").addEventListener("click",()=>alert("Profil belum tersimpan ke database. Hubungkan Supabase terlebih dahulu."));
-$("logoutBtn").addEventListener("click",()=>{$("profileCard").classList.add("hidden");$("loginCard").classList.remove("hidden")});
+/* Gunakan hanya Project URL dan publishable/anon key. Jangan taruh service_role key di browser. */
+const SUPABASE_URL = "https://kktamroqhsheiiiiffoo.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_0SQdiECEZD6oNp-bjZcTyg_FJYHeJv8";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+let driverRow = null, photoPreviewUrl = null;
+
+function msg(id, text){ $(id).textContent = text; }
+function showProfile(row){
+  driverRow = row;
+  $("loginCard").classList.add("hidden"); $("profileCard").classList.remove("hidden");
+  $("nama").value = row.nama || ""; $("wa").value = row.no_wa || "";
+  $("kendaraan").value = row.kendaraan || ""; $("plat").value = row.plat_nomor || "";
+  $("displayName").textContent = row.nama || "Profil Driver";
+  $("displayId").textContent = "ID Driver: " + (row.id ?? "—");
+  if(row.foto_url){ $("avatar").innerHTML = ""; const im=document.createElement("img"); im.src=row.foto_url; $("avatar").appendChild(im); }
+}
+async function loadDriver(user){
+  // Utamakan kaitan ID Auth; jika belum ada, cocokkan email untuk memasangkan akun lama.
+  let {data, error} = await db.from("driver").select("*").eq("auth_user_id", user.id).maybeSingle();
+  if(error) throw error;
+  if(!data && user.email){
+    const found = await db.from("driver").select("*").ilike("email", user.email).maybeSingle();
+    if(found.error) throw found.error;
+    if(found.data){
+      const linked = await db.from("driver").update({auth_user_id:user.id}).eq("id",found.data.id).select("*").single();
+      if(linked.error) throw linked.error;
+      data = linked.data;
+    }
+  }
+  if(!data) throw new Error("Profil driver belum ditemukan. Admin perlu menambahkan baris driver dan mengisi email akun ini pada tabel driver.");
+  showProfile(data);
+}
+$("loginBtn").addEventListener("click", async ()=>{
+  const email=$("email").value.trim(), password=$("password").value;
+  if(!email || !password){msg("loginMsg","Isi email dan password terlebih dahulu.");return;}
+  $("loginBtn").disabled=true; msg("loginMsg","Sedang masuk...");
+  try{
+    const {data,error}=await db.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    await loadDriver(data.user);
+    msg("profileMsg","Berhasil masuk. Periksa data profil dan tekan Simpan Profil bila ada perubahan.");
+  }catch(e){msg("loginMsg",e.message || "Login gagal.");}
+  finally{$("loginBtn").disabled=false;}
+});
+$("saveBtn").addEventListener("click",async()=>{
+  if(!driverRow){msg("profileMsg","Sesi driver belum ditemukan. Silakan masuk kembali.");return;}
+  const {data:{user},error:authError}=await db.auth.getUser();
+  if(authError || !user){msg("profileMsg","Sesi login tidak valid. Silakan masuk kembali.");return;}
+  const updates={nama:$("nama").value.trim(),no_wa:$("wa").value.trim(),kendaraan:$("kendaraan").value,plat_nomor:$("plat").value.trim(),auth_user_id:user.id,email:user.email};
+  $("saveBtn").disabled=true;msg("profileMsg","Menyimpan profil...");
+  try{
+    const {data,error}=await db.from("driver").update(updates).eq("id",driverRow.id).select("*").single();
+    if(error) throw error;
+    driverRow=data;$("displayName").textContent=data.nama || "Profil Driver";
+    msg("profileMsg","Profil berhasil disimpan ke Supabase.");
+  }catch(e){msg("profileMsg","Gagal menyimpan: "+(e.message||"periksa izin tabel driver."));}
+  finally{$("saveBtn").disabled=false;}
+});
+$("foto").addEventListener("change",e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  if(photoPreviewUrl)URL.revokeObjectURL(photoPreviewUrl);
+  photoPreviewUrl=URL.createObjectURL(f);$("avatar").innerHTML="";
+  const img=document.createElement("img");img.src=photoPreviewUrl;$("avatar").appendChild(img);
+  msg("profileMsg","Foto hanya tampil sebagai pratinjau. Upload foto permanen memerlukan bucket Storage Supabase.");
+});
+$("logoutBtn").addEventListener("click",async()=>{
+  const {error}=await db.auth.signOut();
+  if(error){msg("profileMsg","Gagal keluar: "+error.message);return;}
+  driverRow=null;$("profileCard").classList.add("hidden");$("loginCard").classList.remove("hidden");
+  $("password").value="";msg("loginMsg","Anda sudah keluar dari akun driver.");
+});
+db.auth.getSession().then(async({data,error})=>{
+  if(error)return;
+  if(data.session){try{await loadDriver(data.session.user);}catch(e){msg("loginMsg",e.message);$("loginCard").classList.remove("hidden");$("profileCard").classList.add("hidden");}}
+});
 </script>
 </body></html>
