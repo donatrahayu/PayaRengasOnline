@@ -6243,23 +6243,24 @@ setInterval(
   const money=n=>typeof rupiah==='function'?rupiah(Number(n)||0):'Rp'+(Number(n)||0).toLocaleString('id-ID');
   const esc=v=>typeof safe==='function'?safe(v):String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 
-  window.tambahDriverV24=async function(){
+  window.tambahDriverV24=function(){
     const nama=prompt('Nama driver:'); if(!nama||!nama.trim())return;
     const wa=prompt('Nomor WhatsApp driver:'); if(!wa||!wa.trim())return;
     const nopol=prompt('Nomor polisi kendaraan (contoh: BK 1234 ABC):'); if(nopol===null)return;
     const kendaraan=prompt('Jenis kendaraan (Motor/Mobil):','Motor'); if(kendaraan===null)return;
     const email=prompt('Email login driver (akun login perlu diaktifkan melalui Supabase):',''); if(email===null)return;
-    const fileInput=document.createElement('input'); fileInput.type='file'; fileInput.accept='image/*';
-    const foto=await new Promise(resolve=>{
-      fileInput.onchange=()=>{
-        const file=fileInput.files&&fileInput.files[0]; if(!file){resolve('');return;}
-        if(file.size>700000){alert('Foto terlalu besar untuk penyimpanan browser. Pilih foto maksimal 700 KB.');resolve('');return;}
-        const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result||'')); reader.onerror=()=>resolve(''); reader.readAsDataURL(file);
-      };
-      fileInput.click();
-    });
-    const d=getDriversV24(); d.push({id:'DRV'+Date.now(),nama:nama.trim(),whatsapp:wa.trim(),nopol:nopol.trim(),kendaraan:kendaraan.trim(),email:email.trim(),foto,aktif:true,akunLogin:'belum_dibuat'});
-    saveDriversV24(d); renderPengantaranV24(); toast('Data driver tersimpan di browser. Akun login Supabase belum dibuat.');
+    // Simpan data segera. Jangan membuka file chooser sesudah rangkaian prompt:
+    // browser dapat menolaknya karena aktivasi pengguna sudah tidak berlaku.
+    try {
+      const d=getDriversV24();
+      d.push({id:'DRV'+Date.now(),nama:nama.trim(),whatsapp:wa.trim(),nopol:nopol.trim(),kendaraan:kendaraan.trim(),email:email.trim(),foto:'',aktif:true,akunLogin:'belum_dibuat'});
+      saveDriversV24(d);
+      renderPengantaranV24();
+      toast('Data driver tersimpan di browser. Foto dapat ditambahkan terpisah; akun login Supabase belum dibuat.');
+    } catch(err) {
+      console.error('Gagal menyimpan driver:',err);
+      alert('Data driver gagal disimpan: '+(err&&err.message?err.message:'Periksa penyimpanan browser.'));
+    }
   };
   window.hapusDriverV24=function(id){
     const d=getDriversV24(); const x=d.find(v=>v.id===id); if(!x)return;
