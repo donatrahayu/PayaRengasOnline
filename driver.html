@@ -215,6 +215,7 @@ footer{
     >
 
     <button id="loginBtn" style="width:100%">Masuk</button>
+    <button id="registerBtn" class="dark" style="width:100%;margin-top:9px">Daftar Akun Driver</button>
 
     <div id="loginMsg" class="notice">
       Silakan masuk menggunakan akun driver PINTAR.
@@ -479,6 +480,56 @@ $("loginBtn").addEventListener("click", async function() {
 
 
 /* =====================================================
+   DAFTAR AKUN DRIVER
+   Data driver harus lebih dahulu dibuat admin dengan email yang sama.
+===================================================== */
+
+$("registerBtn").addEventListener("click", async function() {
+  const email = $("email").value.trim().toLowerCase();
+  const password = $("password").value;
+
+  if (!email || !password) {
+    msg("loginMsg", "Isi email dan password terlebih dahulu untuk daftar.");
+    return;
+  }
+  if (password.length < 6) {
+    msg("loginMsg", "Password minimal 6 karakter.");
+    return;
+  }
+
+  $("registerBtn").disabled = true;
+  $("loginBtn").disabled = true;
+  msg("loginMsg", "Sedang membuat akun driver...");
+
+  try {
+    const { data, error } = await db.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.href }
+    });
+    if (error) throw error;
+
+    if (data.session && data.user) {
+      await loadDriver(data.user);
+      msg("profileMsg", "Akun berhasil dibuat dan profil driver terhubung.");
+    } else {
+      msg(
+        "loginMsg",
+        "Pendaftaran diterima. Silakan cek email untuk konfirmasi akun. " +
+        "Pastikan email ini sudah didaftarkan admin pada data driver."
+      );
+    }
+  } catch (e) {
+    console.error("Daftar akun driver:", e);
+    msg("loginMsg", e.message || "Pendaftaran akun gagal.");
+  } finally {
+    $("registerBtn").disabled = false;
+    $("loginBtn").disabled = false;
+  }
+});
+
+
+/* =====================================================
    SIMPAN PROFIL DRIVER KE SUPABASE
 ===================================================== */
 
@@ -529,6 +580,36 @@ $("saveBtn").addEventListener("click", async function() {
       auth_user_id: user.id,
       email: user.email
     };
+
+    // Foto disimpan permanen di Supabase Storage bucket "foto-driver".
+    const photoFile = $("foto").files && $("foto").files[0];
+    if (photoFile) {
+      if (!photoFile.type.startsWith("image/")) {
+        throw new Error("File foto harus berupa gambar.");
+      }
+      if (photoFile.size > 5 * 1024 * 1024) {
+        throw new Error("Ukuran foto maksimal 5 MB.");
+      }
+
+      const ext = (photoFile.name.split(".").pop() || "jpg")
+        .toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const photoPath = `${driverRow.id}/${Date.now()}.${ext}`;
+
+      msg("profileMsg", "Mengunggah foto ke Supabase Storage...");
+      const { error: uploadError } = await db.storage
+        .from("foto-driver")
+        .upload(photoPath, photoFile, {
+          upsert: true,
+          contentType: photoFile.type
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = db.storage
+        .from("foto-driver")
+        .getPublicUrl(photoPath);
+      updates.foto_url = publicData.publicUrl;
+    }
 
     if (!updates.nama) {
       throw new Error("Nama driver wajib diisi.");
