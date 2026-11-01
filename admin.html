@@ -6235,6 +6235,25 @@ setInterval(
   const DRIVER_KEY='payaRengasDriverV24';
   const getDriversV24=()=>{try{const d=JSON.parse(localStorage.getItem(DRIVER_KEY)||'[]');return Array.isArray(d)?d:[]}catch(e){return[]}};
   const saveDriversV24=d=>localStorage.setItem(DRIVER_KEY,JSON.stringify(d));
+  const driverFromDBV24=row=>({
+    id:row.id, nama:row.nama||'', whatsapp:row.no_wa||'', nopol:row.plat_nomor||'',
+    kendaraan:row.kendaraan||'', email:row.email||'', foto:row.foto_url||'',
+    aktif:String(row.status||'aktif').toLowerCase()==='aktif', akunLogin:row.auth_user_id?'aktif':'belum_dibuat',
+    auth_user_id:row.auth_user_id||null
+  });
+  async function muatDriverSupabaseV24(){
+    try {
+      const {data,error}=await supabaseClient.from('driver')
+        .select('id,nama,no_wa,status,kendaraan,plat_nomor,foto_url,auth_user_id,email')
+        .order('created_at',{ascending:false});
+      if(error)throw error;
+      saveDriversV24((data||[]).map(driverFromDBV24));
+      renderPengantaranV24();
+    } catch(err) {
+      console.error('Gagal memuat driver dari Supabase:',err);
+      toast('Driver Supabase belum dapat dimuat. Periksa koneksi dan struktur tabel driver.');
+    }
+  }
   const name=o=>o?.nama||o?.namaPelanggan||o?.customerName||'Pelanggan';
   const phone=o=>o?.whatsapp||o?.nomorWA||o?.noWa||o?.phone||o?.telepon||'-';
   const address=o=>o?.alamat||o?.alamatPengantaran||o?.address||'-';
@@ -6243,23 +6262,29 @@ setInterval(
   const money=n=>typeof rupiah==='function'?rupiah(Number(n)||0):'Rp'+(Number(n)||0).toLocaleString('id-ID');
   const esc=v=>typeof safe==='function'?safe(v):String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 
-  window.tambahDriverV24=function(){
+  window.tambahDriverV24=async function(){
     const nama=prompt('Nama driver:'); if(!nama||!nama.trim())return;
     const wa=prompt('Nomor WhatsApp driver:'); if(!wa||!wa.trim())return;
     const nopol=prompt('Nomor polisi kendaraan (contoh: BK 1234 ABC):'); if(nopol===null)return;
     const kendaraan=prompt('Jenis kendaraan (Motor/Mobil):','Motor'); if(kendaraan===null)return;
-    const email=prompt('Email login driver (akun login perlu diaktifkan melalui Supabase):',''); if(email===null)return;
-    // Simpan data segera. Jangan membuka file chooser sesudah rangkaian prompt:
-    // browser dapat menolaknya karena aktivasi pengguna sudah tidak berlaku.
+    const email=prompt('Email login driver (gunakan email yang nanti dipakai daftar):',''); if(email===null)return;
+    const payload={
+      nama:nama.trim(), no_wa:wa.trim(), plat_nomor:nopol.trim(),
+      kendaraan:kendaraan.trim(), email:email.trim()||null, status:'aktif',
+      foto_url:null, auth_user_id:null
+    };
     try {
+      const {data,error}=await supabaseClient.from('driver').insert(payload)
+        .select('id,nama,no_wa,status,kendaraan,plat_nomor,foto_url,auth_user_id,email').single();
+      if(error)throw error;
       const d=getDriversV24();
-      d.push({id:'DRV'+Date.now(),nama:nama.trim(),whatsapp:wa.trim(),nopol:nopol.trim(),kendaraan:kendaraan.trim(),email:email.trim(),foto:'',aktif:true,akunLogin:'belum_dibuat'});
+      d.unshift(driverFromDBV24(data));
       saveDriversV24(d);
       renderPengantaranV24();
-      toast('Data driver tersimpan di browser. Foto dapat ditambahkan terpisah; akun login Supabase belum dibuat.');
+      toast('Driver berhasil disimpan ke Supabase. Driver dapat mendaftar memakai email yang dicatat.');
     } catch(err) {
-      console.error('Gagal menyimpan driver:',err);
-      alert('Data driver gagal disimpan: '+(err&&err.message?err.message:'Periksa penyimpanan browser.'));
+      console.error('Gagal menyimpan driver ke Supabase:',err);
+      alert('Driver tidak tersimpan ke Supabase: '+(err&&err.message?err.message:'Periksa koneksi, izin RLS, dan kolom tabel driver.'));
     }
   };
   window.hapusDriverV24=function(id){
@@ -6268,7 +6293,19 @@ setInterval(
     const orders=getOrders(); orders.forEach(o=>{if(o.driverId===id){delete o.driverId;delete o.driverNama;delete o.driverWhatsApp;}}); localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
     saveDriversV24(d.filter(v=>v.id!==id)); renderPengantaranV24(); if(typeof renderPesanan==='function')renderPesanan(); toast('Driver dihapus.');
   };
-  window.toggleDriverV24=function(id){const d=getDriversV24();const x=d.find(v=>v.id===id);if(!x)return;x.aktif=!x.aktif;saveDriversV24(d);renderPengantaranV24();};
+  window.toggleDriverV24=async function(id){
+    const d=getDriversV24(),x=d.find(v=>String(v.id)===String(id));if(!x)return;
+    const statusBaru=x.aktif?'nonaktif':'aktif';
+    try {
+      const {error}=await supabaseClient.from('driver').update({status:statusBaru}).eq('id',id);
+      if(error)throw error;
+      x.aktif=statusBaru==='aktif';saveDriversV24(d);renderPengantaranV24();
+      toast('Status driver diperbarui.');
+    } catch(err) {
+      console.error('Gagal memperbarui status driver:',err);
+      alert('Status driver gagal diperbarui di Supabase: '+(err?.message||'Periksa izin tabel.'));
+    }
+  };
 
   window.tugaskanDriverV24=function(orderIndex){
     const d=getDriversV24().filter(x=>x.aktif!==false); if(!d.length){alert('Belum ada driver aktif. Tambahkan driver terlebih dahulu.');return;}
@@ -6297,7 +6334,7 @@ setInterval(
     const rows=orders.map((o,i)=>({o,i})).filter(({o})=>{const st=status(o);if(sf!=='semua'&&st!==sf)return false;if(!oq)return true;return `${o.id||o.orderId||''} ${name(o)} ${address(o)} ${phone(o)} ${o.driverNama||''}`.toLowerCase().includes(oq)}).reverse();
     tp.innerHTML=rows.slice(0,150).map(({o,i},n)=>{const assigned=o.driverId?`<strong>${esc(o.driverNama||'Driver')}</strong><br><small>${esc(o.driverWhatsApp||'')}</small>`:'<span style="color:#999">Belum ditugaskan</span>';let act=o.driverId?`<button class="btn btn-gray btn-small" onclick="lepasDriverV24(${i})">Lepas</button>`:`<button class="btn btn-primary btn-small" onclick="tugaskanDriverV24(${i})">Tugaskan</button>`;if(o.driverId&&!['selesai','batal'].includes(status(o)))act+=` <button class="btn btn-success btn-small" onclick="selesaikanAntarV24(${i})">Selesai</button>`;return `<tr><td>${n+1}</td><td><strong>${esc(name(o))}</strong><br><small>${esc(phone(o))}</small></td><td>${esc(address(o))}</td><td><strong>${money(total(o))}</strong></td><td>${typeof statusHTML==='function'?statusHTML(o.status):esc(o.status||'baru')}</td><td>${assigned}</td><td>${act}</td></tr>`}).join('')||'<tr><td colspan="7"><div class="empty">📦 Tidak ada pesanan sesuai filter.</div></td></tr>';
   };
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(renderPengantaranV24,200));
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{renderPengantaranV24();muatDriverSupabaseV24();},200));
   setInterval(()=>{try{renderPengantaranV24()}catch(e){}},5000);
 })();
 </script>
