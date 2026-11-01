@@ -6307,15 +6307,27 @@ setInterval(
     }
   };
 
-  window.tugaskanDriverV24=function(orderIndex){
+  window.tugaskanDriverV24=async function(orderIndex){
     const d=getDriversV24().filter(x=>x.aktif!==false); if(!d.length){alert('Belum ada driver aktif. Tambahkan driver terlebih dahulu.');return;}
     const orders=getOrders(), o=orders[orderIndex]; if(!o)return;
-    const pilihan=d.map((x,i)=>`${i+1}. ${x.nama} (${x.whatsapp})`).join('\n');
-    const raw=prompt('Pilih nomor driver:\n\n'+pilihan); const n=Number(raw)-1; if(!Number.isInteger(n)||!d[n])return;
-    const x=d[n]; o.driverId=x.id;o.driverNama=x.nama;o.driverWhatsApp=x.whatsapp;
-    if(status(o)==='baru'||status(o)==='diproses')o.status='diantar';
-    localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
-    renderPengantaranV24(); if(typeof renderPesanan==='function')renderPesanan(); if(typeof updateDashboard==='function')updateDashboard(); toast('Pesanan ditugaskan ke '+x.nama+'.');
+    const pilihan=d.map((x,i)=>`${i+1}. ${x.nama} (${x.whatsapp})`).join('\\n');
+    const raw=prompt('Pilih nomor driver:\\n\\n'+pilihan); const n=Number(raw)-1; if(!Number.isInteger(n)||!d[n])return;
+    const x=d[n];
+    const orderId=Number(o.supabaseOrderId||o.id);
+    const payload={driver_id:Number(x.id),driver_nama:x.nama,driver_no_wa:x.whatsapp};
+    if(status(o)==='baru'||status(o)==='diproses')payload.status='diantar';
+    try{
+      const {data,error}=await supabaseClient.from('pesanan').update(payload).eq('id',orderId)
+        .select('id,driver_id,driver_nama,driver_no_wa,status').single();
+      if(error)throw error;
+      o.driverId=data.driver_id;o.driverNama=data.driver_nama;o.driverWhatsApp=data.driver_no_wa;o.status=data.status;
+      localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+      renderPengantaranV24(); if(typeof renderPesanan==='function')renderPesanan(); if(typeof updateDashboard==='function')updateDashboard();
+      toast('Pesanan berhasil ditugaskan ke '+x.nama+' dan disimpan ke Supabase.');
+    }catch(err){
+      console.error('Penugasan Supabase gagal:',err);
+      alert('Penugasan gagal disimpan ke Supabase: '+(err?.message||err)+'\\nPeriksa kolom driver_id, driver_nama, driver_no_wa dan izin UPDATE tabel pesanan.');
+    }
   };
   window.lepasDriverV24=function(orderIndex){const orders=getOrders(),o=orders[orderIndex];if(!o)return;delete o.driverId;delete o.driverNama;delete o.driverWhatsApp;localStorage.setItem(ORDER_KEY,JSON.stringify(orders));renderPengantaranV24();toast('Driver dilepas dari pesanan.');};
   window.selesaikanAntarV24=function(orderIndex){const orders=getOrders(),o=orders[orderIndex];if(!o)return;o.status='selesai';o.deliveryCompletedAt=new Date().toISOString();localStorage.setItem(ORDER_KEY,JSON.stringify(orders));renderPengantaranV24();if(typeof renderPesanan==='function')renderPesanan();if(typeof renderRiwayat==='function')renderRiwayat();if(typeof updateDashboard==='function')updateDashboard();toast('Pesanan ditandai selesai.');};
