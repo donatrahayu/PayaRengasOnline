@@ -839,42 +839,10 @@ tr:hover td{
     }
 
 }
-
-/* ===== PINTAR ADMIN AUTH GATE ===== */
-#pintarAuthGate{position:fixed;inset:0;z-index:999999;background:linear-gradient(135deg,#123b2b,#087f5b);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif}
-#pintarAuthCard{background:#fff;width:min(100%,420px);padding:30px;border-radius:18px;box-shadow:0 20px 60px #0003;color:#222}
-#pintarAuthCard h2{margin:0 0 8px;font-size:25px;color:#123b2b}#pintarAuthCard p{margin:0 0 18px;color:#666;line-height:1.5}
-#pintarAuthCard label{display:block;font-weight:600;margin:12px 0 6px}#pintarAuthCard input{width:100%;padding:12px;border:1px solid #cbd5d1;border-radius:8px;font-size:16px}
-#pintarAuthCard button{width:100%;padding:12px;border:0;border-radius:8px;background:#087f5b;color:white;font-weight:bold;font-size:16px;margin-top:14px;cursor:pointer}
-#pintarAuthCard button.secondary{background:transparent;color:#087f5b;text-decoration:underline;margin-top:8px}#pintarAuthMessage{margin-top:14px;font-size:14px;line-height:1.45;color:#9b1c1c}
-#pintarLogoutBtn{position:fixed;right:16px;bottom:16px;z-index:99999;background:#b42318;color:white;border:0;border-radius:8px;padding:10px 14px;font-weight:bold;cursor:pointer}
-
 </style>
 </head>
 
 <body>
-
-<div id="pintarAuthGate" role="dialog" aria-modal="true" aria-label="Login Admin PINTAR">
- <div id="pintarAuthCard">
-  <h2>Admin PINTAR</h2><p>Masuk menggunakan akun administrator.</p>
-  <form id="pintarLoginForm">
-   <label for="pintarEmail">Email</label><input id="pintarEmail" type="email" autocomplete="username" required placeholder="email admin">
-   <label for="pintarPassword">Password</label><input id="pintarPassword" type="password" autocomplete="current-password" required placeholder="Password" minlength="6">
-   <button type="submit">Masuk</button>
-  </form>
-  <button class="secondary" id="pintarForgotBtn" type="button">Lupa password?</button>
-  <form id="pintarRecoveryForm" hidden>
-   <label for="pintarRecoveryEmail">Email pemulihan</label><input id="pintarRecoveryEmail" type="email" required placeholder="email akun admin">
-   <button type="submit">Kirim tautan reset</button><button class="secondary" id="pintarBackLogin" type="button">Kembali ke login</button>
-  </form>
-  <form id="pintarNewPasswordForm" hidden>
-   <label for="pintarNewPassword">Password baru</label><input id="pintarNewPassword" type="password" minlength="8" required autocomplete="new-password" placeholder="Minimal 8 karakter">
-   <button type="submit">Simpan password baru</button>
-  </form>
-  <div id="pintarAuthMessage" aria-live="polite"></div>
- </div>
-</div>
-
 
 <!-- HEADER -->
 <header class="header">
@@ -2623,32 +2591,6 @@ const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_PUBLISHABLE_KEY
 );
-</script>
-<script>
-(function(){
- const gate=document.getElementById('pintarAuthGate'), msg=document.getElementById('pintarAuthMessage');
- const loginForm=document.getElementById('pintarLoginForm'), recoveryForm=document.getElementById('pintarRecoveryForm'), newForm=document.getElementById('pintarNewPasswordForm');
- function message(t,ok){msg.style.color=ok?'#087f5b':'#9b1c1c';msg.textContent=t;}
- function showGate(){gate.style.display='flex';}
- function hideGate(){gate.style.display='none';}
- function showRecovery(){loginForm.hidden=true;recoveryForm.hidden=false;newForm.hidden=true;msg.textContent='';}
- function showLogin(){loginForm.hidden=false;recoveryForm.hidden=true;newForm.hidden=true;msg.textContent='';}
- function showNewPassword(){loginForm.hidden=true;recoveryForm.hidden=true;newForm.hidden=false;}
- async function checkUser(user){
-   if(!user){showGate();return;}
-   if(user.app_metadata && user.app_metadata.role==='admin'){
-     hideGate();
-     if(!document.getElementById('pintarLogoutBtn')){const b=document.createElement('button');b.id='pintarLogoutBtn';b.textContent='Keluar Admin';b.onclick=async()=>{await supabaseClient.auth.signOut();showGate();showLogin();};document.body.appendChild(b);}
-   }else{await supabaseClient.auth.signOut();showGate();showLogin();message('Akun ini tidak memiliki akses administrator.');}
- }
- loginForm.addEventListener('submit',async e=>{e.preventDefault();message('Memeriksa akun…',true);const {data,error}=await supabaseClient.auth.signInWithPassword({email:document.getElementById('pintarEmail').value.trim(),password:document.getElementById('pintarPassword').value});if(error){message('Login gagal: '+error.message);return;}await checkUser(data.user);});
- document.getElementById('pintarForgotBtn').addEventListener('click',showRecovery);
- document.getElementById('pintarBackLogin').addEventListener('click',showLogin);
- recoveryForm.addEventListener('submit',async e=>{e.preventDefault();const email=document.getElementById('pintarRecoveryEmail').value.trim();const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error){message('Gagal mengirim email: '+error.message);return;}message('Jika email terdaftar, tautan pemulihan telah dikirim. Periksa kotak masuk dan folder spam.',true);});
- newForm.addEventListener('submit',async e=>{e.preventDefault();const password=document.getElementById('pintarNewPassword').value;if(password.length<8){message('Password minimal 8 karakter.');return;}const {error}=await supabaseClient.auth.updateUser({password});if(error){message('Gagal memperbarui password: '+error.message);return;}message('Password berhasil diperbarui. Silakan login kembali.',true);await supabaseClient.auth.signOut();showLogin();});
- supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){showGate();showNewPassword();}else if(session){checkUser(session.user);}else{showGate();}});
- supabaseClient.auth.getSession().then(({data})=>{const recovery=new URLSearchParams(location.hash.slice(1)).get('type')==='recovery';if(recovery){showGate();showNewPassword();}else{checkUser(data.session?.user||null);}});
-})();
 </script>
 
 <script>
