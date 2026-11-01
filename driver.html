@@ -176,6 +176,32 @@ footer{
   .card{padding:16px}
   .profiletop{align-items:flex-start}
 }
+
+/* NAVIGASI DRIVER */
+.driver-shell{display:none}
+.driver-shell.active{display:block}
+.menu-bar{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:9px;
+  margin-bottom:16px;
+}
+.menu-item{
+  border:1px solid var(--line);background:#fff;border-radius:13px;
+  padding:12px 8px;text-align:center;font-weight:700;font-size:13px;
+  cursor:pointer;color:var(--ink);box-shadow:0 2px 8px #00000005;
+}
+.menu-item .menu-icon{display:block;font-size:22px;margin-bottom:5px}
+.menu-item.active{background:var(--yellow);border-color:var(--yellow)}
+.page-panel{display:none}
+.page-panel.active{display:block}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat-box{background:#fff9df;border:1px solid #ffedab;border-radius:13px;padding:14px}
+.stat-box strong{display:block;font-size:23px;margin-bottom:5px}
+.stat-box span{font-size:12px;color:var(--muted)}
+.menu-empty{padding:18px;border:1px dashed #ddd;border-radius:12px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+.profile-nav-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22a05a;margin-right:6px}
+@media(max-width:560px){.menu-bar{grid-template-columns:repeat(3,1fr)}.menu-item{padding:10px 5px;font-size:12px}}
+
 </style>
 </head>
 
@@ -222,8 +248,64 @@ footer{
     </div>
   </section>
 
+  <!-- AREA DRIVER: MENU + HALAMAN -->
+  <div id="driverShell" class="driver-shell">
+    <div class="card">
+      <div class="profile-nav-head">
+        <div>
+          <h2 style="margin-bottom:5px">Menu Driver</h2>
+          <div class="sub">PINTAR · Pesan Siap Antar</div>
+        </div>
+        <span class="pill"><span class="status-dot"></span>Aktif</span>
+      </div>
+      <nav class="menu-bar" aria-label="Menu Driver">
+        <button class="menu-item active" data-page="home"><span class="menu-icon">🏠</span>Beranda</button>
+        <button class="menu-item" data-page="incoming"><span class="menu-icon">📦</span>Pesanan Masuk</button>
+        <button class="menu-item" data-page="myorders"><span class="menu-icon">🛵</span>Pesanan Saya</button>
+        <button class="menu-item" data-page="history"><span class="menu-icon">📋</span>Riwayat</button>
+        <button class="menu-item" data-page="balance"><span class="menu-icon">💰</span>Saldo</button>
+        <button class="menu-item" data-page="profile"><span class="menu-icon">👤</span>Profil</button>
+      </nav>
+    </div>
+
+    <section class="card page-panel active" id="page-home">
+      <h2 id="welcomeTitle">Beranda Driver</h2>
+      <p class="sub" style="margin-top:-5px;margin-bottom:16px">Selamat bertugas. Pantau aktivitas pengantaran dari sini.</p>
+      <div class="stat-grid">
+        <div class="stat-box"><strong id="countIncoming">—</strong><span>Pesanan masuk</span></div>
+        <div class="stat-box"><strong id="countActive">—</strong><span>Pesanan aktif</span></div>
+        <div class="stat-box"><strong id="countDone">—</strong><span>Pesanan selesai</span></div>
+        <div class="stat-box"><strong>Aktif</strong><span>Status akun driver</span></div>
+      </div>
+      <div class="notice">Menu sudah disiapkan. Data pesanan dan saldo akan dihubungkan ke tabel Supabase setelah struktur tabel dan alur pesanan dipastikan.</div>
+    </section>
+
+    <section class="card page-panel" id="page-incoming">
+      <h2>Pesanan Masuk</h2>
+      <p class="sub">Pesanan yang tersedia untuk diterima driver akan ditampilkan di sini.</p>
+      <div class="menu-empty">Belum ada pesanan masuk.<br>Daftar pesanan akan muncul setelah menu ini dihubungkan ke data pesanan PINTAR.</div>
+    </section>
+
+    <section class="card page-panel" id="page-myorders">
+      <h2>Pesanan Saya</h2>
+      <p class="sub">Pantau pesanan yang sudah diterima dan sedang diantar.</p>
+      <div class="menu-empty">Belum ada pesanan aktif.</div>
+    </section>
+
+    <section class="card page-panel" id="page-history">
+      <h2>Riwayat Pengantaran</h2>
+      <p class="sub">Daftar pesanan yang sudah selesai diantar.</p>
+      <div class="menu-empty">Riwayat pengantaran akan tampil setelah terhubung dengan data pesanan.</div>
+    </section>
+
+    <section class="card page-panel" id="page-balance">
+      <h2>Saldo Driver</h2>
+      <p class="sub">Informasi saldo, deposit, dan transaksi driver.</p>
+      <div class="menu-empty">Saldo belum ditampilkan karena sumber data saldo belum dihubungkan.</div>
+    </section>
+
   <!-- PROFIL DRIVER -->
-  <section id="profileCard" class="card hidden">
+  <section id="profileCard" class="card page-panel hidden">
 
     <div class="profiletop">
       <div class="avatar" id="avatar">👤</div>
@@ -285,6 +367,7 @@ footer{
     </div>
 
   </section>
+  </div><!-- /driverShell -->
 
 </main>
 
@@ -309,6 +392,28 @@ const db = window.supabase.createClient(
 
 const $ = id => document.getElementById(id);
 
+function showDriverPage(page) {
+  document.querySelectorAll(".menu-item").forEach(function(button) {
+    button.classList.toggle("active", button.dataset.page === page);
+  });
+  document.querySelectorAll(".page-panel").forEach(function(panel) {
+    panel.classList.toggle("active", panel.id === "page-" + page);
+  });
+  // Profil panel should remain visible only when the Profile menu is selected.
+  if (page === "profile") {
+    $("profileCard").classList.remove("hidden");
+  } else {
+    $("profileCard").classList.add("hidden");
+  }
+}
+
+document.querySelectorAll(".menu-item").forEach(function(button) {
+  button.addEventListener("click", function() {
+    showDriverPage(button.dataset.page);
+  });
+});
+
+
 let driverRow = null;
 let photoPreviewUrl = null;
 
@@ -330,7 +435,10 @@ function showProfile(row) {
   driverRow = row;
 
   $("loginCard").classList.add("hidden");
+  $("driverShell").classList.add("active");
   $("profileCard").classList.remove("hidden");
+  $("welcomeTitle").textContent = "Halo, " + (row.nama || "Driver") + "!";
+  showDriverPage("home");
 
   $("nama").value = row.nama || "";
   $("wa").value = row.no_wa || "";
@@ -743,6 +851,7 @@ $("logoutBtn").addEventListener("click", async function() {
     driverRow = null;
 
     $("profileCard").classList.add("hidden");
+    $("driverShell").classList.remove("active");
     $("loginCard").classList.remove("hidden");
 
     $("password").value = "";
@@ -812,6 +921,7 @@ db.auth.onAuthStateChange(function(event, session) {
     driverRow = null;
 
     $("profileCard").classList.add("hidden");
+    $("driverShell").classList.remove("active");
     $("loginCard").classList.remove("hidden");
 
   }
