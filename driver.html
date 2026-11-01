@@ -451,6 +451,13 @@ $("loginBtn").addEventListener("click", async function() {
     });
 
     if (error) {
+      if ((error.message || "").toLowerCase().includes("invalid login credentials")) {
+        throw new Error(
+          "Email atau password tidak cocok. Jika email ini sudah pernah terdaftar, " +
+          "mendaftar ulang tidak mengganti password akun lama. Password perlu " +
+          "direset melalui email pemulihan atau oleh administrator secara aman."
+        );
+      }
       throw error;
     }
 
@@ -515,8 +522,11 @@ $("registerBtn").addEventListener("click", async function() {
     } else {
       msg(
         "loginMsg",
-        "Pendaftaran diterima. Silakan cek email untuk konfirmasi akun. " +
-        "Pastikan email ini sudah didaftarkan admin pada data driver."
+        "Permintaan pendaftaran diproses, tetapi sesi login belum terbentuk. " +
+        "Jika email ini sudah pernah terdaftar di Supabase, pendaftaran ulang " +
+        "tidak mengubah password akun lama. Gunakan password akun yang sudah ada " +
+        "atau lakukan reset password. Jika akun baru, selesaikan konfirmasi email. " +
+        "Data driver admin harus memakai email yang sama."
       );
     }
   } catch (e) {
