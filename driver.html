@@ -1,129 +1,733 @@
 <!doctype html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PINTAR — Driver</title>
+
 <style>
-:root{--yellow:#ffc928;--ink:#171717;--muted:#737373;--line:#e8e8e8;--bg:#f5f5f5}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
-header{background:var(--ink);color:white;padding:17px 20px;display:flex;align-items:center;gap:12px}
-.logo{background:var(--yellow);color:#171717;font-weight:900;border-radius:12px;padding:9px 12px;font-size:20px}
-header strong{font-size:19px}header small{display:block;color:#ddd;margin-top:3px}
-main{max-width:760px;margin:24px auto;padding:0 14px}.card{background:white;border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 4px 18px #00000008}
-h2{font-size:18px;margin:0 0 15px}.sub{color:var(--muted);font-size:13px;line-height:1.5}
-.profiletop{display:flex;align-items:center;gap:16px;margin-bottom:20px}
-.avatar{width:76px;height:76px;border-radius:50%;background:#fff4c9;border:2px solid var(--yellow);display:grid;place-items:center;font-size:29px;overflow:hidden}
-.avatar img{width:100%;height:100%;object-fit:cover}.identity b{font-size:20px}.identity p{margin:6px 0;color:var(--muted);font-size:13px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.field input,.field select{width:100%;border:1px solid #ddd;border-radius:10px;padding:12px;font-size:14px;background:white}
-button{border:0;border-radius:11px;background:var(--yellow);color:#171717;font-weight:700;padding:13px 16px;cursor:pointer}button.dark{background:#171717;color:white}button:disabled{opacity:.5}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.notice{border-radius:12px;background:#fff7d6;padding:12px;font-size:13px;line-height:1.5;margin-top:14px}
-.login{max-width:420px;margin:32px auto}.login input{width:100%;padding:13px;border:1px solid #ddd;border-radius:10px;margin:6px 0 12px}
-.hidden{display:none!important}.pill{display:inline-block;background:#fff0b0;padding:6px 10px;border-radius:20px;font-size:12px;font-weight:bold}
-footer{text-align:center;color:#777;font-size:12px;padding:16px}
-@media(max-width:560px){.grid{grid-template-columns:1fr}.card{padding:16px}.profiletop{align-items:flex-start}}
+:root{
+  --yellow:#ffc928;
+  --ink:#171717;
+  --muted:#737373;
+  --line:#e8e8e8;
+  --bg:#f5f5f5;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+}
+header{
+  background:var(--ink);
+  color:white;
+  padding:17px 20px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.logo{
+  background:var(--yellow);
+  color:#171717;
+  font-weight:900;
+  border-radius:12px;
+  padding:9px 12px;
+  font-size:20px;
+}
+header strong{font-size:19px}
+header small{
+  display:block;
+  color:#ddd;
+  margin-top:3px;
+}
+main{
+  max-width:760px;
+  margin:24px auto;
+  padding:0 14px;
+}
+.card{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:0 4px 18px #00000008;
+}
+h2{
+  font-size:18px;
+  margin:0 0 15px;
+}
+.sub{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+.profiletop{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:20px;
+}
+.avatar{
+  width:76px;
+  height:76px;
+  border-radius:50%;
+  background:#fff4c9;
+  border:2px solid var(--yellow);
+  display:grid;
+  place-items:center;
+  font-size:29px;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.identity b{font-size:20px}
+.identity p{
+  margin:6px 0;
+  color:var(--muted);
+  font-size:13px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.field label{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.field input,
+.field select{
+  width:100%;
+  border:1px solid #ddd;
+  border-radius:10px;
+  padding:12px;
+  font-size:14px;
+  background:white;
+}
+button{
+  border:0;
+  border-radius:11px;
+  background:var(--yellow);
+  color:#171717;
+  font-weight:700;
+  padding:13px 16px;
+  cursor:pointer;
+}
+button.dark{
+  background:#171717;
+  color:white;
+}
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+.notice{
+  border-radius:12px;
+  background:#fff7d6;
+  padding:12px;
+  font-size:13px;
+  line-height:1.5;
+  margin-top:14px;
+  overflow-wrap:anywhere;
+}
+.login{
+  max-width:420px;
+  margin:32px auto;
+}
+.login input{
+  width:100%;
+  padding:13px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  margin:6px 0 12px;
+}
+.hidden{display:none!important}
+.pill{
+  display:inline-block;
+  background:#fff0b0;
+  padding:6px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+}
+footer{
+  text-align:center;
+  color:#777;
+  font-size:12px;
+  padding:16px;
+}
+@media(max-width:560px){
+  .grid{grid-template-columns:1fr}
+  .card{padding:16px}
+  .profiletop{align-items:flex-start}
+}
 </style>
 </head>
+
 <body>
-<header><div class="logo">P</div><div><strong>PINTAR Driver</strong><small>Pesan Siap Antar · Paya Rengas</small></div></header>
+
+<header>
+  <div class="logo">P</div>
+  <div>
+    <strong>PINTAR Driver</strong>
+    <small>Pesan Siap Antar · Paya Rengas</small>
+  </div>
+</header>
+
 <main>
-<section class="card login" id="loginCard">
-<h2>Masuk Driver</h2><p class="sub">Gunakan akun driver yang telah didaftarkan oleh admin.</p>
-<label class="sub" for="email">Email akun driver</label><input id="email" type="email" placeholder="driver@email.com" autocomplete="username">
-<label class="sub" for="password">Password</label><input id="password" type="password" placeholder="Password" autocomplete="current-password">
-<button id="loginBtn" style="width:100%">Masuk</button>
-<div id="loginMsg" class="notice">Silakan masuk menggunakan akun driver PINTAR.</div>
-</section>
-<section id="profileCard" class="card hidden">
-<div class="profiletop"><div class="avatar" id="avatar">👤</div><div class="identity"><b id="displayName">Profil Driver</b><p id="displayId">ID Driver: —</p><span class="pill">Akun Driver</span></div></div>
-<h2>Identitas Driver</h2>
-<div class="grid">
-<div class="field"><label>Nama lengkap</label><input id="nama" placeholder="Nama driver"></div>
-<div class="field"><label>Nomor WhatsApp</label><input id="wa" placeholder="08xxxxxxxxxx" inputmode="tel"></div>
-<div class="field"><label>Jenis kendaraan</label><select id="kendaraan"><option value="">Pilih kendaraan</option><option>Sepeda motor</option><option>Mobil</option><option>Lainnya</option></select></div>
-<div class="field"><label>Nomor polisi</label><input id="plat" placeholder="Contoh: BK 1234 ABC"></div>
-<div class="field"><label>Foto profil (pratinjau saja)</label><input id="foto" type="file" accept="image/*"></div>
-</div>
-<div class="actions"><button id="saveBtn">Simpan Profil</button><button class="dark" id="logoutBtn">Keluar</button></div>
-<div id="profileMsg" class="notice">Profil terhubung dengan akun Supabase yang sedang masuk.</div>
-</section>
-</main><footer>PINTAR · Versi uji coba driver</footer>
+
+  <!-- LOGIN DRIVER -->
+  <section class="card login" id="loginCard">
+    <h2>Masuk Driver</h2>
+    <p class="sub">
+      Gunakan akun driver yang telah didaftarkan oleh admin.
+    </p>
+
+    <label class="sub" for="email">Email akun driver</label>
+    <input
+      id="email"
+      type="email"
+      placeholder="driver@email.com"
+      autocomplete="username"
+    >
+
+    <label class="sub" for="password">Password</label>
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+      autocomplete="current-password"
+    >
+
+    <button id="loginBtn" style="width:100%">Masuk</button>
+
+    <div id="loginMsg" class="notice">
+      Silakan masuk menggunakan akun driver PINTAR.
+    </div>
+  </section>
+
+  <!-- PROFIL DRIVER -->
+  <section id="profileCard" class="card hidden">
+
+    <div class="profiletop">
+      <div class="avatar" id="avatar">👤</div>
+
+      <div class="identity">
+        <b id="displayName">Profil Driver</b>
+        <p id="displayId">ID Driver: —</p>
+        <span class="pill">Akun Driver</span>
+      </div>
+    </div>
+
+    <h2>Identitas Driver</h2>
+
+    <div class="grid">
+
+      <div class="field">
+        <label for="nama">Nama lengkap</label>
+        <input id="nama" placeholder="Nama driver">
+      </div>
+
+      <div class="field">
+        <label for="wa">Nomor WhatsApp</label>
+        <input
+          id="wa"
+          placeholder="08xxxxxxxxxx"
+          inputmode="tel"
+        >
+      </div>
+
+      <div class="field">
+        <label for="kendaraan">Jenis kendaraan</label>
+        <select id="kendaraan">
+          <option value="">Pilih kendaraan</option>
+          <option value="Sepeda motor">Sepeda motor</option>
+          <option value="Mobil">Mobil</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="plat">Nomor polisi</label>
+        <input id="plat" placeholder="Contoh: BK 1234 ABC">
+      </div>
+
+      <div class="field">
+        <label for="foto">Foto profil (pratinjau saja)</label>
+        <input id="foto" type="file" accept="image/*">
+      </div>
+
+    </div>
+
+    <div class="actions">
+      <button id="saveBtn">Simpan Profil</button>
+      <button class="dark" id="logoutBtn">Keluar</button>
+    </div>
+
+    <div id="profileMsg" class="notice">
+      Profil terhubung dengan akun Supabase yang sedang masuk.
+    </div>
+
+  </section>
+
+</main>
+
+<footer>PINTAR · Versi uji coba driver</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-/* Gunakan hanya Project URL dan publishable/anon key. Jangan taruh service_role key di browser. */
+/* =====================================================
+   KONFIGURASI SUPABASE
+   Gunakan Project URL dan publishable/anon key.
+   Jangan pernah memasukkan service_role key di browser.
+===================================================== */
+
 const SUPABASE_URL = "https://kktamroqhsheiiiiffoo.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_0SQdiECEZD6oNp-bjZcTyg_FJYHeJv8";
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const $ = id => document.getElementById(id);
-let driverRow = null, photoPreviewUrl = null;
 
-function msg(id, text){ $(id).textContent = text; }
-function showProfile(row){
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+const $ = id => document.getElementById(id);
+
+let driverRow = null;
+let photoPreviewUrl = null;
+
+
+/* =====================================================
+   PESAN
+===================================================== */
+
+function msg(id, text) {
+  $(id).textContent = text;
+}
+
+
+/* =====================================================
+   TAMPILKAN PROFIL DRIVER
+===================================================== */
+
+function showProfile(row) {
   driverRow = row;
-  $("loginCard").classList.add("hidden"); $("profileCard").classList.remove("hidden");
-  $("nama").value = row.nama || ""; $("wa").value = row.no_wa || "";
-  $("kendaraan").value = row.kendaraan || ""; $("plat").value = row.plat_nomor || "";
+
+  $("loginCard").classList.add("hidden");
+  $("profileCard").classList.remove("hidden");
+
+  $("nama").value = row.nama || "";
+  $("wa").value = row.no_wa || "";
+  $("kendaraan").value = row.kendaraan || "";
+  $("plat").value = row.plat_nomor || "";
+
   $("displayName").textContent = row.nama || "Profil Driver";
   $("displayId").textContent = "ID Driver: " + (row.id ?? "—");
-  if(row.foto_url){ $("avatar").innerHTML = ""; const im=document.createElement("img"); im.src=row.foto_url; $("avatar").appendChild(im); }
+
+  $("avatar").innerHTML = "";
+
+  if (row.foto_url) {
+    const img = document.createElement("img");
+    img.src = row.foto_url;
+    img.alt = "Foto driver";
+    $("avatar").appendChild(img);
+  } else {
+    $("avatar").textContent = "👤";
+  }
 }
-async function loadDriver(user){
-  // Utamakan kaitan ID Auth; jika belum ada, cocokkan email untuk memasangkan akun lama.
-  let {data, error} = await db.from("driver").select("*").eq("auth_user_id", user.id).maybeSingle();
-  if(error) throw error;
-  if(!data && user.email){
-    const found = await db.from("driver").select("*").ilike("email", user.email).maybeSingle();
-    if(found.error) throw found.error;
-    if(found.data){
-      const linked = await db.from("driver").update({auth_user_id:user.id}).eq("id",found.data.id).select("*").single();
-      if(linked.error) throw linked.error;
+
+
+/* =====================================================
+   MUAT PROFIL DRIVER DARI SUPABASE
+===================================================== */
+
+async function loadDriver(user) {
+
+  if (!user || !user.id) {
+    throw new Error("Akun login tidak ditemukan.");
+  }
+
+  /*
+    1. Cari berdasarkan auth_user_id.
+    2. Jika belum terhubung, cari berdasarkan email.
+    3. Hubungkan akun Auth dengan data driver yang ditemukan.
+  */
+
+  let { data, error } = await db
+    .from("driver")
+    .select("*")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Gagal mencari profil driver: " + error.message);
+  }
+
+  if (!data && user.email) {
+
+    const found = await db
+      .from("driver")
+      .select("*")
+      .ilike("email", user.email)
+      .maybeSingle();
+
+    if (found.error) {
+      throw new Error(
+        "Gagal mencari email driver: " + found.error.message
+      );
+    }
+
+    if (found.data) {
+
+      const linked = await db
+        .from("driver")
+        .update({
+          auth_user_id: user.id
+        })
+        .eq("id", found.data.id)
+        .select("*")
+        .single();
+
+      if (linked.error) {
+        throw new Error(
+          "Gagal menghubungkan akun driver: " + linked.error.message
+        );
+      }
+
       data = linked.data;
     }
   }
-  if(!data) throw new Error("Profil driver belum ditemukan. Admin perlu menambahkan baris driver dan mengisi email akun ini pada tabel driver.");
+
+  if (!data) {
+    throw new Error(
+      "Profil driver belum ditemukan. " +
+      "Pastikan data driver sudah tersedia di tabel driver " +
+      "dan emailnya sama dengan email akun login."
+    );
+  }
+
   showProfile(data);
 }
-$("loginBtn").addEventListener("click", async ()=>{
-  const email=$("email").value.trim(), password=$("password").value;
-  if(!email || !password){msg("loginMsg","Isi email dan password terlebih dahulu.");return;}
-  $("loginBtn").disabled=true; msg("loginMsg","Sedang masuk...");
-  try{
-    const {data,error}=await db.auth.signInWithPassword({email,password});
-    if(error) throw error;
+
+
+/* =====================================================
+   LOGIN DRIVER
+===================================================== */
+
+$("loginBtn").addEventListener("click", async function() {
+
+  const email = $("email").value.trim();
+  const password = $("password").value;
+
+  if (!email || !password) {
+    msg("loginMsg", "Isi email dan password terlebih dahulu.");
+    return;
+  }
+
+  $("loginBtn").disabled = true;
+  msg("loginMsg", "Sedang masuk...");
+
+  try {
+
+    const { data, error } = await db.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      throw error;
+    }
+
     await loadDriver(data.user);
-    msg("profileMsg","Berhasil masuk. Periksa data profil dan tekan Simpan Profil bila ada perubahan.");
-  }catch(e){msg("loginMsg",e.message || "Login gagal.");}
-  finally{$("loginBtn").disabled=false;}
+
+    msg(
+      "profileMsg",
+      "Berhasil masuk. Periksa data profil dan tekan Simpan Profil bila ada perubahan."
+    );
+
+  } catch (e) {
+
+    console.error("Login driver:", e);
+
+    msg(
+      "loginMsg",
+      e.message || "Login gagal. Periksa email dan password."
+    );
+
+  } finally {
+
+    $("loginBtn").disabled = false;
+
+  }
+
 });
-$("saveBtn").addEventListener("click",async()=>{
-  if(!driverRow){msg("profileMsg","Sesi driver belum ditemukan. Silakan masuk kembali.");return;}
-  const {data:{user},error:authError}=await db.auth.getUser();
-  if(authError || !user){msg("profileMsg","Sesi login tidak valid. Silakan masuk kembali.");return;}
-  const updates={nama:$("nama").value.trim(),no_wa:$("wa").value.trim(),kendaraan:$("kendaraan").value,plat_nomor:$("plat").value.trim(),auth_user_id:user.id,email:user.email};
-  $("saveBtn").disabled=true;msg("profileMsg","Menyimpan profil...");
-  try{
-    const {data,error}=await db.from("driver").update(updates).eq("id",driverRow.id).select("*").single();
-    if(error) throw error;
-    driverRow=data;$("displayName").textContent=data.nama || "Profil Driver";
-    msg("profileMsg","Profil berhasil disimpan ke Supabase.");
-  }catch(e){msg("profileMsg","Gagal menyimpan: "+(e.message||"periksa izin tabel driver."));}
-  finally{$("saveBtn").disabled=false;}
+
+
+/* =====================================================
+   SIMPAN PROFIL DRIVER KE SUPABASE
+===================================================== */
+
+$("saveBtn").addEventListener("click", async function() {
+
+  if (!driverRow || !driverRow.id) {
+    msg(
+      "profileMsg",
+      "Sesi driver belum ditemukan. Silakan masuk kembali."
+    );
+    return;
+  }
+
+  $("saveBtn").disabled = true;
+  msg("profileMsg", "Memeriksa sesi login...");
+
+  try {
+
+    /*
+      Ambil akun Auth yang sedang aktif.
+    */
+
+    const {
+      data: { user },
+      error: authError
+    } = await db.auth.getUser();
+
+    if (authError) {
+      throw authError;
+    }
+
+    if (!user) {
+      throw new Error(
+        "Sesi login tidak valid. Silakan masuk kembali."
+      );
+    }
+
+    /*
+      Data yang disimpan ke tabel driver.
+      ID driver tidak diganti.
+    */
+
+    const updates = {
+      nama: $("nama").value.trim(),
+      no_wa: $("wa").value.trim(),
+      kendaraan: $("kendaraan").value,
+      plat_nomor: $("plat").value.trim(),
+      auth_user_id: user.id,
+      email: user.email
+    };
+
+    if (!updates.nama) {
+      throw new Error("Nama driver wajib diisi.");
+    }
+
+    if (!updates.no_wa) {
+      throw new Error("Nomor WhatsApp wajib diisi.");
+    }
+
+    msg("profileMsg", "Menyimpan profil ke Supabase...");
+
+    /*
+      Update baris driver berdasarkan ID driver yang sudah dimuat.
+    */
+
+    const { data, error } = await db
+      .from("driver")
+      .update(updates)
+      .eq("id", driverRow.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error(
+        "Supabase tidak mengembalikan data profil setelah penyimpanan."
+      );
+    }
+
+    /*
+      Perbarui data lokal halaman setelah Supabase berhasil.
+    */
+
+    driverRow = data;
+
+    $("displayName").textContent = data.nama || "Profil Driver";
+    $("displayId").textContent = "ID Driver: " + (data.id ?? "—");
+
+    msg(
+      "profileMsg",
+      "✅ Profil berhasil disimpan ke Supabase."
+    );
+
+  } catch (e) {
+
+    console.error("Gagal menyimpan profil driver:", e);
+
+    msg(
+      "profileMsg",
+      "❌ Gagal menyimpan profil: " +
+      (e.message || "Periksa izin tabel driver di Supabase.")
+    );
+
+  } finally {
+
+    $("saveBtn").disabled = false;
+
+  }
+
 });
-$("foto").addEventListener("change",e=>{
-  const f=e.target.files?.[0];if(!f)return;
-  if(photoPreviewUrl)URL.revokeObjectURL(photoPreviewUrl);
-  photoPreviewUrl=URL.createObjectURL(f);$("avatar").innerHTML="";
-  const img=document.createElement("img");img.src=photoPreviewUrl;$("avatar").appendChild(img);
-  msg("profileMsg","Foto hanya tampil sebagai pratinjau. Upload foto permanen memerlukan bucket Storage Supabase.");
+
+
+/* =====================================================
+   FOTO PROFIL - PRATINJAU SAJA
+===================================================== */
+
+$("foto").addEventListener("change", function(e) {
+
+  const file = e.target.files && e.target.files[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    msg("profileMsg", "File yang dipilih harus berupa gambar.");
+    $("foto").value = "";
+    return;
+  }
+
+  if (photoPreviewUrl) {
+    URL.revokeObjectURL(photoPreviewUrl);
+  }
+
+  photoPreviewUrl = URL.createObjectURL(file);
+
+  $("avatar").innerHTML = "";
+
+  const img = document.createElement("img");
+  img.src = photoPreviewUrl;
+  img.alt = "Pratinjau foto driver";
+
+  $("avatar").appendChild(img);
+
+  msg(
+    "profileMsg",
+    "Foto hanya tampil sebagai pratinjau. " +
+    "Upload foto permanen memerlukan bucket Storage Supabase."
+  );
+
 });
-$("logoutBtn").addEventListener("click",async()=>{
-  const {error}=await db.auth.signOut();
-  if(error){msg("profileMsg","Gagal keluar: "+error.message);return;}
-  driverRow=null;$("profileCard").classList.add("hidden");$("loginCard").classList.remove("hidden");
-  $("password").value="";msg("loginMsg","Anda sudah keluar dari akun driver.");
+
+
+/* =====================================================
+   LOGOUT DRIVER
+===================================================== */
+
+$("logoutBtn").addEventListener("click", async function() {
+
+  $("logoutBtn").disabled = true;
+
+  try {
+
+    const { error } = await db.auth.signOut();
+
+    if (error) {
+      throw error;
+    }
+
+    driverRow = null;
+
+    $("profileCard").classList.add("hidden");
+    $("loginCard").classList.remove("hidden");
+
+    $("password").value = "";
+
+    msg(
+      "loginMsg",
+      "Anda sudah keluar dari akun driver."
+    );
+
+  } catch (e) {
+
+    msg(
+      "profileMsg",
+      "Gagal keluar: " + e.message
+    );
+
+  } finally {
+
+    $("logoutBtn").disabled = false;
+
+  }
+
 });
-db.auth.getSession().then(async({data,error})=>{
-  if(error)return;
-  if(data.session){try{await loadDriver(data.session.user);}catch(e){msg("loginMsg",e.message);$("loginCard").classList.remove("hidden");$("profileCard").classList.add("hidden");}}
+
+
+/* =====================================================
+   PULIHKAN SESI LOGIN
+===================================================== */
+
+db.auth.getSession().then(async function({ data, error }) {
+
+  if (error) {
+    console.error("Gagal memeriksa sesi:", error);
+    return;
+  }
+
+  if (data.session) {
+
+    try {
+
+      await loadDriver(data.session.user);
+
+    } catch (e) {
+
+      console.error("Gagal memuat profil:", e);
+
+      msg("loginMsg", e.message);
+
+      $("loginCard").classList.remove("hidden");
+      $("profileCard").classList.add("hidden");
+
+    }
+
+  }
+
 });
+
+
+/* =====================================================
+   PERUBAHAN STATUS SESI AUTH
+===================================================== */
+
+db.auth.onAuthStateChange(function(event, session) {
+
+  if (event === "SIGNED_OUT") {
+
+    driverRow = null;
+
+    $("profileCard").classList.add("hidden");
+    $("loginCard").classList.remove("hidden");
+
+  }
+
+});
+
 </script>
-</body></html>
+
+</body>
+</html>
