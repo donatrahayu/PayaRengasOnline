@@ -14,10 +14,21 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_0SQdiECEZD6oNp-bjZcTyg_FJYHeJv8";
 
+// Halaman pelanggan tidak memerlukan sesi login Supabase.
+// Isolasi dari sesi Admin agar permintaan data publik tetap memakai
+// publishable/anon key dan tidak mewarisi sesi authenticated di browser.
 const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
+        SUPABASE_PUBLISHABLE_KEY,
+        {
+            auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false,
+                storageKey: "paya-rengas-pelanggan-public-auth"
+            }
+        }
     );
 
 
