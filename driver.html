@@ -202,6 +202,13 @@ footer{
 .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22a05a;margin-right:6px}
 @media(max-width:560px){.menu-bar{grid-template-columns:repeat(3,1fr)}.menu-item{padding:10px 5px;font-size:12px}}
 
+
+.order-card{border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0;background:#fff}
+.order-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:9px}
+.order-id{font-weight:800}.order-meta{font-size:12px;color:var(--muted);line-height:1.55;margin-top:8px}
+.order-total{font-weight:800;margin-top:9px}.order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.order-actions button{padding:10px 12px;font-size:13px}.status-tag{background:#fff3c4;border-radius:20px;padding:5px 9px;font-size:11px;font-weight:700;white-space:nowrap}
+
 </style>
 </head>
 
@@ -277,31 +284,33 @@ footer{
         <div class="stat-box"><strong id="countDone">—</strong><span>Pesanan selesai</span></div>
         <div class="stat-box"><strong>Aktif</strong><span>Status akun driver</span></div>
       </div>
-      <div class="notice">Menu sudah disiapkan. Data pesanan dan saldo akan dihubungkan ke tabel Supabase setelah struktur tabel dan alur pesanan dipastikan.</div>
+      <div class="notice">Pesanan tersedia hanya menampilkan pesanan yang belum diambil. Pesanan Saya dan Riwayat hanya menampilkan pesanan milik akun driver ini.</div>
+      <div class="actions"><button id="refreshOrdersBtn" class="dark">Muat Ulang Pesanan</button></div>
+      <div id="ordersMsg" class="sub" style="margin-top:10px">Menunggu data pesanan...</div>
     </section>
 
     <section class="card page-panel" id="page-incoming">
       <h2>Pesanan Masuk</h2>
       <p class="sub">Pesanan yang tersedia untuk diterima driver akan ditampilkan di sini.</p>
-      <div class="menu-empty">Belum ada pesanan masuk.<br>Daftar pesanan akan muncul setelah menu ini dihubungkan ke data pesanan PINTAR.</div>
+      <div id="incomingList"><div class="menu-empty">Memuat pesanan tersedia...</div></div>
     </section>
 
     <section class="card page-panel" id="page-myorders">
       <h2>Pesanan Saya</h2>
       <p class="sub">Pantau pesanan yang sudah diterima dan sedang diantar.</p>
-      <div class="menu-empty">Belum ada pesanan aktif.</div>
+      <div id="myOrdersList"><div class="menu-empty">Memuat pesanan milik Anda...</div></div>
     </section>
 
     <section class="card page-panel" id="page-history">
       <h2>Riwayat Pengantaran</h2>
       <p class="sub">Daftar pesanan yang sudah selesai diantar.</p>
-      <div class="menu-empty">Riwayat pengantaran akan tampil setelah terhubung dengan data pesanan.</div>
+      <div id="historyList"><div class="menu-empty">Memuat riwayat...</div></div>
     </section>
 
     <section class="card page-panel" id="page-balance">
       <h2>Saldo Driver</h2>
       <p class="sub">Informasi saldo, deposit, dan transaksi driver.</p>
-      <div class="menu-empty">Saldo belum ditampilkan karena sumber data saldo belum dihubungkan.</div>
+      <div class="menu-empty">Fitur saldo belum dihubungkan ke tabel transaksi driver. Menu pesanan dan pengantaran sudah memakai tabel pesanan Supabase.</div>
     </section>
 
   <!-- PROFIL DRIVER -->
@@ -531,6 +540,9 @@ async function loadDriver(user) {
   }
 
   showProfile(data);
+  await refreshDriverOrders(true);
+  if(driverOrdersRefreshTimer)clearInterval(driverOrdersRefreshTimer);
+  driverOrdersRefreshTimer=setInterval(()=>refreshDriverOrders(false),15000);
 }
 
 
@@ -833,6 +845,110 @@ $("foto").addEventListener("change", function(e) {
 
 
 /* =====================================================
+   INTEGRASI PESANAN DRIVER
+   Driver hanya dapat melihat pesanan yang belum diambil
+   atau pesanan yang driver_id-nya sama dengan ID dirinya.
+===================================================== */
+let driverOrdersRefreshTimer = null;
+let driverOrdersBusy = false;
+
+const DRIVER_ORDER_SELECT = 'id,created_at,nama_pelanggan,no_wa,"alamat pengantara",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,items,driver_id,driver_nama,driver_no_wa';
+const ACTIVE_ORDER_STATUSES = ['baru','diproses','diantar'];
+
+function driverEsc(value){
+  return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function driverMoney(value){
+  return 'Rp' + (Number(value)||0).toLocaleString('id-ID');
+}
+function driverStatus(value){
+  const s=String(value||'baru').toLowerCase();
+  return s==='diantar'?'Sedang diantar':s==='selesai'?'Selesai':s==='batal'?'Dibatalkan':s==='diproses'?'Diproses':'Baru';
+}
+function driverOrderCard(o, mode){
+  const id=driverEsc(o.id);
+  const name=driverEsc(o.nama_pelanggan||'Pelanggan');
+  const address=driverEsc(o['alamat pengantara']||'-');
+  const phone=driverEsc(o.no_wa||'-');
+  const note=driverEsc(o.catatan||'');
+  const total=driverMoney(o.total_pembayaran ?? o.total_belanja);
+  const status=driverEsc(driverStatus(o.status));
+  const date=o.created_at?new Date(o.created_at).toLocaleString('id-ID'):'-';
+  let actions='';
+  if(mode==='incoming') actions=`<button data-driver-action="claim" data-order-id="${id}">Ambil Pesanan</button>`;
+  if(mode==='mine' && String(o.status||'').toLowerCase()!=='selesai' && String(o.status||'').toLowerCase()!=='batal'){
+    if(String(o.status||'').toLowerCase()!=='diantar') actions+=`<button data-driver-action="start" data-order-id="${id}">Mulai Antar</button>`;
+    actions+=`<button class="dark" data-driver-action="finish" data-order-id="${id}">Selesaikan Pesanan</button>`;
+  }
+  return `<article class="order-card"><div class="order-head"><div><div class="order-id">Pesanan #${id}</div><strong>${name}</strong></div><span class="status-tag">${status}</span></div><div class="order-meta">📍 ${address}<br>☎️ ${phone}<br>🕒 ${driverEsc(date)}${note?'<br>Catatan: '+note:''}</div><div class="order-total">${total}</div>${actions?'<div class="order-actions">'+actions+'</div>':''}</article>`;
+}
+function setDriverList(id, rows, mode, emptyText){
+  const el=$(id); if(!el)return;
+  el.innerHTML=rows.length?rows.map(o=>driverOrderCard(o,mode)).join(''):`<div class="menu-empty">${driverEsc(emptyText)}</div>`;
+}
+async function refreshDriverOrders(showMessage=true){
+  if(!driverRow?.id || driverOrdersBusy)return;
+  driverOrdersBusy=true;
+  if(showMessage)msg('ordersMsg','Sedang mengambil data pesanan dari Supabase...');
+  try{
+    // Dua query ini sengaja dibatasi: pesanan kosong driver_id, dan pesanan milik driver login.
+    const [availableResult, mineResult]=await Promise.all([
+      db.from('pesanan').select(DRIVER_ORDER_SELECT).is('driver_id',null).not('status','in','("selesai","batal")').order('created_at',{ascending:false}),
+      db.from('pesanan').select(DRIVER_ORDER_SELECT).eq('driver_id',driverRow.id).order('created_at',{ascending:false})
+    ]);
+    if(availableResult.error)throw new Error('Gagal memuat pesanan tersedia: '+availableResult.error.message);
+    if(mineResult.error)throw new Error('Gagal memuat pesanan Anda: '+mineResult.error.message);
+    const available=availableResult.data||[];
+    const mine=mineResult.data||[];
+    const active=mine.filter(o=>!['selesai','batal'].includes(String(o.status||'').toLowerCase()));
+    const history=mine.filter(o=>['selesai','batal'].includes(String(o.status||'').toLowerCase()));
+    setDriverList('incomingList',available,'incoming','Belum ada pesanan yang tersedia untuk diambil.');
+    setDriverList('myOrdersList',active,'mine','Belum ada pesanan yang menjadi tanggung jawab Anda.');
+    setDriverList('historyList',history,'history','Belum ada riwayat pengantaran.');
+    $('countIncoming').textContent=available.length;
+    $('countActive').textContent=active.length;
+    $('countDone').textContent=history.filter(o=>String(o.status||'').toLowerCase()==='selesai').length;
+    if(showMessage)msg('ordersMsg',`Data diperbarui. Tersedia: ${available.length} · Pesanan Anda: ${active.length} · Riwayat: ${history.length}.`);
+  }catch(e){
+    console.error('PINTAR driver orders:',e);
+    if(showMessage)msg('ordersMsg','❌ '+(e.message||'Gagal memuat pesanan.')+' Pastikan izin Supabase driver sudah diterapkan.');
+    ['incomingList','myOrdersList','historyList'].forEach(id=>{if($(id))$(id).innerHTML='<div class="menu-empty">Data belum dapat dimuat. Periksa izin akses Supabase.</div>';});
+  }finally{driverOrdersBusy=false;}
+}
+async function performDriverOrderAction(action, orderId, button){
+  if(!driverRow?.id)return;
+  button.disabled=true;
+  try{
+    if(action==='claim'){
+      // Filter driver_id IS NULL menjadi pengaman race-condition: hanya satu driver yang dapat berhasil mengambil.
+      const payload={driver_id:Number(driverRow.id),driver_nama:driverRow.nama||'',driver_no_wa:driverRow.no_wa||'',status:'diantar'};
+      const {data,error}=await db.from('pesanan').update(payload).eq('id',orderId).is('driver_id',null).select('id').maybeSingle();
+      if(error)throw error;
+      if(!data)throw new Error('Pesanan sudah lebih dahulu diambil driver lain. Muat ulang daftar pesanan.');
+      msg('ordersMsg','✅ Pesanan berhasil Anda ambil.');
+    }else if(action==='start'){
+      const {data,error}=await db.from('pesanan').update({status:'diantar'}).eq('id',orderId).eq('driver_id',driverRow.id).select('id').maybeSingle();
+      if(error)throw error;if(!data)throw new Error('Pesanan tidak ditemukan atau bukan milik akun Anda.');
+    }else if(action==='finish'){
+      if(!confirm('Tandai pesanan #'+orderId+' sudah selesai diantar?'))return;
+      const {data,error}=await db.from('pesanan').update({status:'selesai'}).eq('id',orderId).eq('driver_id',driverRow.id).select('id').maybeSingle();
+      if(error)throw error;if(!data)throw new Error('Pesanan tidak ditemukan atau bukan milik akun Anda.');
+      msg('ordersMsg','✅ Pesanan ditandai selesai.');
+    }
+    await refreshDriverOrders(false);
+  }catch(e){
+    console.error('Aksi pesanan driver:',e);
+    alert('Aksi pesanan gagal: '+(e.message||e));
+  }finally{button.disabled=false;}
+}
+document.addEventListener('click',function(event){
+  const button=event.target.closest('[data-driver-action]');
+  if(!button)return;
+  performDriverOrderAction(button.dataset.driverAction,button.dataset.orderId,button);
+});
+if($('refreshOrdersBtn'))$('refreshOrdersBtn').addEventListener('click',()=>refreshDriverOrders(true));
+
+/* =====================================================
    LOGOUT DRIVER
 ===================================================== */
 
@@ -849,6 +965,7 @@ $("logoutBtn").addEventListener("click", async function() {
     }
 
     driverRow = null;
+    if(driverOrdersRefreshTimer){clearInterval(driverOrdersRefreshTimer);driverOrdersRefreshTimer=null;}
 
     $("profileCard").classList.add("hidden");
     $("driverShell").classList.remove("active");
@@ -919,6 +1036,7 @@ db.auth.onAuthStateChange(function(event, session) {
   if (event === "SIGNED_OUT") {
 
     driverRow = null;
+    if(driverOrdersRefreshTimer){clearInterval(driverOrdersRefreshTimer);driverOrdersRefreshTimer=null;}
 
     $("profileCard").classList.add("hidden");
     $("driverShell").classList.remove("active");
