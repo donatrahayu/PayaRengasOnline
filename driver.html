@@ -209,6 +209,8 @@ footer{
 .order-total{font-weight:800;margin-top:9px}.order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .order-actions button{padding:10px 12px;font-size:13px}.status-tag{background:#fff3c4;border-radius:20px;padding:5px 9px;font-size:11px;font-weight:700;white-space:nowrap}
 
+
+.button-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 13px;border-radius:12px;background:#ffc629;color:#171717;text-decoration:none;font-weight:700;font-size:14px;border:0}
 </style>
 </head>
 
@@ -874,8 +876,22 @@ function driverOrderCard(o, mode){
   const total=driverMoney(o.total_pembayaran ?? o.total_belanja);
   const status=driverEsc(driverStatus(o.status));
   const date=o.created_at?new Date(o.created_at).toLocaleString('id-ID'):'-';
+  const rawAddress=String(o['alamat pengantara']||'').trim();
+  let mapUrl='';
+  if(rawAddress){
+    // Jika pelanggan menyimpan tautan Google Maps, gunakan tautan aslinya.
+    if(/^https?:\/\//i.test(rawAddress)){
+      mapUrl=rawAddress;
+    }else{
+      // Mendukung koordinat seperti -3.12345, 98.12345 maupun alamat teks.
+      const coord=rawAddress.match(/(-?\d{1,2}\.\d+)\s*[,;]\s*(-?\d{1,3}\.\d+)/);
+      const destination=coord?`${coord[1]},${coord[2]}`:rawAddress;
+      mapUrl='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(destination)+'&travelmode=driving';
+    }
+  }
   let actions='';
   if(mode==='incoming') actions=`<button data-driver-action="claim" data-order-id="${id}">Ambil Pesanan</button>`;
+  if(mode==='mine' && mapUrl) actions+=`<a class="button-link" href="${driverEsc(mapUrl)}" target="_blank" rel="noopener noreferrer">📍 Buka Lokasi Pelanggan</a>`;
   if(mode==='mine' && String(o.status||'').toLowerCase()!=='selesai' && String(o.status||'').toLowerCase()!=='batal'){
     if(String(o.status||'').toLowerCase()!=='diantar') actions+=`<button data-driver-action="start" data-order-id="${id}">Mulai Antar</button>`;
     actions+=`<button class="dark" data-driver-action="finish" data-order-id="${id}">Selesaikan Pesanan</button>`;
