@@ -968,6 +968,7 @@ tr:hover td{
         <button onclick="showPage('pusatv23',this)">🧭 Pusat Kontrol V23</button>
         <button onclick="showPage('pengantaranv24',this)">🚚 Pengantaran V24</button>
         <button onclick="showPage('pelangganv25',this)">👥 CRM Pelanggan V26</button>
+        <button onclick="showPage('depositv27',this)">💳 Deposit & Komisi</button>
         <button onclick="showPage('pengaturanongkir',this)">⚙️ Pengaturan Ongkir</button>
         <button onclick="showPage('warung',this)">
     🏪 Tambah Warung
@@ -2031,6 +2032,86 @@ tr:hover td{
 </section>
 
 <!-- =========================
+     DEPOSIT & KOMISI V27
+========================= -->
+<section id="depositv27" class="page">
+  <div class="page-title">
+    <h2>💳 Deposit & Komisi Driver</h2>
+    <p>Pantau saldo deposit Driver dan riwayat transaksi dari Supabase.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-icon">💰</div><div><h3 id="v27TotalSaldo">Rp0</h3><p>Total Saldo Driver</p></div></div>
+    <div class="stat"><div class="stat-icon">📥</div><div><h3 id="v27TotalDeposit">Rp0</h3><p>Total Deposit Masuk</p></div></div>
+    <div class="stat"><div class="stat-icon">🧾</div><div><h3 id="v27TotalKomisi">Rp0</h3><p>Total Komisi Terpotong</p></div></div>
+    <div class="stat"><div class="stat-icon">🚚</div><div><h3 id="v27JumlahDriver">0</h3><p>Driver Terdaftar</p></div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>💵 Tambah Deposit Driver</h3>
+      <button class="btn btn-gray" type="button" onclick="muatDepositKomisiV27()">🔄 Muat Ulang</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="v27PilihDriver">Pilih Driver</label>
+        <select id="v27PilihDriver"><option value="">Memuat Driver...</option></select>
+      </div>
+      <div class="form-group">
+        <label for="v27NominalDeposit">Nominal uang diterima (Rp)</label>
+        <input id="v27NominalDeposit" type="number" min="1" step="1000" placeholder="Contoh: 100000">
+      </div>
+      <div class="form-group full">
+        <label for="v27CatatanDeposit">Keterangan setoran</label>
+        <input id="v27CatatanDeposit" type="text" maxlength="200" placeholder="Contoh: Setoran tunai tanggal ...">
+      </div>
+    </div>
+    <div class="form-buttons">
+      <button class="btn btn-success" type="button" disabled title="Menunggu pengamanan transaksi Admin">🔒 Simpan Deposit (menunggu pengamanan)</button>
+    </div>
+    <div class="summary-box" style="margin-top:14px">
+      <h4>Pengamanan transaksi uang</h4>
+      <p style="font-size:12px;line-height:1.6">Form ini disiapkan, tetapi pencatatan deposit belum diaktifkan. Dashboard Admin saat ini belum memakai login Admin. Agar pengunjung tidak dapat memalsukan setoran, tombol simpan baru diaktifkan setelah endpoint transaksi aman dan otorisasi Admin dipasang. Jangan masukkan atau catat uang sungguhan melalui browser sebelum tahap tersebut selesai.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h3>👤 Saldo per Driver</h3></div>
+    <div class="table-scroll">
+      <table style="min-width:750px">
+        <thead><tr><th>#</th><th>Nama Driver</th><th>WhatsApp</th><th>Saldo Deposit</th><th>Status</th></tr></thead>
+        <tbody id="v27TabelSaldoDriver"><tr><td colspan="5"><div class="empty">Tekan Muat Ulang untuk mengambil data.</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h3>📜 Riwayat Deposit & Komisi</h3></div>
+    <div class="table-scroll">
+      <table style="min-width:900px">
+        <thead><tr><th>Tanggal</th><th>Driver</th><th>Jenis</th><th>Nominal</th><th>Saldo Sebelum</th><th>Saldo Sesudah</th><th>Pesanan</th><th>Keterangan</th></tr></thead>
+        <tbody id="v27TabelRiwayat"><tr><td colspan="8"><div class="empty">Belum dimuat.</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h3>⚙️ Pengaturan Persentase Komisi</h3></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="v27KomisiAdmin">Bagian Admin dari ongkir (%)</label>
+        <input id="v27KomisiAdmin" type="number" min="0" max="100" value="10" disabled>
+      </div>
+      <div class="form-group">
+        <label for="v27KomisiDriver">Bagian Driver dari ongkir (%)</label>
+        <input id="v27KomisiDriver" type="number" min="0" max="100" value="90" disabled>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#777;margin-top:12px">Komisi hanya dihitung dari ongkir, bukan total belanja atau harga produk. Pengaturan akan diaktifkan setelah jalur penyimpanan Admin diamankan.</p>
+  </div>
+</section>
+
+<!-- =========================
      PENGATURAN ONGKIR
 ========================= -->
 <section id="pengaturanongkir" class="page">
@@ -2973,6 +3054,9 @@ function showPage(id,button){
         renderOperasional();
     }    if(id==="pengaturanongkir"){
         muatPengaturanOngkir();
+    }
+    if(id==="depositv27"){
+        muatDepositKomisiV27();
     }
 
 }
@@ -6741,6 +6825,75 @@ setInterval(function(){
     muatPesananDariSupabase({diam:true});
 }, 30000);
 
+})();
+</script>
+
+
+<script>
+/* =====================================================
+   V27 DEPOSIT & KOMISI — PANEL PEMANTAUAN ADMIN
+   Mode baca saja. Transaksi uang belum diaktifkan karena
+   Admin belum memakai autentikasi/endpoint transaksi aman.
+===================================================== */
+(function(){
+  const money = n => typeof rupiah === 'function' ? rupiah(Number(n)||0) : 'Rp'+(Number(n)||0).toLocaleString('id-ID');
+  const esc = v => typeof safe === 'function' ? safe(v) : String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const date = v => v ? new Date(v).toLocaleString('id-ID') : '-';
+
+  window.muatDepositKomisiV27 = async function(){
+    const driverBody=document.getElementById('v27TabelSaldoDriver');
+    const historyBody=document.getElementById('v27TabelRiwayat');
+    if(driverBody)driverBody.innerHTML='<tr><td colspan="5">⏳ Memuat saldo Driver...</td></tr>';
+    if(historyBody)historyBody.innerHTML='<tr><td colspan="8">⏳ Memuat riwayat...</td></tr>';
+
+    try{
+      const [driversRes,balancesRes,historyRes,settingsRes]=await Promise.all([
+        supabaseClient.from('driver').select('id,nama,no_wa,status').order('nama'),
+        supabaseClient.from('deposit_driver').select('id,driver_id,saldo,created_at,updated_at'),
+        supabaseClient.from('riwayat_deposit').select('id,driver_id,tipe,jumlah,saldo_sebelum,saldo_sesudah,pesanan_id,keterangan,created_at').order('created_at',{ascending:false}).limit(200),
+        supabaseClient.from('pengaturan_komisi').select('admin_ongkir_persen,driver_ongkir_persen,aktif').limit(1).maybeSingle()
+      ]);
+      if(driversRes.error)throw new Error('Tabel driver: '+driversRes.error.message);
+      if(balancesRes.error)throw new Error('Tabel deposit_driver: '+balancesRes.error.message);
+      if(historyRes.error)throw new Error('Tabel riwayat_deposit: '+historyRes.error.message);
+      if(settingsRes.error)throw new Error('Tabel pengaturan_komisi: '+settingsRes.error.message);
+
+      const drivers=driversRes.data||[], balances=balancesRes.data||[], history=historyRes.data||[];
+      const driverMap=new Map(drivers.map(d=>[String(d.id),d]));
+      const balanceMap=new Map(balances.map(b=>[String(b.driver_id),b]));
+      const totalBalance=balances.reduce((sum,b)=>sum+(Number(b.saldo)||0),0);
+      const totalDeposit=history.reduce((sum,r)=>['deposit','topup','setoran','penambahan_deposit'].includes(String(r.tipe||'').toLowerCase())?sum+(Number(r.jumlah)||0):sum,0);
+      const totalCommission=history.reduce((sum,r)=>String(r.tipe||'').toLowerCase().includes('komisi')?sum+(Number(r.jumlah)||0):sum,0);
+
+      document.getElementById('v27TotalSaldo').textContent=money(totalBalance);
+      document.getElementById('v27TotalDeposit').textContent=money(totalDeposit);
+      document.getElementById('v27TotalKomisi').textContent=money(totalCommission);
+      document.getElementById('v27JumlahDriver').textContent=drivers.length;
+
+      const select=document.getElementById('v27PilihDriver');
+      if(select)select.innerHTML='<option value="">Pilih Driver</option>'+drivers.map(d=>`<option value="${esc(d.id)}">${esc(d.nama||'Driver')} — ${esc(d.no_wa||'')}</option>`).join('');
+
+      if(driverBody)driverBody.innerHTML=drivers.map((d,i)=>{
+        const b=balanceMap.get(String(d.id));
+        return `<tr><td>${i+1}</td><td><strong>${esc(d.nama||'-')}</strong></td><td>${esc(d.no_wa||'-')}</td><td><strong>${money(b?.saldo||0)}</strong></td><td>${esc(d.status||'-')}</td></tr>`;
+      }).join('')||'<tr><td colspan="5"><div class="empty">Belum ada Driver.</div></td></tr>';
+
+      if(historyBody)historyBody.innerHTML=history.map(r=>{
+        const d=driverMap.get(String(r.driver_id));
+        return `<tr><td>${esc(date(r.created_at))}</td><td>${esc(d?.nama||('Driver #'+r.driver_id))}</td><td>${esc(r.tipe||'-')}</td><td>${money(r.jumlah)}</td><td>${money(r.saldo_sebelum)}</td><td>${money(r.saldo_sesudah)}</td><td>${r.pesanan_id?'#'+esc(r.pesanan_id):'-'}</td><td>${esc(r.keterangan||'-')}</td></tr>`;
+      }).join('')||'<tr><td colspan="8"><div class="empty">Belum ada riwayat transaksi.</div></td></tr>';
+
+      if(settingsRes.data){
+        document.getElementById('v27KomisiAdmin').value=settingsRes.data.admin_ongkir_persen??10;
+        document.getElementById('v27KomisiDriver').value=settingsRes.data.driver_ongkir_persen??90;
+      }
+    }catch(err){
+      console.error('V27 deposit load:',err);
+      if(driverBody)driverBody.innerHTML=`<tr><td colspan="5"><div class="empty">Gagal memuat saldo: ${esc(err.message||err)}</div></td></tr>`;
+      if(historyBody)historyBody.innerHTML=`<tr><td colspan="8"><div class="empty">Gagal memuat riwayat: ${esc(err.message||err)}</div></td></tr>`;
+      if(typeof toast==='function')toast('Data Deposit V27 belum dapat dimuat. Periksa izin baca Supabase.');
+    }
+  };
 })();
 </script>
 
