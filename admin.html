@@ -6843,56 +6843,77 @@ setInterval(function(){
   window.muatDepositKomisiV27 = async function(){
     const driverBody=document.getElementById('v27TabelSaldoDriver');
     const historyBody=document.getElementById('v27TabelRiwayat');
-    if(driverBody)driverBody.innerHTML='<tr><td colspan="5">⏳ Memuat saldo Driver...</td></tr>';
+    const select=document.getElementById('v27PilihDriver');
+    if(driverBody)driverBody.innerHTML='<tr><td colspan="5">⏳ Memuat Driver dan saldo...</td></tr>';
     if(historyBody)historyBody.innerHTML='<tr><td colspan="8">⏳ Memuat riwayat...</td></tr>';
+    if(select)select.innerHTML='<option value="">⏳ Memuat Driver...</option>';
 
-    try{
-      const [driversRes,balancesRes,historyRes,settingsRes]=await Promise.all([
-        supabaseClient.from('driver').select('id,nama,no_wa,status').order('nama'),
-        supabaseClient.from('deposit_driver').select('id,driver_id,saldo,created_at,updated_at'),
-        supabaseClient.from('riwayat_deposit').select('id,driver_id,tipe,jumlah,saldo_sebelum,saldo_sesudah,pesanan_id,keterangan,created_at').order('created_at',{ascending:false}).limit(200),
-        supabaseClient.from('pengaturan_komisi').select('admin_ongkir_persen,driver_ongkir_persen,aktif').limit(1).maybeSingle()
-      ]);
-      if(driversRes.error)throw new Error('Tabel driver: '+driversRes.error.message);
-      if(balancesRes.error)throw new Error('Tabel deposit_driver: '+balancesRes.error.message);
-      if(historyRes.error)throw new Error('Tabel riwayat_deposit: '+historyRes.error.message);
-      if(settingsRes.error)throw new Error('Tabel pengaturan_komisi: '+settingsRes.error.message);
+    // Query dipisah agar kegagalan satu tabel (misalnya pengaturan_komisi)
+    // tidak menghentikan pemuatan daftar Driver dan saldo.
+    const [driversRes,balancesRes,historyRes,settingsRes]=await Promise.all([
+      supabaseClient.from('driver').select('id,nama,no_wa,status').order('nama'),
+      supabaseClient.from('deposit_driver').select('*'),
+      supabaseClient.from('riwayat_deposit').select('id,driver_id,tipe,jumlah,saldo_sebelum,saldo_sesudah,pesanan_id,keterangan,created_at').order('created_at',{ascending:false}).limit(200),
+      supabaseClient.from('pengaturan_komisi').select('admin_ongkir_persen,driver_ongkir_persen,aktif').limit(1).maybeSingle()
+    ]);
 
-      const drivers=driversRes.data||[], balances=balancesRes.data||[], history=historyRes.data||[];
-      const driverMap=new Map(drivers.map(d=>[String(d.id),d]));
-      const balanceMap=new Map(balances.map(b=>[String(b.driver_id),b]));
-      const totalBalance=balances.reduce((sum,b)=>sum+(Number(b.saldo)||0),0);
-      const totalDeposit=history.reduce((sum,r)=>['deposit','topup','setoran','penambahan_deposit'].includes(String(r.tipe||'').toLowerCase())?sum+(Number(r.jumlah)||0):sum,0);
-      const totalCommission=history.reduce((sum,r)=>String(r.tipe||'').toLowerCase().includes('komisi')?sum+(Number(r.jumlah)||0):sum,0);
+    const errors=[];
+    const drivers=driversRes.error?[]:(driversRes.data||[]);
+    const balances=balancesRes.error?[]:(balancesRes.data||[]);
+    const history=historyRes.error?[]:(historyRes.data||[]);
+    const driverMap=new Map(drivers.map(d=>[String(d.id),d]));
 
-      document.getElementById('v27TotalSaldo').textContent=money(totalBalance);
-      document.getElementById('v27TotalDeposit').textContent=money(totalDeposit);
-      document.getElementById('v27TotalKomisi').textContent=money(totalCommission);
-      document.getElementById('v27JumlahDriver').textContent=drivers.length;
+    if(driversRes.error)errors.push('driver: '+driversRes.error.message);
+    if(balancesRes.error)errors.push('deposit_driver: '+balancesRes.error.message);
+    if(historyRes.error)errors.push('riwayat_deposit: '+historyRes.error.message);
+    if(settingsRes.error)errors.push('pengaturan_komisi: '+settingsRes.error.message);
 
-      const select=document.getElementById('v27PilihDriver');
-      if(select)select.innerHTML='<option value="">Pilih Driver</option>'+drivers.map(d=>`<option value="${esc(d.id)}">${esc(d.nama||'Driver')} — ${esc(d.no_wa||'')}</option>`).join('');
+    if(select){
+      select.innerHTML='<option value="">Pilih Driver</option>'+drivers.map(d=>`<option value="${esc(d.id)}">${esc(d.nama||'Driver')} — ${esc(d.no_wa||'')}</option>`).join('');
+      if(driversRes.error)select.innerHTML='<option value="">Gagal memuat Driver — periksa izin SELECT tabel driver</option>';
+      else if(!drivers.length)select.innerHTML='<option value="">Belum ada Driver terdaftar</option>';
+    }
 
-      if(driverBody)driverBody.innerHTML=drivers.map((d,i)=>{
-        const b=balanceMap.get(String(d.id));
-        return `<tr><td>${i+1}</td><td><strong>${esc(d.nama||'-')}</strong></td><td>${esc(d.no_wa||'-')}</td><td><strong>${money(b?.saldo||0)}</strong></td><td>${esc(d.status||'-')}</td></tr>`;
+    // Kolom saldo dapat berbeda antarversi skema; ambil kolom saldo jika ada,
+    // tanpa mengarang saldo bila nama kolom belum diketahui.
+    const saldoKolom=['saldo','saldo_deposit','jumlah_saldo','balance'];
+    const balanceMap=new Map();
+    balances.forEach(b=>{
+      const key=String(b.driver_id);
+      const col=saldoKolom.find(k=>Object.prototype.hasOwnProperty.call(b,k));
+      if(col)balanceMap.set(key,Number(b[col])||0);
+    });
+
+    const totalBalance=[...balanceMap.values()].reduce((a,b)=>a+b,0);
+    const totalDeposit=history.reduce((sum,r)=>['deposit','topup','setoran','penambahan_deposit'].includes(String(r.tipe||'').toLowerCase())?sum+(Number(r.jumlah)||0):sum,0);
+    const totalCommission=history.reduce((sum,r)=>String(r.tipe||'').toLowerCase().includes('komisi')?sum+(Number(r.jumlah)||0):sum,0);
+    document.getElementById('v27TotalSaldo').textContent=money(totalBalance);
+    document.getElementById('v27TotalDeposit').textContent=money(totalDeposit);
+    document.getElementById('v27TotalKomisi').textContent=money(totalCommission);
+    document.getElementById('v27JumlahDriver').textContent=drivers.length;
+
+    if(driverBody){
+      if(driversRes.error)driverBody.innerHTML=`<tr><td colspan="5"><div class="empty">Gagal memuat Driver: ${esc(driversRes.error.message)}</div></td></tr>`;
+      else driverBody.innerHTML=drivers.map((d,i)=>{
+        const saldo=balanceMap.get(String(d.id));
+        return `<tr><td>${i+1}</td><td><strong>${esc(d.nama||'-')}</strong></td><td>${esc(d.no_wa||'-')}</td><td><strong>${saldo===undefined?'Kolom saldo belum dikenali':money(saldo)}</strong></td><td>${esc(d.status||'-')}</td></tr>`;
       }).join('')||'<tr><td colspan="5"><div class="empty">Belum ada Driver.</div></td></tr>';
-
-      if(historyBody)historyBody.innerHTML=history.map(r=>{
+    }
+    if(historyBody){
+      if(historyRes.error)historyBody.innerHTML=`<tr><td colspan="8"><div class="empty">Gagal memuat riwayat: ${esc(historyRes.error.message)}</div></td></tr>`;
+      else historyBody.innerHTML=history.map(r=>{
         const d=driverMap.get(String(r.driver_id));
         return `<tr><td>${esc(date(r.created_at))}</td><td>${esc(d?.nama||('Driver #'+r.driver_id))}</td><td>${esc(r.tipe||'-')}</td><td>${money(r.jumlah)}</td><td>${money(r.saldo_sebelum)}</td><td>${money(r.saldo_sesudah)}</td><td>${r.pesanan_id?'#'+esc(r.pesanan_id):'-'}</td><td>${esc(r.keterangan||'-')}</td></tr>`;
       }).join('')||'<tr><td colspan="8"><div class="empty">Belum ada riwayat transaksi.</div></td></tr>';
-
-      if(settingsRes.data){
-        document.getElementById('v27KomisiAdmin').value=settingsRes.data.admin_ongkir_persen??10;
-        document.getElementById('v27KomisiDriver').value=settingsRes.data.driver_ongkir_persen??90;
-      }
-    }catch(err){
-      console.error('V27 deposit load:',err);
-      if(driverBody)driverBody.innerHTML=`<tr><td colspan="5"><div class="empty">Gagal memuat saldo: ${esc(err.message||err)}</div></td></tr>`;
-      if(historyBody)historyBody.innerHTML=`<tr><td colspan="8"><div class="empty">Gagal memuat riwayat: ${esc(err.message||err)}</div></td></tr>`;
-      if(typeof toast==='function')toast('Data Deposit V27 belum dapat dimuat. Periksa izin baca Supabase.');
     }
+    if(!settingsRes.error && settingsRes.data){
+      document.getElementById('v27KomisiAdmin').value=settingsRes.data.admin_ongkir_persen??10;
+      document.getElementById('v27KomisiDriver').value=settingsRes.data.driver_ongkir_persen??90;
+    }
+    if(errors.length){
+      console.warn('V27 sebagian data belum dapat dimuat:',errors);
+      if(typeof toast==='function')toast('Sebagian data Deposit belum terbaca. Buka Console untuk rincian izin tabel.');
+    } else if(typeof toast==='function') toast('Data Deposit dan Driver berhasil dimuat.');
   };
 })();
 </script>
