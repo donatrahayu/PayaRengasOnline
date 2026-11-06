@@ -312,7 +312,30 @@ footer{
     <section class="card page-panel" id="page-balance">
       <h2>Saldo Driver</h2>
       <p class="sub">Informasi saldo, deposit, dan transaksi driver.</p>
-      <div class="menu-empty">Fitur saldo belum dihubungkan ke tabel transaksi driver. Menu pesanan dan pengantaran sudah memakai tabel pesanan Supabase.</div>
+      <div class="stat-grid" style="margin:14px 0">
+        <div class="stat-box">
+          <strong id="driverBalanceNow">—</strong>
+          <span>Saldo deposit saat ini</span>
+        </div>
+        <div class="stat-box">
+          <strong id="driverBalanceIn">—</strong>
+          <span>Total deposit masuk</span>
+        </div>
+        <div class="stat-box">
+          <strong id="driverCommissionOut">—</strong>
+          <span>Total potongan komisi</span>
+        </div>
+        <div class="stat-box">
+          <strong id="driverTransactionCount">—</strong>
+          <span>Jumlah transaksi</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="dark" id="refreshBalanceBtn" type="button">Muat Ulang Saldo</button>
+      </div>
+      <div id="balanceMsg" class="notice">Saldo akan dimuat dari Supabase setelah Driver masuk.</div>
+      <h2 style="margin-top:20px">Riwayat Deposit & Komisi</h2>
+      <div id="driverBalanceHistory"><div class="menu-empty">Belum ada data transaksi.</div></div>
     </section>
 
   <!-- PROFIL DRIVER -->
@@ -421,6 +444,7 @@ function showDriverPage(page) {
 document.querySelectorAll(".menu-item").forEach(function(button) {
   button.addEventListener("click", function() {
     showDriverPage(button.dataset.page);
+    if (button.dataset.page === "balance") loadDriverBalance();
   });
 });
 
@@ -543,6 +567,7 @@ async function loadDriver(user) {
 
   showProfile(data);
   await refreshDriverOrders(true);
+  await loadDriverBalance();
   if(driverOrdersRefreshTimer)clearInterval(driverOrdersRefreshTimer);
   driverOrdersRefreshTimer=setInterval(()=>refreshDriverOrders(false),15000);
 }
@@ -952,6 +977,7 @@ async function performDriverOrderAction(action, orderId, button){
       msg('ordersMsg','✅ Pesanan ditandai selesai.');
     }
     await refreshDriverOrders(false);
+    if(action==='finish') await loadDriverBalance();
   }catch(e){
     console.error('Aksi pesanan driver:',e);
     alert('Aksi pesanan gagal: '+(e.message||e));
@@ -963,6 +989,92 @@ document.addEventListener('click',function(event){
   performDriverOrderAction(button.dataset.driverAction,button.dataset.orderId,button);
 });
 if($('refreshOrdersBtn'))$('refreshOrdersBtn').addEventListener('click',()=>refreshDriverOrders(true));
+
+/* =====================================================
+   SALDO DRIVER — DATA ASLI DARI SUPABASE
+   Driver hanya membaca baris dengan driver_id miliknya.
+   Penambahan deposit/potongan tetap dilakukan melalui Admin
+   dan proses backend yang aman.
+===================================================== */
+let driverBalanceBusy = false;
+
+function balanceHistoryCard(row){
+  const tipe = String(row.tipe || '').toLowerCase();
+  const isCredit = ['deposit','topup','setoran','penambahan_deposit'].includes(tipe);
+  const amount = Number(row.jumlah) || 0;
+  const title = isCredit ? 'Deposit masuk' :
+    (tipe.includes('komisi') ? 'Potongan komisi' : (row.tipe || 'Transaksi'));
+  const sign = isCredit ? '+' : (tipe.includes('komisi') ? '−' : '');
+  const date = row.created_at ? new Date(row.created_at).toLocaleString('id-ID') : '-';
+  return `<article class="order-card">
+    <div class="order-head">
+      <strong>${driverEsc(title)}</strong>
+      <span class="status-tag">${driverEsc(date)}</span>
+    </div>
+    <div class="order-total">${sign}${driverMoney(amount)}</div>
+    <div class="order-meta">
+      Saldo sebelum: ${driverMoney(row.saldo_sebelum)}<br>
+      Saldo sesudah: ${driverMoney(row.saldo_sesudah)}
+      ${row.pesanan_id ? '<br>Pesanan: #'+driverEsc(row.pesanan_id) : ''}
+      ${row.keterangan ? '<br>Keterangan: '+driverEsc(row.keterangan) : ''}
+    </div>
+  </article>`;
+}
+
+async function loadDriverBalance(){
+  if(!driverRow?.id || driverBalanceBusy) return;
+  driverBalanceBusy = true;
+  const refresh = $('refreshBalanceBtn');
+  if(refresh) refresh.disabled = true;
+  msg('balanceMsg','Mengambil saldo dan riwayat dari Supabase...');
+  try{
+    const [balanceResult, historyResult] = await Promise.all([
+      db.from('deposit_driver')
+        .select('saldo')
+        .eq('driver_id', driverRow.id)
+        .maybeSingle(),
+      db.from('riwayat_deposit')
+        .select('id,tipe,jumlah,saldo_sebelum,saldo_sesudah,pesanan_id,keterangan,created_at')
+        .eq('driver_id', driverRow.id)
+        .order('created_at',{ascending:false})
+        .limit(100)
+    ]);
+
+    if(balanceResult.error) throw new Error('Gagal membaca saldo: '+balanceResult.error.message);
+    if(historyResult.error) throw new Error('Gagal membaca riwayat: '+historyResult.error.message);
+
+    const balance = Number(balanceResult.data?.saldo || 0);
+    const rows = historyResult.data || [];
+    const totalIn = rows.reduce((sum,r) => {
+      const t=String(r.tipe||'').toLowerCase();
+      return sum + (['deposit','topup','setoran','penambahan_deposit'].includes(t) ? Number(r.jumlah)||0 : 0);
+    },0);
+    const totalCommission = rows.reduce((sum,r) => {
+      return sum + (String(r.tipe||'').toLowerCase().includes('komisi') ? Number(r.jumlah)||0 : 0);
+    },0);
+
+    $('driverBalanceNow').textContent = driverMoney(balance);
+    $('driverBalanceIn').textContent = driverMoney(totalIn);
+    $('driverCommissionOut').textContent = driverMoney(totalCommission);
+    $('driverTransactionCount').textContent = rows.length;
+    $('driverBalanceHistory').innerHTML = rows.length
+      ? rows.map(balanceHistoryCard).join('')
+      : '<div class="menu-empty">Belum ada riwayat transaksi untuk akun ini.</div>';
+    msg('balanceMsg', balanceResult.data
+      ? 'Saldo berhasil diperbarui dari Supabase.'
+      : 'Belum ada baris deposit untuk Driver ini. Saldo ditampilkan Rp0.');
+  }catch(e){
+    console.error('Saldo Driver:',e);
+    msg('balanceMsg','❌ '+(e.message||'Saldo belum dapat dimuat.')+' Pastikan izin baca Supabase untuk Driver sudah benar.');
+    $('driverBalanceHistory').innerHTML='<div class="menu-empty">Riwayat belum dapat dimuat. Hubungi Admin jika masalah berlanjut.</div>';
+  }finally{
+    driverBalanceBusy=false;
+    if(refresh) refresh.disabled=false;
+  }
+}
+if($('refreshBalanceBtn')){
+  $('refreshBalanceBtn').addEventListener('click',loadDriverBalance);
+}
 
 /* =====================================================
    LOGOUT DRIVER
