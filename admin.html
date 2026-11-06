@@ -2067,11 +2067,11 @@ tr:hover td{
       </div>
     </div>
     <div class="form-buttons">
-      <button class="btn btn-success" type="button" disabled title="Menunggu pengamanan transaksi Admin">🔒 Simpan Deposit (menunggu pengamanan)</button>
+      <button class="btn btn-success" type="button" onclick="simpanDepositV27()">💾 Simpan Deposit</button>
     </div>
     <div class="summary-box" style="margin-top:14px">
-      <h4>Pengamanan transaksi uang</h4>
-      <p style="font-size:12px;line-height:1.6">Form ini disiapkan, tetapi pencatatan deposit belum diaktifkan. Dashboard Admin saat ini belum memakai login Admin. Agar pengunjung tidak dapat memalsukan setoran, tombol simpan baru diaktifkan setelah endpoint transaksi aman dan otorisasi Admin dipasang. Jangan masukkan atau catat uang sungguhan melalui browser sebelum tahap tersebut selesai.</p>
+      <h4>Mode uji coba — Dashboard Admin masih terbuka</h4>
+      <p style="font-size:12px;line-height:1.6">Fitur transaksi diaktifkan untuk pengujian. RPC database menjaga transaksi tetap atomik, saldo tidak boleh minus, dan komisi satu pesanan hanya dipotong sekali. Namun karena Admin belum login, siapa pun yang mengetahui alamat dashboard berpotensi memanggil fungsi transaksi. Gunakan data uji, jangan gunakan sebagai pencatatan uang sungguhan sampai login Admin dipasang.</p>
     </div>
   </div>
 
@@ -2100,14 +2100,17 @@ tr:hover td{
     <div class="form-grid">
       <div class="form-group">
         <label for="v27KomisiAdmin">Bagian Admin dari ongkir (%)</label>
-        <input id="v27KomisiAdmin" type="number" min="0" max="100" value="10" disabled>
+        <input id="v27KomisiAdmin" type="number" min="0" max="100" value="10">
       </div>
       <div class="form-group">
         <label for="v27KomisiDriver">Bagian Driver dari ongkir (%)</label>
-        <input id="v27KomisiDriver" type="number" min="0" max="100" value="90" disabled>
+        <input id="v27KomisiDriver" type="number" min="0" max="100" value="90">
       </div>
     </div>
-    <p style="font-size:12px;color:#777;margin-top:12px">Komisi hanya dihitung dari ongkir, bukan total belanja atau harga produk. Pengaturan akan diaktifkan setelah jalur penyimpanan Admin diamankan.</p>
+    <div class="form-buttons" style="margin-top:14px">
+      <button class="btn btn-primary" type="button" onclick="simpanPengaturanKomisiV27()">💾 Simpan Pengaturan Komisi</button>
+    </div>
+    <p style="font-size:12px;color:#777;margin-top:12px">Komisi hanya dihitung dari ongkir, bukan total belanja atau harga produk. Perubahan berlaku untuk pesanan yang diselesaikan setelah pengaturan disimpan.</p>
   </div>
 </section>
 
@@ -6854,7 +6857,7 @@ setInterval(function(){
       supabaseClient.from('driver').select('id,nama,no_wa,status').order('nama'),
       supabaseClient.from('deposit_driver').select('*'),
       supabaseClient.from('riwayat_deposit').select('id,driver_id,tipe,jumlah,saldo_sebelum,saldo_sesudah,pesanan_id,keterangan,created_at').order('created_at',{ascending:false}).limit(200),
-      supabaseClient.from('pengaturan_komisi').select('admin_ongkir_persen,driver_ongkir_persen,aktif').limit(1).maybeSingle()
+      supabaseClient.rpc('pintar_ambil_pengaturan_komisi')
     ]);
 
     const errors=[];
@@ -6907,13 +6910,62 @@ setInterval(function(){
       }).join('')||'<tr><td colspan="8"><div class="empty">Belum ada riwayat transaksi.</div></td></tr>';
     }
     if(!settingsRes.error && settingsRes.data){
-      document.getElementById('v27KomisiAdmin').value=settingsRes.data.admin_ongkir_persen??10;
-      document.getElementById('v27KomisiDriver').value=settingsRes.data.driver_ongkir_persen??90;
+      const cfg=Array.isArray(settingsRes.data)?settingsRes.data[0]:settingsRes.data;
+      if(cfg){
+        document.getElementById('v27KomisiAdmin').value=cfg.admin_ongkir_persen??10;
+        document.getElementById('v27KomisiDriver').value=cfg.driver_ongkir_persen??90;
+      }
     }
     if(errors.length){
       console.warn('V27 sebagian data belum dapat dimuat:',errors);
       if(typeof toast==='function')toast('Sebagian data Deposit belum terbaca. Buka Console untuk rincian izin tabel.');
     } else if(typeof toast==='function') toast('Data Deposit dan Driver berhasil dimuat.');
+
+  window.simpanDepositV27 = async function(){
+    const driverId=document.getElementById('v27PilihDriver')?.value;
+    const amount=Number(document.getElementById('v27NominalDeposit')?.value);
+    const note=(document.getElementById('v27CatatanDeposit')?.value||'').trim();
+    if(!driverId){alert('Pilih Driver terlebih dahulu.');return;}
+    if(!Number.isFinite(amount)||amount<=0){alert('Nominal deposit harus lebih dari Rp0.');return;}
+    if(!confirm('Catat deposit '+money(amount)+' untuk Driver terpilih?'))return;
+    try{
+      const {data,error}=await supabaseClient.rpc('pintar_tambah_deposit',{
+        p_driver_id:Number(driverId),p_jumlah:amount,p_keterangan:note||'Deposit Driver dari Dashboard Admin'
+      });
+      if(error)throw error;
+      if(data?.ok===false)throw new Error(data.message||'Deposit tidak berhasil disimpan.');
+      document.getElementById('v27NominalDeposit').value='';
+      document.getElementById('v27CatatanDeposit').value='';
+      alert('Deposit berhasil dicatat. Saldo Driver sudah diperbarui.');
+      await window.muatDepositKomisiV27();
+    }catch(err){
+      console.error('Simpan deposit V27:',err);
+      alert('Deposit belum berhasil disimpan: '+(err.message||err)+'\\nPastikan SQL V27 sudah dijalankan di Supabase.');
+    }
+  };
+
+  window.simpanPengaturanKomisiV27 = async function(){
+    const admin=Number(document.getElementById('v27KomisiAdmin')?.value);
+    const driver=Number(document.getElementById('v27KomisiDriver')?.value);
+    if(!Number.isFinite(admin)||!Number.isFinite(driver)||admin<0||driver<0||admin>100||driver>100){
+      alert('Persentase harus antara 0 sampai 100.');return;
+    }
+    if(Math.round((admin+driver)*100)/100!==100){
+      alert('Jumlah bagian Admin dan Driver harus tepat 100%.');return;
+    }
+    try{
+      const {data,error}=await supabaseClient.rpc('pintar_simpan_pengaturan_komisi',{
+        p_admin_persen:admin,p_driver_persen:driver
+      });
+      if(error)throw error;
+      if(data?.ok===false)throw new Error(data.message||'Pengaturan tidak berhasil disimpan.');
+      alert('Pengaturan komisi berhasil disimpan.');
+      await window.muatDepositKomisiV27();
+    }catch(err){
+      console.error('Simpan komisi V27:',err);
+      alert('Pengaturan komisi gagal disimpan: '+(err.message||err)+'\\nPastikan SQL V27 sudah dijalankan di Supabase.');
+    }
+  };
   };
 })();
 </script>
