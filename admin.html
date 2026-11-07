@@ -970,6 +970,7 @@ tr:hover td{
         <button onclick="showPage('pelangganv25',this)">👥 CRM Pelanggan V26</button>
         <button onclick="showPage('depositv27',this)">💳 Deposit & Komisi</button>
         <button onclick="showPage('pengaturanongkir',this)">⚙️ Pengaturan Ongkir</button>
+<button onclick="showPage('pengaturanojek',this);muatPengaturanTarifOjek()">🛵 Tarif Ojek</button>
         <button onclick="showPage('warung',this)">
     🏪 Tambah Warung
 </button>
@@ -2178,6 +2179,51 @@ tr:hover td{
     </div>
 </section>
 
+
+<!-- =========================
+     PENGATURAN TARIF OJEK
+========================= -->
+<section id="pengaturanojek" class="page">
+  <div class="page-title">
+    <h2>🛵 Pengaturan Tarif Ojek</h2>
+    <p>Tarif Ojek Penumpang dan Ojek Barang terpisah dari ongkir makanan.</p>
+  </div>
+  <div class="panel">
+    <div class="panel-header">
+      <h3>🛵 Ojek Penumpang</h3>
+      <button class="btn btn-gray" type="button" onclick="muatPengaturanTarifOjek()">🔄 Muat Ulang</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>0–0,5 km</label><input id="op005" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;0,5–1,5 km</label><input id="op0515" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;1,5–2,5 km</label><input id="op1525" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;2,5–3,5 km</label><input id="op2535" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;3,5–4,5 km</label><input id="op3545" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;4,5–5,5 km</label><input id="op4555" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;5,5–6,5 km</label><input id="op5565" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>Tambahan setiap 1 km di atas 6,5 km</label><input id="opplus" type="number" min="0" step="1000"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><h3>📦 Ojek Barang</h3></div>
+    <div class="form-grid">
+      <div class="form-group"><label>0–0,5 km</label><input id="ob005" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;0,5–1,5 km</label><input id="ob0515" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;1,5–2,5 km</label><input id="ob1525" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;2,5–3,5 km</label><input id="ob2535" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;3,5–4,5 km</label><input id="ob3545" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;4,5–5,5 km</label><input id="ob4555" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>&gt;5,5–6,5 km</label><input id="ob5565" type="number" min="0" step="1000"></div>
+      <div class="form-group"><label>Tambahan setiap 1 km di atas 6,5 km</label><input id="obplus" type="number" min="0" step="1000"></div>
+    </div>
+    <div class="form-buttons">
+      <button class="btn btn-success" type="button" onclick="simpanPengaturanTarifOjek()">💾 Simpan Tarif Ojek</button>
+    </div>
+    <div id="hasilTarifOjek" style="margin-top:14px"></div>
+    <p style="font-size:12px;color:#777;margin-top:12px">Pengaturan ini tidak mengubah tarif ongkir makanan. Komisi mengikuti persentase Admin/Driver V27.</p>
+  </div>
+</section>
+
 <!-- =========================
      WARUNG MITRA
 ========================= -->
@@ -3057,6 +3103,9 @@ function showPage(id,button){
         renderOperasional();
     }    if(id==="pengaturanongkir"){
         muatPengaturanOngkir();
+    }
+    if(id==="pengaturanojek"){
+        muatPengaturanTarifOjek();
     }
     if(id==="depositv27"){
         muatDepositKomisiV27();
@@ -6201,6 +6250,55 @@ setInterval(
 })();
 </script>
 <script>
+
+// ================= PINTAR OJEK: PENGATURAN TARIF =================
+const OJEK_TARIFF_FIELDS = [
+  'penumpang_tarif_0_05','penumpang_tarif_05_15','penumpang_tarif_15_25','penumpang_tarif_25_35',
+  'penumpang_tarif_35_45','penumpang_tarif_45_55','penumpang_tarif_55_65','penumpang_tambahan_diatas_65',
+  'barang_tarif_0_05','barang_tarif_05_15','barang_tarif_15_25','barang_tarif_25_35',
+  'barang_tarif_35_45','barang_tarif_45_55','barang_tarif_55_65','barang_tambahan_diatas_65'
+];
+const OJEK_TARIFF_INPUTS = [
+  'op005','op0515','op1525','op2535','op3545','op4555','op5565','opplus',
+  'ob005','ob0515','ob1525','ob2535','ob3545','ob4555','ob5565','obplus'
+];
+function pesanTarifOjek(msg, isError=false){
+  const el=document.getElementById('hasilTarifOjek');
+  if(el){el.textContent=msg;el.style.color=isError?'#b91c1c':'#166534';}
+}
+async function muatPengaturanTarifOjek(){
+  await perbaruiStatusAuthTarifOjek();
+  try{
+    const {data,error}=await supabaseClient.from('pengaturan_tarif_ojek')
+      .select('*').eq('aktif',true).order('id',{ascending:false}).limit(1).maybeSingle();
+    if(error)throw error;
+    if(!data){pesanTarifOjek('Belum ada tarif aktif.');return;}
+    OJEK_TARIFF_FIELDS.forEach((field,i)=>{
+      const input=document.getElementById(OJEK_TARIFF_INPUTS[i]);
+      if(input)input.value=Number(data[field]??0);
+    });
+    pesanTarifOjek('Tarif berhasil dimuat dari Supabase.');
+  }catch(e){pesanTarifOjek('Gagal memuat tarif: '+(e.message||e),true);}
+}
+async function simpanPengaturanTarifOjek(){
+  try{
+    const payload={aktif:true};
+    OJEK_TARIFF_FIELDS.forEach((field,i)=>{
+      const input=document.getElementById(OJEK_TARIFF_INPUTS[i]);
+      const value=Number(input?.value);
+      if(!Number.isFinite(value)||value<0)throw new Error('Semua tarif harus diisi angka nol atau lebih.');
+      payload[field]=value;
+    });
+    const {data:active,error:readError}=await supabaseClient.from('pengaturan_tarif_ojek')
+      .select('id').eq('aktif',true).order('id',{ascending:false}).limit(1).maybeSingle();
+    if(readError)throw readError;
+    if(!active?.id)throw new Error('Baris tarif aktif tidak ditemukan.');
+    const {error}=await supabaseClient.from('pengaturan_tarif_ojek').update(payload).eq('id',active.id);
+    if(error)throw error;
+    pesanTarifOjek('✅ Tarif Penumpang dan Barang berhasil disimpan.');
+  }catch(e){pesanTarifOjek('❌ Gagal menyimpan tarif: '+(e.message||e),true);}
+}
+
 /* =====================================================
    PENGATURAN ONGKIR - SUPABASE
 ===================================================== */
