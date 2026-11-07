@@ -6267,7 +6267,6 @@ function pesanTarifOjek(msg, isError=false){
   if(el){el.textContent=msg;el.style.color=isError?'#b91c1c':'#166534';}
 }
 async function muatPengaturanTarifOjek(){
-  await perbaruiStatusAuthTarifOjek();
   try{
     const {data,error}=await supabaseClient.from('pengaturan_tarif_ojek')
       .select('*').eq('aktif',true).order('id',{ascending:false}).limit(1).maybeSingle();
