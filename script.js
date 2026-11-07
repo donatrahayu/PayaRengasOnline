@@ -2770,7 +2770,7 @@ async function tambahWarung() {
 /* PINTAR OJEK — MAPS, GPS & JARAK RUTE JALAN */
 let jenisLayananOjekAktif=null, tarifOjekPelanggan=null;
 let petaOjek=null, markerJemputOjek=null, markerTujuanOjek=null, garisRuteOjek=null;
-let koordinatJemputOjek=null, koordinatTujuanOjek=null, jarakRuteOjekKm=null, tarifHitungOjek=null;
+let koordinatJemputOjek=null, koordinatTujuanOjek=null, jarakRuteOjekKm=null, tarifHitungOjek=null, modePilihTitikOjek='tujuan';
 
 async function muatTarifOjekPelanggan(){
   try{const {data,error}=await supabaseClient.from('pengaturan_tarif_ojek').select('*').eq('aktif',true).order('id',{ascending:false}).limit(1).maybeSingle();if(error)throw error;tarifOjekPelanggan=data;return data;}
@@ -2796,18 +2796,28 @@ function tutupFormOjek(){document.getElementById('formOjekPintar').style.display
 function inisialisasiPetaOjek(){
   if(!window.L){document.getElementById('ojekPesanStatus').textContent='Peta gagal dimuat. Periksa koneksi internet.';return;}
   if(!petaOjek){petaOjek=L.map('petaOjekPintar').setView([3.75,98.25],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(petaOjek);
-    petaOjek.on('click',e=>setTujuanOjek(e.latlng.lat,e.latlng.lng,'Titik tujuan dari peta'));}
+    petaOjek.on('click',e=>{if(modePilihTitikOjek==='jemput'){setJemputOjek(e.latlng.lat,e.latlng.lng,'Titik jemput pilihan peta');}else{setTujuanOjek(e.latlng.lat,e.latlng.lng,'Titik tujuan dari peta');}});}
   setTimeout(()=>petaOjek.invalidateSize(),100);
   if(navigator.geolocation)ambilLokasiJemputOjek();
+}
+function pilihModeTitikOjek(mode){
+  modePilihTitikOjek=mode;
+  const el=document.getElementById('statusPilihTitikOjek');
+  if(el)el.textContent=mode==='jemput'?'Mode: ketuk peta untuk menentukan titik jemput.':'Mode: ketuk peta untuk menentukan titik tujuan.';
+}
+function setJemputOjek(lat,lng,label){
+  koordinatJemputOjek={lat:Number(lat),lng:Number(lng)};
+  document.getElementById('ojekJemput').value=label||`Titik jemput (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+  if(markerJemputOjek&&petaOjek)petaOjek.removeLayer(markerJemputOjek);
+  if(petaOjek){markerJemputOjek=L.marker([lat,lng]).addTo(petaOjek).bindPopup('Lokasi penjemputan');petaOjek.setView([lat,lng],15);}
+  hitungRuteDanTarifOjek();
 }
 function ambilLokasiJemputOjek(){
   const status=document.getElementById('ojekPesanStatus');
   if(!navigator.geolocation){status.textContent='Browser tidak mendukung GPS.';return;}
   status.textContent='Meminta izin lokasi GPS...';
   navigator.geolocation.getCurrentPosition(async pos=>{
-    koordinatJemputOjek={lat:pos.coords.latitude,lng:pos.coords.longitude};
-    document.getElementById('ojekJemput').value=`Lokasi saya (${koordinatJemputOjek.lat.toFixed(6)}, ${koordinatJemputOjek.lng.toFixed(6)})`;
-    if(window.L&&petaOjek){if(markerJemputOjek)petaOjek.removeLayer(markerJemputOjek);markerJemputOjek=L.marker([koordinatJemputOjek.lat,koordinatJemputOjek.lng]).addTo(petaOjek).bindPopup('Lokasi penjemputan').openPopup();petaOjek.setView([koordinatJemputOjek.lat,koordinatJemputOjek.lng],15);}
+    setJemputOjek(pos.coords.latitude,pos.coords.longitude,`Lokasi saya (${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)})`);
     status.textContent='Lokasi jemput berhasil diambil. Pilih tujuan pada peta atau cari alamat.';
     await hitungRuteDanTarifOjek();
   },err=>{status.textContent='GPS tidak berhasil: '+(err.code===1?'izin lokasi ditolak':err.code===2?'posisi tidak tersedia':'waktu mendapatkan lokasi habis')+'. Izinkan lokasi pada browser lalu coba lagi.';},{enableHighAccuracy:true,timeout:20000,maximumAge:30000});
@@ -2893,3 +2903,5 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 window.ambilLokasiJemputOjek=ambilLokasiJemputOjek;window.cariTujuanOjek=cariTujuanOjek;
+
+window.pilihModeTitikOjek=pilihModeTitikOjek;window.setJemputOjek=setJemputOjek;
