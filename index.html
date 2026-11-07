@@ -1276,24 +1276,34 @@ footer h2,footer a{color:#ffc400!important}
       <div class="action-arrow">›</div>
     </div>
 
-    <div class="pr-service">
+    <div class="pr-service" role="button" tabindex="0" onclick="bukaFormOjek('ojek_penumpang')" onkeydown="if(event.key==='Enter'||event.key===' '){bukaFormOjek('ojek_penumpang')}">
       <div class="ico">🛵</div>
-      <div>
-        <h3>Ojek</h3>
-        <p>Layanan ojek PINTAR.</p>
-        <span class="pr-badge">SEGERA HADIR</span>
-      </div>
+      <div><h3>Ojek Penumpang</h3><p>Antar jemput berdasarkan jarak.</p><span class="pr-badge">PESAN SEKARANG</span></div>
     </div>
 
-    <div class="pr-service">
+    <div class="pr-service" role="button" tabindex="0" onclick="bukaFormOjek('ojek_barang')" onkeydown="if(event.key==='Enter'||event.key===' '){bukaFormOjek('ojek_barang')}">
       <div class="ico">📦</div>
-      <div>
-        <h3>Antar Barang</h3>
-        <p>Pengantaran barang untuk kebutuhan lokal.</p>
-        <span class="pr-badge">SEGERA HADIR</span>
-      </div>
+      <div><h3>Ojek Antar Barang</h3><p>Kirim paket dan barang ke tujuan.</p><span class="pr-badge">PESAN SEKARANG</span></div>
     </div>
   </div>
+</section>
+
+
+<section id="formOjekPintar" style="display:none;width:min(900px,94%);margin:20px auto 32px;background:#fff;padding:22px;border-radius:18px;box-shadow:0 10px 30px rgba(23,32,51,.08)">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 id="judulFormOjek" style="color:#ef4d1c;margin:0">🛵 Pesan Ojek</h2><button type="button" onclick="tutupFormOjek()">← Kembali</button></div>
+ <p style="color:#697386;font-size:13px">Isi alamat jemput dan tujuan. Tarif dihitung berdasarkan jarak yang dimasukkan.</p>
+ <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px">
+  <label>Nama pemesan<input id="ojekNama" type="text" autocomplete="name" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></label>
+  <label>Nomor WhatsApp<input id="ojekWa" type="tel" placeholder="08xxxxxxxxxx" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></label>
+  <label>Lokasi penjemputan<input id="ojekJemput" type="text" placeholder="Alamat/lokasi jemput" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></label>
+  <label>Lokasi tujuan<input id="ojekTujuan" type="text" placeholder="Alamat/lokasi tujuan" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></label>
+  <label>Jarak perjalanan (km)<input id="ojekJarak" type="number" min="0.1" max="50" step="0.1" placeholder="Contoh: 3.5" oninput="hitungTarifOjekPelanggan()" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></label>
+  <label id="labelDetailOjek" style="display:none">Keterangan barang<input id="ojekDetailBarang" type="text" placeholder="Contoh: dokumen / paket kecil" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></label>
+ </div>
+ <label style="display:block;margin-top:12px">Catatan tambahan<textarea id="ojekCatatan" rows="2" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></textarea></label>
+ <div id="ojekTarifInfo" style="margin:14px 0;padding:14px;background:#fff6e8;border-radius:12px;font-weight:700">Masukkan jarak untuk melihat tarif.</div>
+ <button id="btnKirimOjek" type="button" onclick="konfirmasiPesananOjek()" style="border:0;border-radius:11px;background:#ff5a1f;color:white;padding:13px 20px;font-weight:700">Pesan Ojek</button>
+ <div id="ojekPesanStatus" style="margin-top:10px;font-size:13px"></div>
 </section>
 
 <!-- =====================================================
