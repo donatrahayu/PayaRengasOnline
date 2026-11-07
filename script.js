@@ -2770,7 +2770,7 @@ async function tambahWarung() {
 /* PINTAR OJEK — MAPS, GPS & JARAK RUTE JALAN */
 let jenisLayananOjekAktif=null, tarifOjekPelanggan=null;
 let petaOjek=null, markerJemputOjek=null, markerTujuanOjek=null, garisRuteOjek=null;
-let koordinatJemputOjek=null, koordinatTujuanOjek=null, jarakRuteOjekKm=null, tarifHitungOjek=null, modePilihTitikOjek='tujuan';
+let koordinatJemputOjek=null, koordinatTujuanOjek=null, jarakRuteOjekKm=null, tarifHitungOjek=null;
 
 async function muatTarifOjekPelanggan(){
   try{const {data,error}=await supabaseClient.from('pengaturan_tarif_ojek').select('*').eq('aktif',true).order('id',{ascending:false}).limit(1).maybeSingle();if(error)throw error;tarifOjekPelanggan=data;return data;}
@@ -2796,14 +2796,9 @@ function tutupFormOjek(){document.getElementById('formOjekPintar').style.display
 function inisialisasiPetaOjek(){
   if(!window.L){document.getElementById('ojekPesanStatus').textContent='Peta gagal dimuat. Periksa koneksi internet.';return;}
   if(!petaOjek){petaOjek=L.map('petaOjekPintar').setView([3.75,98.25],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(petaOjek);
-    petaOjek.on('click',e=>{if(modePilihTitikOjek==='jemput'){setJemputOjek(e.latlng.lat,e.latlng.lng,'Titik jemput pilihan peta');}else{setTujuanOjek(e.latlng.lat,e.latlng.lng,'Titik tujuan dari peta');}});}
+    petaOjek.on('click',e=>setTujuanOjek(e.latlng.lat,e.latlng.lng,'Titik tujuan dari peta'));}
   setTimeout(()=>petaOjek.invalidateSize(),100);
   if(navigator.geolocation)ambilLokasiJemputOjek();
-}
-function pilihModeTitikOjek(mode){
-  modePilihTitikOjek=mode;
-  const el=document.getElementById('statusPilihTitikOjek');
-  if(el)el.textContent=mode==='jemput'?'Mode: ketuk peta untuk menentukan titik jemput.':'Mode: ketuk peta untuk menentukan titik tujuan.';
 }
 function setJemputOjek(lat,lng,label){
   koordinatJemputOjek={lat:Number(lat),lng:Number(lng)};
@@ -2904,4 +2899,4 @@ document.addEventListener('DOMContentLoaded', function(){
 
 window.ambilLokasiJemputOjek=ambilLokasiJemputOjek;window.cariTujuanOjek=cariTujuanOjek;
 
-window.pilihModeTitikOjek=pilihModeTitikOjek;window.setJemputOjek=setJemputOjek;
+window.setJemputOjek=setJemputOjek;
