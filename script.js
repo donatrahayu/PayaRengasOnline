@@ -2820,3 +2820,18 @@ async function konfirmasiPesananOjek(){
     btn.textContent='Pesanan terkirim';
   }catch(e){console.error(e);status.textContent='Gagal menyimpan pesanan: '+(e.message||e);alert('Pesanan belum tersimpan: '+(e.message||e));btn.disabled=false;btn.textContent=barang?'Pesan Antar Barang':'Pesan Ojek Penumpang';}
 }
+
+
+// PINTAR OJEK: expose click handlers globally (GitHub Pages classic script).
+window.bukaFormOjek = bukaFormOjek;
+window.tutupFormOjek = tutupFormOjek;
+window.hitungTarifOjekPelanggan = hitungTarifOjekPelanggan;
+window.konfirmasiPesananOjek = konfirmasiPesananOjek;
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.pr-service-ojek').forEach(function(card){
+    card.addEventListener('click', function(){
+      const kind = card.querySelector('h3')?.textContent.includes('Barang') ? 'ojek_barang' : 'ojek_penumpang';
+      window.bukaFormOjek(kind);
+    });
+  });
+});
