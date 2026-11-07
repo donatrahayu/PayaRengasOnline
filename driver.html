@@ -879,7 +879,7 @@ $("foto").addEventListener("change", function(e) {
 let driverOrdersRefreshTimer = null;
 let driverOrdersBusy = false;
 
-const DRIVER_ORDER_SELECT = 'id,created_at,nama_pelanggan,no_wa,"alamat pengantara",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,items,driver_id,driver_nama,driver_no_wa';
+const DRIVER_ORDER_SELECT = 'id,created_at,nama_pelanggan,no_wa,"alamat pengantara",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,items,driver_id,driver_nama,driver_no_wa,jenis_layanan,lokasi_jemput,lokasi_tujuan,detail_barang,tarif_ojek';
 const ACTIVE_ORDER_STATUSES = ['baru','diproses','diantar'];
 
 function driverEsc(value){
@@ -899,6 +899,9 @@ function driverOrderCard(o, mode){
   const phone=driverEsc(o.no_wa||'-');
   const note=driverEsc(o.catatan||'');
   const total=driverMoney(o.total_pembayaran ?? o.total_belanja);
+  const serviceType=String(o.jenis_layanan||'makanan');
+  const serviceLabel=serviceType==='ojek_penumpang'?'🛵 Ojek Penumpang':serviceType==='ojek_barang'?'📦 Ojek Barang':'🍔 Pesanan Makanan';
+  const serviceRoute=serviceType==='makanan'?'':`<br>Jemput: ${driverEsc(o.lokasi_jemput||'-')}<br>Tujuan: ${driverEsc(o.lokasi_tujuan||o['alamat pengantara']||'-')}${o.detail_barang?'<br>Barang: '+driverEsc(o.detail_barang):''}`;
   const status=driverEsc(driverStatus(o.status));
   const date=o.created_at?new Date(o.created_at).toLocaleString('id-ID'):'-';
   const rawAddress=String(o['alamat pengantara']||'').trim();
@@ -921,7 +924,7 @@ function driverOrderCard(o, mode){
     if(String(o.status||'').toLowerCase()!=='diantar') actions+=`<button data-driver-action="start" data-order-id="${id}">Mulai Antar</button>`;
     actions+=`<button class="dark" data-driver-action="finish" data-order-id="${id}">Selesaikan Pesanan</button>`;
   }
-  return `<article class="order-card"><div class="order-head"><div><div class="order-id">Pesanan #${id}</div><strong>${name}</strong></div><span class="status-tag">${status}</span></div><div class="order-meta">📍 ${address}<br>☎️ ${phone}<br>🕒 ${driverEsc(date)}${note?'<br>Catatan: '+note:''}</div><div class="order-total">${total}</div>${actions?'<div class="order-actions">'+actions+'</div>':''}</article>`;
+  return `<article class="order-card"><div class="order-head"><div><div class="order-id">Pesanan #${id} · ${serviceLabel}</div><strong>${name}</strong></div><span class="status-tag">${status}</span></div><div class="order-meta">📍 ${address}<br>☎️ ${phone}<br>🕒 ${driverEsc(date)}${serviceRoute}${note?'<br>Catatan: '+note:''}</div><div class="order-total">${total}</div>${actions?'<div class="order-actions">'+actions+'</div>':''}</article>`;
 }
 function setDriverList(id, rows, mode, emptyText){
   const el=$(id); if(!el)return;
