@@ -2765,3 +2765,58 @@ async function tambahWarung() {
 /* =====================================================
    SELESAI
 ===================================================== */
+
+
+/* PINTAR OJEK — FORM PELANGGAN UJI COBA */
+let jenisLayananOjekAktif=null;
+let tarifOjekPelanggan=null;
+async function muatTarifOjekPelanggan(){
+  try{
+    const {data,error}=await supabaseClient.from('pengaturan_tarif_ojek').select('*').eq('aktif',true).order('id',{ascending:false}).limit(1).maybeSingle();
+    if(error)throw error;tarifOjekPelanggan=data;return data;
+  }catch(e){console.error('Tarif Ojek:',e);tarifOjekPelanggan=null;return null;}
+}
+function bukaFormOjek(jenis){
+  jenisLayananOjekAktif=jenis;
+  const form=document.getElementById('formOjekPintar');if(form)form.style.display='block';
+  const food=document.querySelector('.menu');if(food)food.style.display='none';
+  const barang=jenis==='ojek_barang';
+  document.getElementById('judulFormOjek').textContent=barang?'📦 Pesan Ojek Antar Barang':'🛵 Pesan Ojek Penumpang';
+  document.getElementById('labelDetailOjek').style.display=barang?'block':'none';
+  document.getElementById('btnKirimOjek').textContent=barang?'Pesan Antar Barang':'Pesan Ojek Penumpang';
+  document.getElementById('ojekPesanStatus').textContent='Memuat tarif...';
+  muatTarifOjekPelanggan().then(()=>{hitungTarifOjekPelanggan();document.getElementById('ojekPesanStatus').textContent=tarifOjekPelanggan?'Tarif berhasil dimuat.':'Tarif belum dapat dimuat. Hubungi Admin.';});
+  form.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function tutupFormOjek(){document.getElementById('formOjekPintar').style.display='none';const food=document.querySelector('.menu');if(food)food.style.display='';}
+function hitungTarifOjekPelanggan(){
+  const info=document.getElementById('ojekTarifInfo'),km=Number(document.getElementById('ojekJarak')?.value);
+  if(!info)return null;if(!tarifOjekPelanggan){info.textContent='Tarif belum tersedia dari Admin.';return null;}
+  if(!Number.isFinite(km)||km<=0){info.textContent='Masukkan jarak untuk melihat tarif.';return null;}
+  if(km>50){info.textContent='Jarak maksimal uji coba 50 km.';return null;}
+  const p=jenisLayananOjekAktif==='ojek_barang'?'barang':'penumpang';
+  const key=km<=.5?'0_05':km<=1.5?'05_15':km<=2.5?'15_25':km<=3.5?'25_35':km<=4.5?'35_45':km<=5.5?'45_55':'55_65';
+  let fare=Number(tarifOjekPelanggan[`${p}_tarif_${key}`]);
+  if(km>6.5)fare+=Math.ceil(km-6.5)*Number(tarifOjekPelanggan[`${p}_tambahan_diatas_65`]);
+  if(!Number.isFinite(fare)||fare<=0){info.textContent='Tarif belum diatur Admin.';return null;}
+  info.textContent=`Jarak ${km.toLocaleString('id-ID')} km · Tarif: Rp${fare.toLocaleString('id-ID')}`;return fare;
+}
+async function konfirmasiPesananOjek(){
+  const btn=document.getElementById('btnKirimOjek'),status=document.getElementById('ojekPesanStatus');
+  const nama=document.getElementById('ojekNama').value.trim(),wa=document.getElementById('ojekWa').value.trim();
+  const jemput=document.getElementById('ojekJemput').value.trim(),tujuan=document.getElementById('ojekTujuan').value.trim();
+  const jarak=Number(document.getElementById('ojekJarak').value),detail=document.getElementById('ojekDetailBarang').value.trim();
+  const catatan=document.getElementById('ojekCatatan').value.trim(),tarif=hitungTarifOjekPelanggan(),barang=jenisLayananOjekAktif==='ojek_barang';
+  if(!nama||!wa||!jemput||!tujuan||!Number.isFinite(jarak)||jarak<=0||!tarif){alert('Lengkapi nama, WhatsApp, lokasi jemput, tujuan, dan jarak.');return;}
+  if(barang&&!detail){alert('Isi keterangan barang.');return;}
+  btn.disabled=true;btn.textContent='Menyimpan pesanan...';
+  try{
+    const payload={pelanggan_id:null,warung_id:null,items:[],nama_pelanggan:nama,no_wa:wa,"alamat pengantara":tujuan,catatan,total_belanja:0,ongkir:tarif,jarak_km:jarak,total_pembayaran:tarif,status:'baru',metode_pembayaran:'WhatsApp',latitude:null,longitude:null,jenis_layanan:jenisLayananOjekAktif,lokasi_jemput:jemput,lokasi_tujuan:tujuan,detail_barang:barang?detail:null,tarif_ojek:tarif};
+    const {data:order,error}=await supabaseClient.from('pesanan').insert(payload).select('id,created_at').single();
+    if(error)throw error;
+    status.textContent=`Pesanan #${order.id} berhasil masuk. Menghubungi Admin...`;
+    const txt=`PESANAN ${barang?'OJEK ANTAR BARANG':'OJEK PENUMPANG'} PINTAR\nNomor: #${order.id}\nNama: ${nama}\nWA: ${wa}\nJemput: ${jemput}\nTujuan: ${tujuan}\nJarak: ${jarak} km\nTarif: Rp${tarif.toLocaleString('id-ID')}\n${barang?'Barang: '+detail+'\n':''}Catatan: ${catatan||'-'}`;
+    window.open(`https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(txt)}`,'_blank');
+    btn.textContent='Pesanan terkirim';
+  }catch(e){console.error(e);status.textContent='Gagal menyimpan pesanan: '+(e.message||e);alert('Pesanan belum tersimpan: '+(e.message||e));btn.disabled=false;btn.textContent=barang?'Pesan Antar Barang':'Pesan Ojek Penumpang';}
+}
