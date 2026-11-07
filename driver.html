@@ -879,7 +879,7 @@ $("foto").addEventListener("change", function(e) {
 let driverOrdersRefreshTimer = null;
 let driverOrdersBusy = false;
 
-const DRIVER_ORDER_SELECT = 'id,created_at,nama_pelanggan,no_wa,"alamat pengantara",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,items,driver_id,driver_nama,driver_no_wa,jenis_layanan,lokasi_jemput,lokasi_tujuan,detail_barang,tarif_ojek';
+const DRIVER_ORDER_SELECT = 'id,created_at,nama_pelanggan,no_wa,"alamat pengantara",catatan,total_belanja,ongkir,total_pembayaran,status,metode_pembayaran,items,driver_id,driver_nama,driver_no_wa,jenis_layanan,lokasi_jemput,lokasi_tujuan,latitude,longitude,tujuan_latitude,tujuan_longitude';
 const ACTIVE_ORDER_STATUSES = ['baru','diproses','diantar'];
 
 function driverEsc(value){
@@ -899,19 +899,25 @@ function driverOrderCard(o, mode){
   const phone=driverEsc(o.no_wa||'-');
   const note=driverEsc(o.catatan||'');
   const total=driverMoney(o.total_pembayaran ?? o.total_belanja);
-  const serviceType=String(o.jenis_layanan||'makanan');
-  const serviceLabel=serviceType==='ojek_penumpang'?'🛵 Ojek Penumpang':serviceType==='ojek_barang'?'📦 Ojek Barang':'🍔 Pesanan Makanan';
-  const serviceRoute=serviceType==='makanan'?'':`<br>Jemput: ${driverEsc(o.lokasi_jemput||'-')}<br>Tujuan: ${driverEsc(o.lokasi_tujuan||o['alamat pengantara']||'-')}${o.detail_barang?'<br>Barang: '+driverEsc(o.detail_barang):''}`;
   const status=driverEsc(driverStatus(o.status));
   const date=o.created_at?new Date(o.created_at).toLocaleString('id-ID'):'-';
   const rawAddress=String(o['alamat pengantara']||'').trim();
+  const serviceType=String(o.jenis_layanan||'makanan').toLowerCase();
+  const isOjek=serviceType.includes('ojek');
+  const serviceLabel=isOjek ? (serviceType.includes('barang') ? 'Ojek Antar Barang' : 'Ojek Penumpang') : 'Pesanan Makanan';
+  const shownAddress=isOjek ? `Jemput: ${driverEsc(o.lokasi_jemput||'Lokasi GPS')}<br>Tujuan: ${driverEsc(o.lokasi_tujuan||rawAddress||'-')}` : address;
   let mapUrl='';
-  if(rawAddress){
-    // Jika pelanggan menyimpan tautan Google Maps, gunakan tautan aslinya.
+  // Pesanan Ojek memakai koordinat tujuan hasil pencarian pelanggan.
+  // Gunakan URL Maps berbasis koordinat agar aplikasi Maps langsung mengenali pin.
+  const destLat=Number(o.tujuan_latitude);
+  const destLng=Number(o.tujuan_longitude);
+  if(isOjek && Number.isFinite(destLat) && Number.isFinite(destLng) && destLat!==0 && destLng!==0){
+    mapUrl='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(`${destLat},${destLng}`)+'&travelmode=driving';
+  }else if(rawAddress){
+    // Pesanan makanan tetap memakai alamat/tautan yang sudah digunakan sebelumnya.
     if(/^https?:\/\//i.test(rawAddress)){
       mapUrl=rawAddress;
     }else{
-      // Mendukung koordinat seperti -3.12345, 98.12345 maupun alamat teks.
       const coord=rawAddress.match(/(-?\d{1,2}\.\d+)\s*[,;]\s*(-?\d{1,3}\.\d+)/);
       const destination=coord?`${coord[1]},${coord[2]}`:rawAddress;
       mapUrl='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(destination)+'&travelmode=driving';
@@ -924,7 +930,7 @@ function driverOrderCard(o, mode){
     if(String(o.status||'').toLowerCase()!=='diantar') actions+=`<button data-driver-action="start" data-order-id="${id}">Mulai Antar</button>`;
     actions+=`<button class="dark" data-driver-action="finish" data-order-id="${id}">Selesaikan Pesanan</button>`;
   }
-  return `<article class="order-card"><div class="order-head"><div><div class="order-id">Pesanan #${id} · ${serviceLabel}</div><strong>${name}</strong></div><span class="status-tag">${status}</span></div><div class="order-meta">📍 ${address}<br>☎️ ${phone}<br>🕒 ${driverEsc(date)}${serviceRoute}${note?'<br>Catatan: '+note:''}</div><div class="order-total">${total}</div>${actions?'<div class="order-actions">'+actions+'</div>':''}</article>`;
+  return `<article class="order-card"><div class="order-head"><div><div class="order-id">Pesanan #${id}</div><strong>${name}</strong><div>${driverEsc(serviceLabel)}</div></div><span class="status-tag">${status}</span></div><div class="order-meta">📍 ${shownAddress}<br>☎️ ${phone}<br>🕒 ${driverEsc(date)}${note?'<br>Catatan: '+note:''}</div><div class="order-total">${total}</div>${actions?'<div class="order-actions">'+actions+'</div>':''}</article>`;
 }
 function setDriverList(id, rows, mode, emptyText){
   const el=$(id); if(!el)return;
