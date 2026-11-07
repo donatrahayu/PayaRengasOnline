@@ -1065,6 +1065,10 @@ footer{background:#171717!important;color:#fff!important;border-top:3px solid #f
 footer h2,footer a{color:#ffc400!important}
 </style>
 
+<style id="pintar-ojek-click-fix">
+.pr-service-ojek{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;position:relative;z-index:2;pointer-events:auto}
+.pr-service-ojek:focus{outline:3px solid #ff8a45;outline-offset:2px}
+</style>
 </head>
 
 
@@ -1276,15 +1280,15 @@ footer h2,footer a{color:#ffc400!important}
       <div class="action-arrow">›</div>
     </div>
 
-    <div class="pr-service" role="button" tabindex="0" onclick="bukaFormOjek('ojek_penumpang')" onkeydown="if(event.key==='Enter'||event.key===' '){bukaFormOjek('ojek_penumpang')}">
+    <button type="button" class="pr-service pr-service-ojek" onclick="window.bukaFormOjek && window.bukaFormOjek('ojek_penumpang')">
       <div class="ico">🛵</div>
       <div><h3>Ojek Penumpang</h3><p>Antar jemput berdasarkan jarak.</p><span class="pr-badge">PESAN SEKARANG</span></div>
-    </div>
+    </button>
 
-    <div class="pr-service" role="button" tabindex="0" onclick="bukaFormOjek('ojek_barang')" onkeydown="if(event.key==='Enter'||event.key===' '){bukaFormOjek('ojek_barang')}">
+    <button type="button" class="pr-service pr-service-ojek" onclick="window.bukaFormOjek && window.bukaFormOjek('ojek_barang')">
       <div class="ico">📦</div>
       <div><h3>Ojek Antar Barang</h3><p>Kirim paket dan barang ke tujuan.</p><span class="pr-badge">PESAN SEKARANG</span></div>
-    </div>
+    </button>
   </div>
 </section>
 
