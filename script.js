@@ -2767,6 +2767,16 @@ async function tambahWarung() {
 ===================================================== */
 
 
+/* PINTAR OJEK MAP: Leaflet + OpenStreetMap */
+let petaOjek=null, markerJemputOjek=null, markerTujuanOjek=null, garisRuteOjek=null;
+function siapkanPetaOjek(){
+ const el=document.getElementById('pintarOjekMap'); if(!el||!window.L)return;
+ if(!petaOjek){petaOjek=L.map(el).setView([3.8,98.3],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(petaOjek);}
+ setTimeout(()=>petaOjek.invalidateSize(),250);
+ if(koordinatJemputOjek){if(markerJemputOjek)petaOjek.removeLayer(markerJemputOjek);markerJemputOjek=L.marker([koordinatJemputOjek.lat,koordinatJemputOjek.lng]).addTo(petaOjek).bindPopup('Lokasi jemput');petaOjek.setView([koordinatJemputOjek.lat,koordinatJemputOjek.lng],15);}
+ if(koordinatTujuanOjek){if(markerTujuanOjek)petaOjek.removeLayer(markerTujuanOjek);markerTujuanOjek=L.marker([koordinatTujuanOjek.lat,koordinatTujuanOjek.lng]).addTo(petaOjek).bindPopup('Lokasi tujuan');}
+}
+function gambarRuteOjek(coords){if(!window.L||!petaOjek||!coords)return;if(garisRuteOjek)petaOjek.removeLayer(garisRuteOjek);garisRuteOjek=L.geoJSON({type:'LineString',coordinates:coords},{style:{color:'#1677d2',weight:5}}).addTo(petaOjek);petaOjek.fitBounds(garisRuteOjek.getBounds(),{padding:[25,25]});}
 /* PINTAR OJEK — MAPS, GPS & JARAK RUTE JALAN */
 let jenisLayananOjekAktif=null, tarifOjekPelanggan=null;
 let koordinatJemputOjek=null, koordinatTujuanOjek=null, jarakRuteOjekKm=null, tarifHitungOjek=null;
@@ -2778,7 +2788,7 @@ async function muatTarifOjekPelanggan(){
 function bukaFormOjek(jenis){
   jenisLayananOjekAktif=jenis;koordinatJemputOjek=null;koordinatTujuanOjek=null;jarakRuteOjekKm=null;tarifHitungOjek=null;
   const form=document.getElementById('formOjekPintar');if(form)form.style.display='block';
-  const food=document.querySelector('.menu');if(food)food.style.display='none';
+  const food=document.querySelector('.menu');if(food)food.style.display='none';setTimeout(siapkanPetaOjek,100);
   const barang=jenis==='ojek_barang';
   document.getElementById('judulFormOjek').textContent=barang?'📦 Pesan Ojek Antar Barang':'🛵 Pesan Ojek Penumpang';
   document.getElementById('labelDetailOjek').style.display=barang?'block':'none';
@@ -2794,7 +2804,7 @@ function bukaFormOjek(jenis){
 }
 function tutupFormOjek(){document.getElementById('formOjekPintar').style.display='none';const food=document.querySelector('.menu');if(food)food.style.display='';}
 function setJemputOjek(lat,lng,label){
-  koordinatJemputOjek={lat:Number(lat),lng:Number(lng)};
+  koordinatJemputOjek={lat:Number(lat),lng:Number(lng)};setTimeout(siapkanPetaOjek,50);
   document.getElementById('ojekJemput').value=label||`Titik jemput (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
   hitungRuteDanTarifOjek();
 }
@@ -2809,19 +2819,71 @@ function ambilLokasiJemputOjek(){
   },err=>{status.textContent='GPS tidak berhasil: '+(err.code===1?'izin lokasi ditolak':err.code===2?'posisi tidak tersedia':'waktu mendapatkan lokasi habis')+'. Izinkan lokasi pada browser lalu coba lagi.';},{enableHighAccuracy:true,timeout:20000,maximumAge:30000});
 }
 async function cariTujuanOjek(){
-  const q=document.getElementById('ojekTujuan').value.trim(),out=document.getElementById('hasilCariTujuanOjek');
-  if(q.length<3){out.textContent='Ketik minimal 3 karakter alamat tujuan.';return;}
-  out.textContent='Mencari alamat...';
+  const input=document.getElementById('ojekTujuan');
+  const out=document.getElementById('hasilCariTujuanOjek');
+  const q=input.value.trim();
+  if(q.length<3){out.textContent='Ketik minimal 3 karakter alamat atau nama tempat.';return;}
+  out.textContent='Mencari alamat di Kabupaten Langkat...';
+
+  // Batas wilayah perkiraan Kabupaten Langkat: hasil Langkat diprioritaskan,
+  // tetapi pencarian tidak dikunci agar tempat di perbatasan tetap dapat ditemukan.
+  const viewbox='97.20,4.35,98.75,3.20';
+  const base='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=10&countrycodes=id&viewbox='+viewbox;
+
+  async function cari(query){
+    const response=await fetch(base+'&q='+encodeURIComponent(query),{
+      headers:{'Accept':'application/json'}
+    });
+    if(!response.ok) throw new Error('Layanan pencarian alamat sedang tidak tersedia');
+    return await response.json();
+  }
+
   try{
-    const url='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q='+encodeURIComponent(q+', Indonesia');
-    const r=await fetch(url,{headers:{'Accept':'application/json'}});if(!r.ok)throw new Error('Pencarian alamat tidak tersedia');
-    const results=await r.json();out.innerHTML='';
-    if(!results.length){out.textContent='Alamat tidak ditemukan. Coba ketik nama jalan, dusun, atau tempat terdekat.';return;}
-    results.forEach(item=>{const b=document.createElement('button');b.type='button';b.textContent=item.display_name;b.style='display:block;width:100%;text-align:left;padding:9px;margin:4px 0;border:1px solid #ddd;border-radius:8px;background:white';b.onclick=()=>setTujuanOjek(Number(item.lat),Number(item.lon),item.display_name);out.appendChild(b);});
-  }catch(e){out.textContent=e.message+'. Coba lagi beberapa saat.';}
+    // Cari dengan konteks Langkat dahulu, lalu cari teks asli dengan bias peta Langkat.
+    const batches=await Promise.all([
+      cari(q+', Kabupaten Langkat, Sumatera Utara, Indonesia'),
+      cari(q+', Langkat, Sumatera Utara, Indonesia'),
+      cari(q)
+    ]);
+
+    const semua=[];
+    const seen=new Set();
+    for(const batch of batches){
+      for(const item of batch){
+        const key=item.place_id || `${item.lat},${item.lon}`;
+        if(!seen.has(key)){seen.add(key);semua.push(item);}
+      }
+    }
+
+    if(!semua.length){
+      out.textContent='Alamat belum ditemukan. Coba nama tempat terdekat, nama desa/kecamatan, atau pilih titik tujuan pada peta.';
+      return;
+    }
+
+    // Hasil yang menyebut Langkat didahulukan; hasil lain tetap ditampilkan
+    // agar tujuan dekat perbatasan Kabupaten Langkat tidak hilang.
+    semua.sort((a,b)=>{
+      const aLangkat=/langkat/i.test(a.display_name||'')?1:0;
+      const bLangkat=/langkat/i.test(b.display_name||'')?1:0;
+      return bLangkat-aLangkat;
+    });
+
+    out.innerHTML='';
+    semua.slice(0,10).forEach(item=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.textContent=item.display_name;
+      button.style='display:block;width:100%;text-align:left;padding:10px;margin:5px 0;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;white-space:normal';
+      button.onclick=()=>setTujuanOjek(Number(item.lat),Number(item.lon),item.display_name);
+      out.appendChild(button);
+    });
+  }catch(error){
+    console.error('Pencarian tujuan Ojek:',error);
+    out.textContent=(error.message||'Pencarian alamat gagal')+'. Coba lagi atau pilih titik tujuan pada peta.';
+  }
 }
 function setTujuanOjek(lat,lng,label){
-  koordinatTujuanOjek={lat:Number(lat),lng:Number(lng)};
+  koordinatTujuanOjek={lat:Number(lat),lng:Number(lng)};setTimeout(siapkanPetaOjek,50);
   document.getElementById('ojekTujuan').value=label||`Tujuan (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
   hitungRuteDanTarifOjek();
 }
@@ -2834,7 +2896,7 @@ async function hitungRuteDanTarifOjek(){
     const url=`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
     const response=await fetch(url);if(!response.ok)throw new Error('Layanan rute tidak merespons');
     const result=await response.json();if(result.code!=='Ok'||!result.routes?.length)throw new Error('Rute jalan tidak ditemukan');
-    const route=result.routes[0];jarakRuteOjekKm=route.distance/1000;
+    const route=result.routes[0];jarakRuteOjekKm=route.distance/1000;if(route.geometry&&route.geometry.coordinates)gambarRuteOjek(route.geometry.coordinates);
     dist.textContent=`Jarak rute jalan: ${jarakRuteOjekKm.toFixed(2)} km · Perkiraan waktu: ${Math.round(route.duration/60)} menit`;
     hitungTarifDariJarakRuteOjek();
   }catch(e){jarakRuteOjekKm=null;tarifHitungOjek=null;dist.textContent='Rute jalan gagal dihitung. Coba pilih titik tujuan lain atau ulangi.';info.textContent='Tarif belum dapat ditentukan tanpa jarak rute.';console.error('OSRM route:',e);}
