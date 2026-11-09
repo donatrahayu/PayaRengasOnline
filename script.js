@@ -2767,17 +2767,7 @@ async function tambahWarung() {
 ===================================================== */
 
 
-/* PINTAR OJEK MAP: Leaflet + OpenStreetMap */
-let petaOjek=null, markerJemputOjek=null, markerTujuanOjek=null, garisRuteOjek=null;
-function siapkanPetaOjek(){
- const el=document.getElementById('pintarOjekMap'); if(!el||!window.L)return;
- if(!petaOjek){petaOjek=L.map(el).setView([3.8,98.3],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(petaOjek);}
- setTimeout(()=>petaOjek.invalidateSize(),250);
- if(koordinatJemputOjek){if(markerJemputOjek)petaOjek.removeLayer(markerJemputOjek);markerJemputOjek=L.marker([koordinatJemputOjek.lat,koordinatJemputOjek.lng]).addTo(petaOjek).bindPopup('Lokasi jemput');petaOjek.setView([koordinatJemputOjek.lat,koordinatJemputOjek.lng],15);}
- if(koordinatTujuanOjek){if(markerTujuanOjek)petaOjek.removeLayer(markerTujuanOjek);markerTujuanOjek=L.marker([koordinatTujuanOjek.lat,koordinatTujuanOjek.lng]).addTo(petaOjek).bindPopup('Lokasi tujuan');}
-}
-function gambarRuteOjek(coords){if(!window.L||!petaOjek||!coords)return;if(garisRuteOjek)petaOjek.removeLayer(garisRuteOjek);garisRuteOjek=L.geoJSON({type:'LineString',coordinates:coords},{style:{color:'#1677d2',weight:5}}).addTo(petaOjek);petaOjek.fitBounds(garisRuteOjek.getBounds(),{padding:[25,25]});}
-/* PINTAR OJEK — MAPS, GPS & JARAK RUTE JALAN */
+/* PINTAR OJEK — GPS & JARAK RUTE JALAN (tanpa tampilan peta) */
 let jenisLayananOjekAktif=null, tarifOjekPelanggan=null;
 let koordinatJemputOjek=null, koordinatTujuanOjek=null, jarakRuteOjekKm=null, tarifHitungOjek=null;
 
@@ -2788,7 +2778,7 @@ async function muatTarifOjekPelanggan(){
 function bukaFormOjek(jenis){
   jenisLayananOjekAktif=jenis;koordinatJemputOjek=null;koordinatTujuanOjek=null;jarakRuteOjekKm=null;tarifHitungOjek=null;
   const form=document.getElementById('formOjekPintar');if(form)form.style.display='block';
-  const food=document.querySelector('.menu');if(food)food.style.display='none';setTimeout(siapkanPetaOjek,100);
+  const food=document.querySelector('.menu');if(food)food.style.display='none';
   const barang=jenis==='ojek_barang';
   document.getElementById('judulFormOjek').textContent=barang?'📦 Pesan Ojek Antar Barang':'🛵 Pesan Ojek Penumpang';
   document.getElementById('labelDetailOjek').style.display=barang?'block':'none';
@@ -2804,7 +2794,7 @@ function bukaFormOjek(jenis){
 }
 function tutupFormOjek(){document.getElementById('formOjekPintar').style.display='none';const food=document.querySelector('.menu');if(food)food.style.display='';}
 function setJemputOjek(lat,lng,label){
-  koordinatJemputOjek={lat:Number(lat),lng:Number(lng)};setTimeout(siapkanPetaOjek,50);
+  koordinatJemputOjek={lat:Number(lat),lng:Number(lng)};
   document.getElementById('ojekJemput').value=label||`Titik jemput (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
   hitungRuteDanTarifOjek();
 }
@@ -2856,7 +2846,7 @@ async function cariTujuanOjek(){
     }
 
     if(!semua.length){
-      out.textContent='Alamat belum ditemukan. Coba nama tempat terdekat, nama desa/kecamatan, atau pilih titik tujuan pada peta.';
+      out.textContent='Alamat belum ditemukan. Coba nama tempat terdekat, nama desa/kecamatan, atau coba masukkan nama desa, kecamatan, atau tempat terdekat.';
       return;
     }
 
@@ -2879,11 +2869,11 @@ async function cariTujuanOjek(){
     });
   }catch(error){
     console.error('Pencarian tujuan Ojek:',error);
-    out.textContent=(error.message||'Pencarian alamat gagal')+'. Coba lagi atau pilih titik tujuan pada peta.';
+    out.textContent=(error.message||'Pencarian alamat gagal')+'. Coba lagi atau coba masukkan nama desa, kecamatan, atau tempat terdekat.';
   }
 }
 function setTujuanOjek(lat,lng,label){
-  koordinatTujuanOjek={lat:Number(lat),lng:Number(lng)};setTimeout(siapkanPetaOjek,50);
+  koordinatTujuanOjek={lat:Number(lat),lng:Number(lng)};
   document.getElementById('ojekTujuan').value=label||`Tujuan (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
   hitungRuteDanTarifOjek();
 }
@@ -2896,7 +2886,7 @@ async function hitungRuteDanTarifOjek(){
     const url=`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
     const response=await fetch(url);if(!response.ok)throw new Error('Layanan rute tidak merespons');
     const result=await response.json();if(result.code!=='Ok'||!result.routes?.length)throw new Error('Rute jalan tidak ditemukan');
-    const route=result.routes[0];jarakRuteOjekKm=route.distance/1000;if(route.geometry&&route.geometry.coordinates)gambarRuteOjek(route.geometry.coordinates);
+    const route=result.routes[0];jarakRuteOjekKm=route.distance/1000;
     dist.textContent=`Jarak rute jalan: ${jarakRuteOjekKm.toFixed(2)} km · Perkiraan waktu: ${Math.round(route.duration/60)} menit`;
     hitungTarifDariJarakRuteOjek();
   }catch(e){jarakRuteOjekKm=null;tarifHitungOjek=null;dist.textContent='Rute jalan gagal dihitung. Coba pilih titik tujuan lain atau ulangi.';info.textContent='Tarif belum dapat ditentukan tanpa jarak rute.';console.error('OSRM route:',e);}
