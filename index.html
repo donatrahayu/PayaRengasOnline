@@ -1065,13 +1065,76 @@ footer{background:#171717!important;color:#fff!important;border-top:3px solid #f
 footer h2,footer a{color:#ffc400!important}
 </style>
 
-<style id="pintar-ojek-click-fix">
-.pr-service-ojek{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;position:relative;z-index:2;pointer-events:auto}
-.pr-service-ojek:focus{outline:3px solid #ff8a45;outline-offset:2px}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style id="pintar-ojek-style">
+#formOjekPintar{display:none;width:min(900px,94%);margin:22px auto;padding:20px;background:#fff;border:1px solid #eadb9b;border-radius:18px;box-shadow:0 8px 28px #00000012;color:#222}
+#formOjekPintar h2{margin:0 0 14px;font-size:22px}
+#formOjekPintar label{display:block;font-weight:700;margin:12px 0 6px}
+#formOjekPintar input,#formOjekPintar textarea{box-sizing:border-box;width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font:inherit}
+#formOjekPintar button{padding:11px 15px;border:0;border-radius:10px;cursor:pointer;font-weight:700;margin-top:8px}
+#pintarOjekMap{height:300px;width:100%;margin-top:12px;border-radius:14px;border:1px solid #ddd;z-index:1}
+#hasilCariTujuanOjek{max-height:220px;overflow:auto;margin-top:8px}
+#ojekJarak,#ojekTarifInfo,#ojekPesanStatus{display:block;margin-top:10px;padding:10px;background:#fff8dc;border-radius:9px;font-size:13px}
+.pr-service-ojek{cursor:pointer}
+@media(max-width:600px){#formOjekPintar{padding:14px}#pintarOjekMap{height:260px}}
 </style>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<style id="prd-banner-final-position-fix">
+/* Banner final: logo kecil di kiri, nama usaha jelas di sebelahnya; tidak ditumpuk atau dipusatkan */
+.banner{
+  display:flex!important; flex-direction:row!important; justify-content:flex-start!important; align-items:center!important;
+  gap:clamp(18px,3vw,34px)!important; padding:24px clamp(22px,5vw,68px)!important;
+  min-height:230px!important; text-align:left!important;
+}
+.banner > .prd-hero-logo{
+  position:static!important; inset:auto!important; transform:none!important; flex:0 0 auto!important;
+  display:block!important; width:clamp(105px,13vw,160px)!important; height:auto!important;
+  max-width:160px!important; max-height:160px!important; object-fit:contain!important; margin:0!important;
+}
+.banner > .banner-text{
+  display:block!important; position:static!important; flex:1 1 auto!important; width:auto!important; max-width:none!important;
+  min-width:0!important; margin:0!important; padding:0!important; text-align:left!important; z-index:3!important;
+}
+.banner .prd-big-title{display:none!important}
+.banner .prd-brand-title{
+  display:block!important; margin:0!important; color:#08783f!important; font-size:clamp(28px,3.5vw,48px)!important;
+  font-weight:800!important; line-height:1.15!important; text-align:left!important;
+}
+.banner .banner-image{display:none!important}
+@media(max-width:700px){
+ .banner{min-height:150px!important; padding:18px!important; gap:14px!important; border-radius:18px!important}
+ .banner > .prd-hero-logo{width:76px!important; max-width:76px!important; max-height:86px!important}
+ .banner .prd-brand-title{font-size:clamp(21px,5.6vw,29px)!important}
+}
+</style>
+<style id="pintar-warung-cards">
+:root{--pintar-yellow:#ffc928;--pintar-ink:#171717;--pintar-muted:#777}
+.pintar-warung-section{width:min(1200px,94%);margin:0 auto 24px;padding:clamp(16px,3vw,26px);border-radius:24px;background:#fff;box-shadow:0 12px 38px rgba(24,24,24,.07);border:1px solid #f0f0f0}
+.pintar-warung-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:20px}
+.pintar-eyebrow{font-size:11px;font-weight:800;letter-spacing:1.7px;color:#a47700}
+.pintar-warung-heading h3{font-size:clamp(21px,3vw,29px);font-weight:800;color:#171717;margin:5px 0}
+.pintar-warung-heading p{margin:0;color:#777;font-size:13px}
+.pintar-search-wrap{display:flex;align-items:center;gap:9px;background:#f7f7f7;border:1px solid #eee;border-radius:13px;padding:0 13px;min-width:min(270px,100%)}
+.pintar-search-wrap span{font-size:23px;color:#777}
+.pintar-search-wrap input{width:100%;min-width:0;border:0;outline:0;background:transparent;padding:13px 0;font:inherit;font-size:13px}
+.pintar-warung-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.pintar-warung-card{display:block;text-align:left;padding:0;overflow:hidden;border:1px solid #eee;border-radius:18px;background:#fff;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;color:#171717}
+.pintar-warung-card:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(0,0,0,.09);border-color:#f3c52c}
+.pintar-warung-card.is-selected{border:2px solid #eab900;box-shadow:0 0 0 3px rgba(255,201,40,.16)}
+.pintar-warung-art{height:132px;display:grid;place-items:center;background:linear-gradient(135deg,#fff4c8,#ffe28a);position:relative;font-size:55px}
+.pintar-warung-art:after{content:"";position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.32);right:-30px;top:-38px}
+.pintar-warung-art .pintar-food-emoji{z-index:1;filter:drop-shadow(0 5px 5px rgba(90,60,0,.12))}
+.pintar-warung-copy{padding:13px 14px 15px}
+.pintar-warung-name{font-size:15px;font-weight:800;line-height:1.35;margin-bottom:6px;overflow-wrap:anywhere}
+.pintar-warung-address{font-size:11px;color:#777;min-height:29px;line-height:1.4}
+.pintar-warung-status{display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:800;background:#e9f8ed;color:#23733c}
+.pintar-warung-status.closed{background:#f1f1f1;color:#777}
+.pintar-warung-loading,.pintar-warung-empty{grid-column:1/-1;padding:30px;text-align:center;color:#777;background:#fafafa;border-radius:16px}
+.pintar-warung-info{margin-top:14px;padding:12px 14px;background:#fff9e5;border-radius:12px;color:#6b5700;font-size:13px}
+@media(max-width:900px){.pintar-warung-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.pintar-warung-heading{align-items:stretch;flex-direction:column}.pintar-search-wrap{min-width:0}.pintar-warung-art{height:105px;font-size:45px}.pintar-warung-copy{padding:11px}.pintar-warung-name{font-size:13px}}
+</style>
 </head>
 
 
@@ -1283,34 +1346,35 @@ footer h2,footer a{color:#ffc400!important}
       <div class="action-arrow">›</div>
     </div>
 
-    <button type="button" class="pr-service pr-service-ojek" onclick="window.bukaFormOjek && window.bukaFormOjek('ojek_penumpang')">
-      <div class="ico">🛵</div>
-      <div><h3>Ojek Penumpang</h3><p>Antar jemput berdasarkan jarak.</p><span class="pr-badge">PESAN SEKARANG</span></div>
-    </button>
+    <div class="pr-service pr-service-ojek" onclick="bukaFormOjek('ojek_penumpang')" role="button" tabindex="0">
+      <div class="ico">🛵</div><div><h3>Ojek Penumpang</h3><p>Antar jemput dengan tarif otomatis.</p></div><div class="action-arrow">›</div>
+    </div>
 
-    <button type="button" class="pr-service pr-service-ojek" onclick="window.bukaFormOjek && window.bukaFormOjek('ojek_barang')">
-      <div class="ico">📦</div>
-      <div><h3>Ojek Antar Barang</h3><p>Kirim paket dan barang ke tujuan.</p><span class="pr-badge">PESAN SEKARANG</span></div>
-    </button>
+    <div class="pr-service pr-service-ojek" onclick="bukaFormOjek('ojek_barang')" role="button" tabindex="0">
+      <div class="ico">📦</div><div><h3>Ojek Antar Barang</h3><p>Kirim barang dengan tarif otomatis.</p></div><div class="action-arrow">›</div>
+    </div>
   </div>
 </section>
 
-
-<section id="formOjekPintar" style="display:none;width:min(900px,94%);margin:20px auto 32px;background:#fff;padding:22px;border-radius:18px;box-shadow:0 10px 30px rgba(23,32,51,.08)">
- <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 id="judulFormOjek" style="color:#ef4d1c;margin:0">🛵 Pesan Ojek</h2><button type="button" onclick="tutupFormOjek()">← Kembali</button></div>
- <p style="color:#697386;font-size:13px">Lokasi jemput diambil otomatis dari GPS HP. Cukup ketik alamat tujuan, tarif langsung dihitung.</p>
- <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px">
-  <label>Nama pemesan<input id="ojekNama" type="text" autocomplete="name" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></label>
-  <label>Nomor WhatsApp<input id="ojekWa" type="tel" placeholder="08xxxxxxxxxx" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></label>
-  <label>Lokasi penjemputan (GPS otomatis)<input id="ojekJemput" type="text" readonly placeholder="Sedang mengambil lokasi GPS..." style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"><small style="display:block;color:#667085;margin-top:5px">Pastikan izin lokasi HP/browser aktif.</small></label>
-  <label>Alamat tujuan<input id="ojekTujuan" type="text" placeholder="Ketik nama alamat atau tempat tujuan" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"><button type="button" onclick="cariTujuanOjek()" style="margin-top:7px;padding:10px 12px;border:0;border-radius:9px;background:#1677d2;color:white">Cari & Hitung Tarif</button><div id="hasilCariTujuanOjek" style="font-size:13px;margin-top:6px"></div></label>
-  <label id="labelDetailOjek" style="display:none">Keterangan barang<input id="ojekDetailBarang" type="text" placeholder="Contoh: dokumen / paket kecil" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></label>
- </div>
- <div id="ojekJarak" style="margin-top:12px;padding:12px;background:#f1f7ff;border-radius:10px">Jarak rute dan tarif akan dihitung otomatis setelah tujuan dipilih.</div>
- <label style="display:block;margin-top:12px">Catatan tambahan<textarea id="ojekCatatan" rows="2" style="display:block;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></textarea></label>
- <div id="ojekTarifInfo" style="margin:14px 0;padding:14px;background:#fff6e8;border-radius:12px;font-weight:700">Masukkan jarak untuk melihat tarif.</div>
- <button id="btnKirimOjek" type="button" onclick="konfirmasiPesananOjek()" style="border:0;border-radius:11px;background:#ff5a1f;color:white;padding:13px 20px;font-weight:700">Pesan Ojek</button>
- <div id="ojekPesanStatus" style="margin-top:10px;font-size:13px"></div>
+<!-- FORM OJEK PINTAR: tertanam di halaman utama, tidak memerlukan maps.html -->
+<section id="formOjekPintar" aria-label="Form pemesanan ojek">
+  <h2 id="judulFormOjek">Pesan Ojek PINTAR</h2>
+  <p>Lokasi jemput diambil otomatis dari GPS. Pilih alamat tujuan untuk menghitung rute jalan dan tarif.</p>
+  <label for="ojekNama">Nama pemesan</label><input id="ojekNama" autocomplete="name" placeholder="Nama lengkap">
+  <label for="ojekWa">Nomor WhatsApp</label><input id="ojekWa" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx">
+  <label for="ojekJemput">Lokasi jemput (GPS)</label><input id="ojekJemput" readonly placeholder="Menunggu lokasi GPS...">
+  <button type="button" onclick="ambilLokasiJemputOjek()">📍 Gunakan Lokasi Saya / Perbarui GPS</button>
+  <label for="ojekTujuan">Alamat tujuan</label><input id="ojekTujuan" placeholder="Cari nama jalan, dusun, desa, atau tempat...">
+  <button type="button" onclick="cariTujuanOjek()">🔎 Cari Tujuan</button>
+  <div id="hasilCariTujuanOjek" aria-live="polite"></div>
+  <div id="pintarOjekMap" aria-label="Peta lokasi jemput dan tujuan"></div>
+  <div id="ojekJarak">Jarak dan tarif dihitung setelah tujuan dipilih.</div>
+  <div id="ojekTarifInfo">Tarif mengikuti pengaturan Admin.</div>
+  <div id="labelDetailOjek" style="display:none"><label for="ojekDetailBarang">Keterangan barang</label><textarea id="ojekDetailBarang" rows="2" placeholder="Jelaskan barang yang dikirim"></textarea></div>
+  <label for="ojekCatatan">Catatan (opsional)</label><textarea id="ojekCatatan" rows="2" placeholder="Patokan lokasi atau catatan tambahan"></textarea>
+  <button id="btnKirimOjek" type="button" onclick="konfirmasiPesananOjek()">Pesan Ojek</button>
+  <button type="button" onclick="tutupFormOjek()">← Kembali</button>
+  <div id="ojekPesanStatus" role="status">Silakan ambil lokasi GPS.</div>
 </section>
 
 <!-- =====================================================
@@ -1793,6 +1857,7 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="script.js"></script>
 
 
@@ -1952,59 +2017,3 @@ document.addEventListener("DOMContentLoaded",function(){
 
 </body>
 </html>
-<style id="prd-banner-final-position-fix">
-/* Banner final: logo kecil di kiri, nama usaha jelas di sebelahnya; tidak ditumpuk atau dipusatkan */
-.banner{
-  display:flex!important; flex-direction:row!important; justify-content:flex-start!important; align-items:center!important;
-  gap:clamp(18px,3vw,34px)!important; padding:24px clamp(22px,5vw,68px)!important;
-  min-height:230px!important; text-align:left!important;
-}
-.banner > .prd-hero-logo{
-  position:static!important; inset:auto!important; transform:none!important; flex:0 0 auto!important;
-  display:block!important; width:clamp(105px,13vw,160px)!important; height:auto!important;
-  max-width:160px!important; max-height:160px!important; object-fit:contain!important; margin:0!important;
-}
-.banner > .banner-text{
-  display:block!important; position:static!important; flex:1 1 auto!important; width:auto!important; max-width:none!important;
-  min-width:0!important; margin:0!important; padding:0!important; text-align:left!important; z-index:3!important;
-}
-.banner .prd-big-title{display:none!important}
-.banner .prd-brand-title{
-  display:block!important; margin:0!important; color:#08783f!important; font-size:clamp(28px,3.5vw,48px)!important;
-  font-weight:800!important; line-height:1.15!important; text-align:left!important;
-}
-.banner .banner-image{display:none!important}
-@media(max-width:700px){
- .banner{min-height:150px!important; padding:18px!important; gap:14px!important; border-radius:18px!important}
- .banner > .prd-hero-logo{width:76px!important; max-width:76px!important; max-height:86px!important}
- .banner .prd-brand-title{font-size:clamp(21px,5.6vw,29px)!important}
-}
-</style>
-
-<style id="pintar-warung-cards">
-:root{--pintar-yellow:#ffc928;--pintar-ink:#171717;--pintar-muted:#777}
-.pintar-warung-section{width:min(1200px,94%);margin:0 auto 24px;padding:clamp(16px,3vw,26px);border-radius:24px;background:#fff;box-shadow:0 12px 38px rgba(24,24,24,.07);border:1px solid #f0f0f0}
-.pintar-warung-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:20px}
-.pintar-eyebrow{font-size:11px;font-weight:800;letter-spacing:1.7px;color:#a47700}
-.pintar-warung-heading h3{font-size:clamp(21px,3vw,29px);font-weight:800;color:#171717;margin:5px 0}
-.pintar-warung-heading p{margin:0;color:#777;font-size:13px}
-.pintar-search-wrap{display:flex;align-items:center;gap:9px;background:#f7f7f7;border:1px solid #eee;border-radius:13px;padding:0 13px;min-width:min(270px,100%)}
-.pintar-search-wrap span{font-size:23px;color:#777}
-.pintar-search-wrap input{width:100%;min-width:0;border:0;outline:0;background:transparent;padding:13px 0;font:inherit;font-size:13px}
-.pintar-warung-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-.pintar-warung-card{display:block;text-align:left;padding:0;overflow:hidden;border:1px solid #eee;border-radius:18px;background:#fff;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;color:#171717}
-.pintar-warung-card:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(0,0,0,.09);border-color:#f3c52c}
-.pintar-warung-card.is-selected{border:2px solid #eab900;box-shadow:0 0 0 3px rgba(255,201,40,.16)}
-.pintar-warung-art{height:132px;display:grid;place-items:center;background:linear-gradient(135deg,#fff4c8,#ffe28a);position:relative;font-size:55px}
-.pintar-warung-art:after{content:"";position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.32);right:-30px;top:-38px}
-.pintar-warung-art .pintar-food-emoji{z-index:1;filter:drop-shadow(0 5px 5px rgba(90,60,0,.12))}
-.pintar-warung-copy{padding:13px 14px 15px}
-.pintar-warung-name{font-size:15px;font-weight:800;line-height:1.35;margin-bottom:6px;overflow-wrap:anywhere}
-.pintar-warung-address{font-size:11px;color:#777;min-height:29px;line-height:1.4}
-.pintar-warung-status{display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:800;background:#e9f8ed;color:#23733c}
-.pintar-warung-status.closed{background:#f1f1f1;color:#777}
-.pintar-warung-loading,.pintar-warung-empty{grid-column:1/-1;padding:30px;text-align:center;color:#777;background:#fafafa;border-radius:16px}
-.pintar-warung-info{margin-top:14px;padding:12px 14px;background:#fff9e5;border-radius:12px;color:#6b5700;font-size:13px}
-@media(max-width:900px){.pintar-warung-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:600px){.pintar-warung-heading{align-items:stretch;flex-direction:column}.pintar-search-wrap{min-width:0}.pintar-warung-art{height:105px;font-size:45px}.pintar-warung-copy{padding:11px}.pintar-warung-name{font-size:13px}}
-</style>
