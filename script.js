@@ -2765,3 +2765,176 @@ async function tambahWarung() {
 /* =====================================================
    SELESAI
 ===================================================== */
+
+
+/* PINTAR OJEK — GPS & JARAK RUTE JALAN (tanpa tampilan peta) */
+let jenisLayananOjekAktif=null, tarifOjekPelanggan=null;
+let koordinatJemputOjek=null, koordinatTujuanOjek=null, jarakRuteOjekKm=null, tarifHitungOjek=null;
+
+async function muatTarifOjekPelanggan(){
+  try{const {data,error}=await supabaseClient.from('pengaturan_tarif_ojek').select('*').eq('aktif',true).order('id',{ascending:false}).limit(1).maybeSingle();if(error)throw error;tarifOjekPelanggan=data;return data;}
+  catch(e){console.error('Tarif Ojek:',e);tarifOjekPelanggan=null;return null;}
+}
+function bukaFormOjek(jenis){
+  jenisLayananOjekAktif=jenis;koordinatJemputOjek=null;koordinatTujuanOjek=null;jarakRuteOjekKm=null;tarifHitungOjek=null;
+  const form=document.getElementById('formOjekPintar');if(form)form.style.display='block';
+  const food=document.querySelector('.menu');if(food)food.style.display='none';
+  const barang=jenis==='ojek_barang';
+  document.getElementById('judulFormOjek').textContent=barang?'📦 Pesan Ojek Antar Barang':'🛵 Pesan Ojek Penumpang';
+  document.getElementById('labelDetailOjek').style.display=barang?'block':'none';
+  document.getElementById('btnKirimOjek').textContent=barang?'Pesan Antar Barang':'Pesan Ojek Penumpang';
+  document.getElementById('ojekJemput').value='';document.getElementById('ojekTujuan').value='';
+  document.getElementById('ojekJarak').textContent='Jarak dan tarif akan dihitung otomatis setelah tujuan dipilih.';
+  document.getElementById('ojekTarifInfo').textContent='Tarif akan muncul otomatis setelah alamat tujuan dipilih.';
+  document.getElementById('hasilCariTujuanOjek').innerHTML='';
+  document.getElementById('ojekPesanStatus').textContent='Mengambil lokasi GPS dan memuat tarif...';
+  muatTarifOjekPelanggan().then(()=>{if(!tarifOjekPelanggan)document.getElementById('ojekPesanStatus').textContent='Tarif belum dapat dimuat. Hubungi Admin.';});
+  form.scrollIntoView({behavior:'smooth',block:'start'});
+  ambilLokasiJemputOjek();
+}
+function tutupFormOjek(){document.getElementById('formOjekPintar').style.display='none';const food=document.querySelector('.menu');if(food)food.style.display='';}
+function setJemputOjek(lat,lng,label){
+  koordinatJemputOjek={lat:Number(lat),lng:Number(lng)};
+  document.getElementById('ojekJemput').value=label||`Titik jemput (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+  hitungRuteDanTarifOjek();
+}
+function ambilLokasiJemputOjek(){
+  const status=document.getElementById('ojekPesanStatus');
+  if(!navigator.geolocation){status.textContent='Browser tidak mendukung GPS.';return;}
+  status.textContent='Meminta izin lokasi GPS...';
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    setJemputOjek(pos.coords.latitude,pos.coords.longitude,`Lokasi saya (${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)})`);
+    status.textContent='Lokasi jemput GPS berhasil diambil. Sekarang ketik alamat tujuan.';
+    await hitungRuteDanTarifOjek();
+  },err=>{status.textContent='GPS tidak berhasil: '+(err.code===1?'izin lokasi ditolak':err.code===2?'posisi tidak tersedia':'waktu mendapatkan lokasi habis')+'. Izinkan lokasi pada browser lalu coba lagi.';},{enableHighAccuracy:true,timeout:20000,maximumAge:30000});
+}
+async function cariTujuanOjek(){
+  const input=document.getElementById('ojekTujuan');
+  const out=document.getElementById('hasilCariTujuanOjek');
+  const q=input.value.trim();
+  if(q.length<3){out.textContent='Ketik minimal 3 karakter alamat atau nama tempat.';return;}
+  out.textContent='Mencari alamat di Kabupaten Langkat...';
+
+  // Batas wilayah perkiraan Kabupaten Langkat: hasil Langkat diprioritaskan,
+  // tetapi pencarian tidak dikunci agar tempat di perbatasan tetap dapat ditemukan.
+  const viewbox='97.20,4.35,98.75,3.20';
+  const base='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=10&countrycodes=id&viewbox='+viewbox;
+
+  async function cari(query){
+    const response=await fetch(base+'&q='+encodeURIComponent(query),{
+      headers:{'Accept':'application/json'}
+    });
+    if(!response.ok) throw new Error('Layanan pencarian alamat sedang tidak tersedia');
+    return await response.json();
+  }
+
+  try{
+    // Cari dengan konteks Langkat dahulu, lalu cari teks asli dengan bias peta Langkat.
+    const batches=await Promise.all([
+      cari(q+', Kabupaten Langkat, Sumatera Utara, Indonesia'),
+      cari(q+', Langkat, Sumatera Utara, Indonesia'),
+      cari(q)
+    ]);
+
+    const semua=[];
+    const seen=new Set();
+    for(const batch of batches){
+      for(const item of batch){
+        const key=item.place_id || `${item.lat},${item.lon}`;
+        if(!seen.has(key)){seen.add(key);semua.push(item);}
+      }
+    }
+
+    if(!semua.length){
+      out.textContent='Alamat belum ditemukan. Coba nama tempat terdekat, nama desa/kecamatan, atau coba masukkan nama desa, kecamatan, atau tempat terdekat.';
+      return;
+    }
+
+    // Hasil yang menyebut Langkat didahulukan; hasil lain tetap ditampilkan
+    // agar tujuan dekat perbatasan Kabupaten Langkat tidak hilang.
+    semua.sort((a,b)=>{
+      const aLangkat=/langkat/i.test(a.display_name||'')?1:0;
+      const bLangkat=/langkat/i.test(b.display_name||'')?1:0;
+      return bLangkat-aLangkat;
+    });
+
+    out.innerHTML='';
+    semua.slice(0,10).forEach(item=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.textContent=item.display_name;
+      button.style='display:block;width:100%;text-align:left;padding:10px;margin:5px 0;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;white-space:normal';
+      button.onclick=()=>setTujuanOjek(Number(item.lat),Number(item.lon),item.display_name);
+      out.appendChild(button);
+    });
+  }catch(error){
+    console.error('Pencarian tujuan Ojek:',error);
+    out.textContent=(error.message||'Pencarian alamat gagal')+'. Coba lagi atau coba masukkan nama desa, kecamatan, atau tempat terdekat.';
+  }
+}
+function setTujuanOjek(lat,lng,label){
+  koordinatTujuanOjek={lat:Number(lat),lng:Number(lng)};
+  document.getElementById('ojekTujuan').value=label||`Tujuan (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+  hitungRuteDanTarifOjek();
+}
+async function hitungRuteDanTarifOjek(){
+  const dist=document.getElementById('ojekJarak'),info=document.getElementById('ojekTarifInfo');
+  if(!koordinatJemputOjek||!koordinatTujuanOjek){jarakRuteOjekKm=null;tarifHitungOjek=null;return;}
+  dist.textContent='Menghitung jarak rute jalan...';info.textContent='Menghitung tarif...';
+  try{
+    const a=koordinatJemputOjek,b=koordinatTujuanOjek;
+    const url=`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
+    const response=await fetch(url);if(!response.ok)throw new Error('Layanan rute tidak merespons');
+    const result=await response.json();if(result.code!=='Ok'||!result.routes?.length)throw new Error('Rute jalan tidak ditemukan');
+    const route=result.routes[0];jarakRuteOjekKm=route.distance/1000;
+    dist.textContent=`Jarak rute jalan: ${jarakRuteOjekKm.toFixed(2)} km · Perkiraan waktu: ${Math.round(route.duration/60)} menit`;
+    hitungTarifDariJarakRuteOjek();
+  }catch(e){jarakRuteOjekKm=null;tarifHitungOjek=null;dist.textContent='Rute jalan gagal dihitung. Coba pilih titik tujuan lain atau ulangi.';info.textContent='Tarif belum dapat ditentukan tanpa jarak rute.';console.error('OSRM route:',e);}
+}
+function hitungTarifDariJarakRuteOjek(){
+  const info=document.getElementById('ojekTarifInfo'),km=jarakRuteOjekKm;
+  if(!tarifOjekPelanggan||!Number.isFinite(km)){info.textContent='Tarif atau jarak rute belum tersedia.';return null;}
+  if(km>100){info.textContent='Jarak di atas 100 km belum dilayani pada tahap uji coba.';return null;}
+  const p=jenisLayananOjekAktif==='ojek_barang'?'barang':'penumpang';
+  const band=km<=.5?'0_05':km<=1.5?'05_15':km<=2.5?'15_25':km<=3.5?'25_35':km<=4.5?'35_45':km<=5.5?'45_55':'55_65';
+  let fare=Number(tarifOjekPelanggan[`${p}_tarif_${band}`]);
+  if(km>6.5)fare+=Math.ceil(km-6.5)*Number(tarifOjekPelanggan[`${p}_tambahan_diatas_65`]);
+  if(!Number.isFinite(fare)||fare<=0){info.textContent='Tarif untuk jarak ini belum diatur Admin.';return null;}
+  tarifHitungOjek=fare;info.textContent=`Tarif ${p==='barang'?'Ojek Barang':'Ojek Penumpang'}: Rp${fare.toLocaleString('id-ID')} (berdasarkan ${km.toFixed(2)} km rute jalan)`;return fare;
+}
+function hitungTarifOjekPelanggan(){return hitungTarifDariJarakRuteOjek();}
+async function konfirmasiPesananOjek(){
+  const btn=document.getElementById('btnKirimOjek'),status=document.getElementById('ojekPesanStatus');
+  const nama=document.getElementById('ojekNama').value.trim(),wa=document.getElementById('ojekWa').value.trim();
+  const jemput=document.getElementById('ojekJemput').value.trim(),tujuan=document.getElementById('ojekTujuan').value.trim();
+  const detail=document.getElementById('ojekDetailBarang').value.trim(),catatan=document.getElementById('ojekCatatan').value.trim();
+  const tarif=hitungTarifDariJarakRuteOjek(),barang=jenisLayananOjekAktif==='ojek_barang';
+  if(!nama||!wa||!jemput||!tujuan||!koordinatJemputOjek||!koordinatTujuanOjek||!jarakRuteOjekKm||!tarif){alert('Lengkapi data dan pastikan GPS serta rute jalan berhasil dihitung.');return;}
+  if(barang&&!detail){alert('Isi keterangan barang.');return;}
+  btn.disabled=true;btn.textContent='Menyimpan pesanan...';
+  try{
+    const payload={pelanggan_id:null,warung_id:null,items:[],nama_pelanggan:nama,no_wa:wa,"alamat pengantara":tujuan,catatan,total_belanja:0,ongkir:tarif,jarak_km:Number(jarakRuteOjekKm.toFixed(3)),total_pembayaran:tarif,status:'baru',metode_pembayaran:'WhatsApp',latitude:koordinatJemputOjek.lat,longitude:koordinatJemputOjek.lng,jenis_layanan:jenisLayananOjekAktif,lokasi_jemput:jemput,lokasi_tujuan:tujuan,detail_barang:barang?detail:null,tarif_ojek:tarif,tujuan_latitude:koordinatTujuanOjek.lat,tujuan_longitude:koordinatTujuanOjek.lng};
+    const {data:order,error}=await supabaseClient.from('pesanan').insert(payload).select('id,created_at').single();if(error)throw error;
+    status.textContent=`Pesanan #${order.id} berhasil masuk. Menghubungi Admin...`;
+    const txt=`PESANAN ${barang?'OJEK ANTAR BARANG':'OJEK PENUMPANG'} PINTAR\nNomor: #${order.id}\nNama: ${nama}\nWA: ${wa}\nJemput: ${jemput}\nTujuan: ${tujuan}\nJarak rute jalan: ${jarakRuteOjekKm.toFixed(2)} km\nTarif: Rp${tarif.toLocaleString('id-ID')}\n${barang?'Barang: '+detail+'\n':''}Catatan: ${catatan||'-'}`;
+    window.open(`https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(txt)}`,'_blank');btn.textContent='Pesanan terkirim';
+  }catch(e){console.error(e);status.textContent='Gagal menyimpan pesanan: '+(e.message||e);alert('Pesanan belum tersimpan: '+(e.message||e));btn.disabled=false;btn.textContent=barang?'Pesan Antar Barang':'Pesan Ojek Penumpang';}
+}
+
+// PINTAR OJEK: expose click handlers globally (GitHub Pages classic script).
+window.bukaFormOjek = bukaFormOjek;
+window.tutupFormOjek = tutupFormOjek;
+window.hitungTarifOjekPelanggan = hitungTarifOjekPelanggan;
+window.konfirmasiPesananOjek = konfirmasiPesananOjek;
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.pr-service-ojek').forEach(function(card){
+    card.addEventListener('click', function(){
+      const kind = card.querySelector('h3')?.textContent.includes('Barang') ? 'ojek_barang' : 'ojek_penumpang';
+      window.bukaFormOjek(kind);
+    });
+  });
+});
+
+window.ambilLokasiJemputOjek=ambilLokasiJemputOjek;window.cariTujuanOjek=cariTujuanOjek;
+
+window.setJemputOjek=setJemputOjek;
