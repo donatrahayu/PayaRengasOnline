@@ -1342,7 +1342,7 @@ function normalisasiNomorWA(nomor) {
 // Email virtual ini tidak dipakai untuk menerima email; pelanggan tetap login
 // menggunakan nomor WhatsApp yang dimasukkan pada formulir.
 function emailAuthPelanggan(nomorNormalized) {
-    return String(nomorNormalized || "").replace(/\D/g, "") + "@akun.payarengas.invalid";
+    return String(nomorNormalized || "").replace(/\D/g, "") + "@akun.payarengas.com";
 }
 
 let pelangganLoginAktif = null;
