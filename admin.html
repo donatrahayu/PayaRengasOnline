@@ -2233,6 +2233,27 @@ tr:hover td{
         <p>Tambah warung dan atur status Aktif/Nonaktif serta Buka/Tutup.</p>
     </div>
 
+    <!-- PENDAFTARAN CALON MITRA: modul khusus Admin terverifikasi -->
+    <div class="panel" id="panelPendaftaranMitraAdmin">
+        <div class="panel-header">
+            <h3>📨 Pendaftaran Calon Warung Mitra</h3>
+            <button class="btn btn-gray" type="button" id="btnRefreshPendaftaranMitra" onclick="muatPendaftaranWarungAdmin()" style="display:none">🔄 Refresh</button>
+        </div>
+        <div id="statusAksesPendaftaranMitra" style="font-size:13px;color:#555;margin-bottom:12px">Data pendaftaran hanya dapat dibuka oleh Admin yang sudah diverifikasi.</div>
+        <div id="formLoginPendaftaranMitra" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;max-width:760px">
+            <div class="form-group"><label for="emailAdminPendaftaranMitra">Email Admin</label><input id="emailAdminPendaftaranMitra" type="email" autocomplete="username" placeholder="Email Admin"></div>
+            <div class="form-group"><label for="passwordAdminPendaftaranMitra">Kata sandi Admin</label><input id="passwordAdminPendaftaranMitra" type="password" autocomplete="current-password" placeholder="Kata sandi"></div>
+            <div style="display:flex;align-items:end;gap:8px"><button class="btn btn-primary" type="button" onclick="loginAdminPendaftaranMitra()">🔐 Login Admin</button></div>
+        </div>
+        <div id="aksiAdminPendaftaranMitra" style="display:none;margin-bottom:12px"><span id="identitasAdminPendaftaranMitra" style="font-size:13px;color:#166534"></span> <button class="btn btn-gray" type="button" onclick="logoutAdminPendaftaranMitra()">Keluar</button></div>
+        <div class="table-scroll">
+            <table id="tabelPendaftaranMitraAdmin" style="min-width:760px;display:none">
+                <thead><tr><th>#</th><th>Email Calon Mitra</th><th>Tanggal Daftar</th><th>Status</th><th>Aksi</th></tr></thead>
+                <tbody id="isiTabelPendaftaranMitraAdmin"></tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="panel">
         <div class="panel-header">
             <h3 id="judulFormWarung">➕ Tambah Warung</h3>
@@ -3109,6 +3130,10 @@ function showPage(id,button){
     }
     if(id==="depositv27"){
         muatDepositKomisiV27();
+    }
+
+    if(id==="warung" && typeof window.muatPendaftaranWarungAdmin === "function"){
+        window.muatPendaftaranWarungAdmin();
     }
 
 }
@@ -7064,6 +7089,106 @@ setInterval(function(){
     }
   };
   };
+})();
+</script>
+
+
+<script>
+/* =====================================================
+   ADMIN TERPERCAYA — PENDAFTARAN WARUNG MITRA
+   Modul ini hanya membaca/menyetujui pendaftaran jika
+   Supabase Auth user memiliki app_metadata.role = admin.
+===================================================== */
+(function(){
+  const el=id=>document.getElementById(id);
+  const escapeText=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let adminMitraSession=null;
+  function setStatus(message,isError=false){const box=el('statusAksesPendaftaranMitra');if(box){box.textContent=message;box.style.color=isError?'#b91c1c':'#555';}}
+  function tampilkanAdminMitra(user){
+    adminMitraSession=user;
+    el('formLoginPendaftaranMitra').style.display='none';
+    el('aksiAdminPendaftaranMitra').style.display='block';
+    el('btnRefreshPendaftaranMitra').style.display='inline-flex';
+    el('tabelPendaftaranMitraAdmin').style.display='table';
+    el('identitasAdminPendaftaranMitra').textContent='Login sebagai Admin: '+(user.email||'');
+    setStatus('Akses Admin terverifikasi. Daftar calon mitra dapat ditinjau.');
+  }
+  function resetAdminMitra(message){
+    adminMitraSession=null;
+    el('formLoginPendaftaranMitra').style.display='grid';
+    el('aksiAdminPendaftaranMitra').style.display='none';
+    el('btnRefreshPendaftaranMitra').style.display='none';
+    el('tabelPendaftaranMitraAdmin').style.display='none';
+    el('isiTabelPendaftaranMitraAdmin').innerHTML='';
+    setStatus(message||'Login menggunakan akun Admin yang memiliki app_metadata.role = admin.');
+  }
+  window.loginAdminPendaftaranMitra=async function(){
+    const email=el('emailAdminPendaftaranMitra').value.trim();
+    const password=el('passwordAdminPendaftaranMitra').value;
+    if(!email||!password){setStatus('Isi email dan kata sandi Admin.',true);return;}
+    setStatus('Memeriksa akses Admin...');
+    try{
+      const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+      if(error)throw error;
+      if(data.user?.app_metadata?.role!=='admin'){
+        await supabaseClient.auth.signOut();
+        resetAdminMitra('Akun berhasil login, tetapi belum memiliki role Admin terverifikasi. Hubungi pengelola Supabase untuk menetapkan app_metadata.role = admin.');
+        return;
+      }
+      tampilkanAdminMitra(data.user);
+      await window.muatPendaftaranWarungAdmin();
+    }catch(err){resetAdminMitra('Login Admin gagal: '+(err.message||err));}
+  };
+  window.logoutAdminPendaftaranMitra=async function(){
+    await supabaseClient.auth.signOut();
+    el('passwordAdminPendaftaranMitra').value='';
+    resetAdminMitra('Admin sudah keluar. Login kembali untuk melihat pendaftaran.');
+  };
+  window.muatPendaftaranWarungAdmin=async function(){
+    if(!adminMitraSession)return;
+    const tbody=el('isiTabelPendaftaranMitraAdmin');
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center">⏳ Memuat pendaftaran...</td></tr>';
+    try{
+      const {data,error}=await supabaseClient.from('warung_pendaftaran').select('id,user_id,email,status,created_at').order('created_at',{ascending:false});
+      if(error)throw error;
+      if(!data?.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center">Belum ada pendaftaran calon mitra.</td></tr>';return;}
+      tbody.innerHTML=data.map((item,index)=>{
+        const date=item.created_at?new Date(item.created_at).toLocaleString('id-ID'):'-';
+        const status=String(item.status||'menunggu');
+        const badge=status==='menunggu'?'🟠 Menunggu':status==='disetujui'?'🟢 Disetujui':'🔴 Ditolak';
+        const actions=status==='menunggu'?`<button class="btn btn-success" type="button" onclick="setujuiPendaftaranWarungAdmin(${Number(item.id)},'${escapeText(item.user_id)}','${escapeText(item.email)}')">✅ Setujui & Buat Warung</button> <button class="btn btn-gray" type="button" onclick="tolakPendaftaranWarungAdmin(${Number(item.id)})">Tolak</button>`:'—';
+        return `<tr><td>${index+1}</td><td>${escapeText(item.email)}</td><td>${escapeText(date)}</td><td>${badge}</td><td>${actions}</td></tr>`;
+      }).join('');
+    }catch(err){tbody.innerHTML='<tr><td colspan="5" style="color:#b91c1c">Gagal memuat pendaftaran: '+escapeText(err.message||err)+'</td></tr>';}
+  };
+  window.setujuiPendaftaranWarungAdmin=async function(id,userId,email){
+    if(!adminMitraSession||adminMitraSession.app_metadata?.role!=='admin')return alert('Akses Admin belum terverifikasi.');
+    const nama=prompt('Nama Warung untuk '+email+':');if(!nama||!nama.trim())return;
+    const alamat=prompt('Alamat lengkap warung:');if(!alamat||!alamat.trim())return;
+    const noWa=prompt('Nomor WhatsApp warung (boleh kosong):','')||'';
+    const latitudeText=prompt('Latitude lokasi warung (wajib, gunakan titik GPS):');if(latitudeText===null)return;
+    const longitudeText=prompt('Longitude lokasi warung (wajib, gunakan titik GPS):');if(longitudeText===null)return;
+    const latitude=Number(latitudeText),longitude=Number(longitudeText);
+    if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||latitude < -90||latitude>90||longitude < -180||longitude>180){alert('Koordinat tidak valid. Persetujuan dibatalkan.');return;}
+    if(!confirm('Setujui pendaftaran '+email+' dan buat warung "'+nama.trim()+'"? Akun akan dihubungkan ke warung baru.'))return;
+    try{
+      const {data,error}=await supabaseClient.rpc('pintar_admin_setujui_warung_mitra',{p_pendaftaran_id:id,p_nama:nama.trim(),p_alamat:alamat.trim(),p_no_wa:noWa.trim()||null,p_latitude:latitude,p_longitude:longitude});
+      if(error)throw error;
+      if(data?.ok===false)throw new Error(data.message||'Persetujuan gagal.');
+      alert('Pendaftaran disetujui. Warung berhasil dibuat dan akun mitra sudah dihubungkan. ID Warung: '+(data.warung_id??'-')+'. Jika perlu, tambahkan foto melalui formulir Edit Warung.');
+      await window.muatPendaftaranWarungAdmin();
+      await window.muatDaftarWarung();
+    }catch(err){alert('Gagal menyetujui pendaftaran: '+(err.message||err));}
+  };
+  window.tolakPendaftaranWarungAdmin=async function(id){
+    if(!adminMitraSession||adminMitraSession.app_metadata?.role!=='admin')return alert('Akses Admin belum terverifikasi.');
+    if(!confirm('Tolak pendaftaran calon mitra ini?'))return;
+    try{const {data,error}=await supabaseClient.rpc('pintar_admin_tolak_warung_mitra',{p_pendaftaran_id:id});if(error)throw error;if(data?.ok===false)throw new Error(data.message||'Penolakan gagal.');await window.muatPendaftaranWarungAdmin();}
+    catch(err){alert('Gagal menolak pendaftaran: '+(err.message||err));}
+  };
+  document.addEventListener('DOMContentLoaded',async function(){
+    try{const {data}=await supabaseClient.auth.getSession();const user=data?.session?.user;if(user?.app_metadata?.role==='admin'){tampilkanAdminMitra(user);}else{resetAdminMitra('Login menggunakan akun Admin yang memiliki app_metadata.role = admin.');}}catch(_){resetAdminMitra('Login Admin diperlukan untuk membuka daftar calon mitra.');}
+  });
 })();
 </script>
 
