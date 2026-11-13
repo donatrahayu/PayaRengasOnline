@@ -30,8 +30,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
 <header><div><h1>🛍️ PINTAR – Warung Mitra</h1><small>Dashboard khusus mitra warung</small></div><button id="logoutBtn" class="secondary hidden">Keluar</button></header>
 <main class="wrap">
 <section id="loginView" class="panel login">
-<h2>Login Warung Mitra</h2><p class="muted">Gunakan email dan kata sandi yang diberikan Admin PINTAR.</p>
-<form id="loginForm"><label>Email akun</label><input id="email" type="email" required autocomplete="username"><label>Kata sandi</label><input id="password" type="password" required autocomplete="current-password"><button style="width:100%">Masuk</button></form>
+<h2>Login Warung Mitra</h2><p class="muted">Sudah punya akun? Masuk. Belum punya akun? Daftar sebagai calon mitra. Admin akan melengkapi data warung setelah pendaftaran.</p>
+<form id="loginForm"><label>Email akun</label><input id="email" type="email" required autocomplete="username"><label>Kata sandi</label><input id="password" type="password" required autocomplete="current-password"><button type="submit" style="width:100%">Masuk</button></form>
+<button type="button" id="registerBtn" class="secondary" style="width:100%;margin-top:8px">Daftar Akun Warung</button>
 <p id="loginMsg" class="muted"></p>
 </section>
 <section id="appView" class="hidden">
@@ -62,12 +63,42 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function message(s){$('appMsg').textContent=s||''}
 function setTab(tab){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));['orders','products','profile'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==tab))}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+async function ensureWarungRegistration(user){
+ const {data:existing,error:readError}=await db.from('warung_pendaftaran').select('id,status').eq('user_id',user.id).maybeSingle();
+ if(readError) throw new Error('Belum bisa mencatat pendaftaran. Pastikan SQL pendaftaran mitra sudah dipasang: '+readError.message);
+ if(existing) return existing;
+ const {data,error}=await db.from('warung_pendaftaran').insert({user_id:user.id,email:(user.email||'').toLowerCase(),status:'menunggu'}).select('id,status').single();
+ if(error) throw new Error('Gagal mengirim pendaftaran: '+error.message);
+ return data;
+}
 $('loginForm').onsubmit=async e=>{e.preventDefault();$('loginMsg').textContent='Memeriksa akun...';const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error){$('loginMsg').textContent='Login gagal: '+error.message;return}await startApp()};
+$('registerBtn').onclick=async()=>{
+ const email=$('email').value.trim().toLowerCase(),password=$('password').value;
+ if(!email||!password){$('loginMsg').textContent='Isi email dan kata sandi terlebih dahulu.';return}
+ if(password.length<6){$('loginMsg').textContent='Kata sandi minimal 6 karakter.';return}
+ $('registerBtn').disabled=true;$('loginMsg').textContent='Sedang membuat akun calon mitra...';
+ try{
+  const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:window.location.href}});
+  if(error) throw error;
+  if(data.session&&data.user){
+   const req=await ensureWarungRegistration(data.user);
+   $('loginMsg').textContent='Pendaftaran berhasil dikirim. Status: menunggu Admin melengkapi dan menghubungkan data warung. Simpan email dan kata sandi untuk login kembali.';
+  }else{
+   $('loginMsg').textContent='Pendaftaran akun diterima. Silakan cek email untuk konfirmasi, lalu login kembali agar permintaan pendaftaran tercatat dan menunggu Admin.';
+  }
+ }catch(err){$('loginMsg').textContent=err.message||'Pendaftaran gagal.'}
+ finally{$('registerBtn').disabled=false}
+};
 $('logoutBtn').onclick=async()=>{await db.auth.signOut();location.reload()};
 async function startApp(){
  const {data:{user}}=await db.auth.getUser();if(!user)return;
  const {data:link,error}=await db.from('warung_akun').select('warung_id').eq('user_id',user.id).eq('aktif',true).maybeSingle();
- if(error||!link){$('loginMsg').textContent='Akun belum terhubung ke Warung Mitra. Hubungi Admin PINTAR.';await db.auth.signOut();return}
+ if(error) {$('loginMsg').textContent='Gagal memeriksa akun mitra: '+error.message;return}
+ if(!link){
+  try{await ensureWarungRegistration(user);$('loginMsg').textContent='Pendaftaran akun sudah tercatat dan sedang menunggu Admin. Admin akan melengkapi profil serta menghubungkan akun ini ke warung.';}
+  catch(err){$('loginMsg').textContent=err.message}
+  return;
+ }
  const {data:w,error:we}=await db.from('warung').select('id,nama,alamat,no_wa,status,buka').eq('id',link.warung_id).single();
  if(we||!w){$('loginMsg').textContent='Data warung tidak ditemukan atau akses belum diizinkan.';await db.auth.signOut();return}
  currentWarung=w;$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
