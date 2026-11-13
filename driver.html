@@ -907,23 +907,22 @@ function driverOrderCard(o, mode){
   const serviceLabel=isOjek ? (serviceType.includes('barang') ? 'Ojek Antar Barang' : 'Ojek Penumpang') : 'Pesanan Makanan';
   const shownAddress=isOjek ? `Jemput: ${driverEsc(o.lokasi_jemput||'Lokasi GPS')}<br>Tujuan: ${driverEsc(o.lokasi_tujuan||rawAddress||'-')}` : address;
   let mapUrl='';
-  // Pesanan Ojek: rute dimulai dari GPS penjemputan dan berakhir di tujuan pelanggan.
-  // Pesanan makanan tetap memakai alur alamat lama.
+  let pickupUrl='';
+  let destinationUrl='';
+  // Ojek memakai dua navigasi terpisah: posisi driver saat ini -> jemput,
+  // lalu posisi driver saat ini -> tujuan akhir. Alamat makanan tetap seperti semula.
   const pickupLat=Number(o.latitude);
   const pickupLng=Number(o.longitude);
   const destLat=Number(o.tujuan_latitude);
   const destLng=Number(o.tujuan_longitude);
   const hasPickup=Number.isFinite(pickupLat) && Number.isFinite(pickupLng) && pickupLat!==0 && pickupLng!==0;
   const hasDestination=Number.isFinite(destLat) && Number.isFinite(destLng) && destLat!==0 && destLng!==0;
-  if(isOjek && hasPickup && hasDestination){
-    const origin=`${pickupLat},${pickupLng}`;
-    const destination=`${destLat},${destLng}`;
-    mapUrl='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(origin)+'&destination='+encodeURIComponent(destination)+'&travelmode=driving';
-  }else if(isOjek && hasDestination){
-    // Cadangan bila koordinat GPS jemput tidak tersimpan pada pesanan lama.
-    mapUrl='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(`${destLat},${destLng}`)+'&travelmode=driving';
+  if(isOjek){
+    const pickupTarget=hasPickup?`${pickupLat},${pickupLng}`:String(o.lokasi_jemput||'').trim();
+    const destinationTarget=hasDestination?`${destLat},${destLng}`:String(o.lokasi_tujuan||rawAddress||'').trim();
+    if(pickupTarget) pickupUrl='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(pickupTarget)+'&travelmode=driving&dir_action=navigate';
+    if(destinationTarget) destinationUrl='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(destinationTarget)+'&travelmode=driving&dir_action=navigate';
   }else if(rawAddress){
-    // Pesanan makanan tetap memakai alamat/tautan yang sudah digunakan sebelumnya.
     if(/^https?:\/\//i.test(rawAddress)){
       mapUrl=rawAddress;
     }else{
@@ -934,7 +933,12 @@ function driverOrderCard(o, mode){
   }
   let actions='';
   if(mode==='incoming') actions=`<button data-driver-action="claim" data-order-id="${id}">Ambil Pesanan</button>`;
-  if(mode==='mine' && mapUrl) actions+=`<a class="button-link" href="${driverEsc(mapUrl)}" target="_blank" rel="noopener noreferrer">📍 Buka Lokasi Pelanggan</a>`;
+  if(mode==='mine' && isOjek){
+    if(pickupUrl) actions+=`<a class="button-link" href="${driverEsc(pickupUrl)}" target="_blank" rel="noopener noreferrer">📍 Navigasi Penjemputan</a>`;
+    if(destinationUrl) actions+=`<a class="button-link" href="${driverEsc(destinationUrl)}" target="_blank" rel="noopener noreferrer">🏁 Navigasi Tujuan</a>`;
+  }else if(mode==='mine' && mapUrl){
+    actions+=`<a class="button-link" href="${driverEsc(mapUrl)}" target="_blank" rel="noopener noreferrer">📍 Buka Lokasi Pelanggan</a>`;
+  }
   if(mode==='mine' && String(o.status||'').toLowerCase()!=='selesai' && String(o.status||'').toLowerCase()!=='batal'){
     if(String(o.status||'').toLowerCase()!=='diantar') actions+=`<button data-driver-action="start" data-order-id="${id}">Mulai Antar</button>`;
     actions+=`<button class="dark" data-driver-action="finish" data-order-id="${id}">Selesaikan Pesanan</button>`;
