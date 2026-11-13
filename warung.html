@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PINTAR | Dashboard Warung Mitra</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#16324f;--blue:#2463a6;--bg:#f3f6fa;--green:#16845b;--red:#bd3b3b}
+*{box-sizing:border-box}body{margin:0;font:15px Arial,sans-serif;background:var(--bg);color:#203044}
+header{background:var(--navy);color:white;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+header h1{font-size:20px;margin:0}header small{opacity:.8}.wrap{max-width:1100px;margin:22px auto;padding:0 14px}
+.panel,.card{background:#fff;border-radius:14px;padding:18px;box-shadow:0 2px 12px #132d4810;margin-bottom:16px}
+.login{max-width:420px;margin:9vh auto}.login h2{margin-top:0}
+input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;margin:6px 0 12px;font:inherit}
+button{border:0;border-radius:8px;padding:10px 14px;background:var(--blue);color:white;font-weight:700;cursor:pointer}
+button.secondary{background:#64748b}button.danger{background:var(--red)}button:disabled{opacity:.55}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.stat{font-size:25px;font-weight:700;margin-top:8px}.muted{color:#64748b;font-size:13px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+nav button{background:#e2eaf3;color:#203044}nav button.active{background:var(--blue);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid #e5eaf0;vertical-align:top}
+.tablewrap{overflow-x:auto}.tag{display:inline-block;padding:4px 8px;border-radius:20px;background:#e7f4ee;color:#126343;font-size:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}
+.hidden{display:none!important}.notice{padding:12px;border-radius:8px;background:#fff7df;color:#745411;margin-bottom:14px}
+.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{font-size:12px;padding:8px}
+@media(max-width:600px){header{align-items:flex-start;flex-direction:column}.wrap{margin:12px auto}.panel,.card{padding:14px}}
+</style>
+</head>
+<body>
+<header><div><h1>🛍️ PINTAR – Warung Mitra</h1><small>Dashboard khusus mitra warung</small></div><button id="logoutBtn" class="secondary hidden">Keluar</button></header>
+<main class="wrap">
+<section id="loginView" class="panel login">
+<h2>Login Warung Mitra</h2><p class="muted">Gunakan email dan kata sandi yang diberikan Admin PINTAR.</p>
+<form id="loginForm"><label>Email akun</label><input id="email" type="email" required autocomplete="username"><label>Kata sandi</label><input id="password" type="password" required autocomplete="current-password"><button style="width:100%">Masuk</button></form>
+<p id="loginMsg" class="muted"></p>
+</section>
+<section id="appView" class="hidden">
+<div class="panel"><div class="row"><div><div class="muted">Warung Anda</div><h2 id="warungName" style="margin:5px 0">Memuat...</h2><div id="warungAddress" class="muted"></div></div><div><span id="openState" class="tag">-</span></div></div></div>
+<div class="grid">
+<div class="card"><div class="muted">Pesanan aktif</div><div class="stat" id="statActive">0</div></div>
+<div class="card"><div class="muted">Produk terdaftar</div><div class="stat" id="statProducts">0</div></div>
+<div class="card"><div class="muted">Penjualan selesai</div><div class="stat" id="statSales">Rp0</div></div>
+</div>
+<nav><button class="active" data-tab="orders">Pesanan</button><button data-tab="products">Menu & Stok</button><button data-tab="profile">Profil Warung</button></nav>
+<section id="tab-orders" class="panel"><h3>Pesanan Warung</h3><div class="tablewrap"><table><thead><tr><th>Pesanan</th><th>Pelanggan</th><th>Rincian</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="ordersBody"><tr><td colspan="6">Memuat...</td></tr></tbody></table></div></section>
+<section id="tab-products" class="panel hidden"><h3>Menu & Stok</h3>
+<form id="productForm"><input type="hidden" id="productId"><div class="row"><div><label>Nama produk</label><input id="pName" required></div><div><label>Kategori</label><input id="pCategory" placeholder="Makanan / Minuman"></div></div>
+<div class="row"><div><label>Harga (Rp)</label><input id="pPrice" type="number" min="1" required></div><div><label>Stok</label><input id="pStock" type="number" min="0" value="0"></div></div>
+<label>Deskripsi</label><textarea id="pDesc" rows="2"></textarea><label>Status menu</label><select id="pStatus"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select>
+<div class="actions"><button type="submit">Simpan Menu</button><button type="button" class="secondary" id="cancelEdit">Batal</button></div></form>
+<div class="tablewrap"><table><thead><tr><th>Produk</th><th>Harga</th><th>Stok</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="productsBody"></tbody></table></div></section>
+<section id="tab-profile" class="panel hidden"><h3>Profil & Status Warung</h3><form id="profileForm"><label>Nama warung</label><input id="wName" required><label>Alamat</label><textarea id="wAddress"></textarea><label>WhatsApp</label><input id="wPhone"><div class="row"><div><label>Status operasional</label><select id="wStatus"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div><div><label>Warung sedang</label><select id="wOpen"><option value="true">Buka</option><option value="false">Tutup</option></select></div></div><button>Simpan Profil</button></form></section>
+<p id="appMsg" class="muted"></p>
+</section></main>
+<script>
+const SUPABASE_URL="https://kktamroqhsheiiifffoo.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_0SQdiECEZD6oNp-bjZcTyg_FJYHeJv8";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let currentWarung=null, products=[], orders=[];
+const $=id=>document.getElementById(id), rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function message(s){$('appMsg').textContent=s||''}
+function setTab(tab){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));['orders','products','profile'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==tab))}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+$('loginForm').onsubmit=async e=>{e.preventDefault();$('loginMsg').textContent='Memeriksa akun...';const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error){$('loginMsg').textContent='Login gagal: '+error.message;return}await startApp()};
+$('logoutBtn').onclick=async()=>{await db.auth.signOut();location.reload()};
+async function startApp(){
+ const {data:{user}}=await db.auth.getUser();if(!user)return;
+ const {data:link,error}=await db.from('warung_akun').select('warung_id').eq('user_id',user.id).eq('aktif',true).maybeSingle();
+ if(error||!link){$('loginMsg').textContent='Akun belum terhubung ke Warung Mitra. Hubungi Admin PINTAR.';await db.auth.signOut();return}
+ const {data:w,error:we}=await db.from('warung').select('id,nama,alamat,no_wa,status,buka').eq('id',link.warung_id).single();
+ if(we||!w){$('loginMsg').textContent='Data warung tidak ditemukan atau akses belum diizinkan.';await db.auth.signOut();return}
+ currentWarung=w;$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
+ $('warungName').textContent=w.nama;$('warungAddress').textContent=w.alamat||'';$('wName').value=w.nama||'';$('wAddress').value=w.alamat||'';$('wPhone').value=w.no_wa||'';$('wStatus').value=(w.status||'aktif').toLowerCase();$('wOpen').value=String(w.buka!==false);
+ await refreshAll();
+}
+async function refreshAll(){await Promise.all([loadProducts(),loadOrders()]);updateStats()}
+async function loadProducts(){
+ const {data,error}=await db.from('produk').select('id,warung_id,nama,kategori,harga,deskripsi,gambar,status,stok').eq('warung_id',currentWarung.id).order('id',{ascending:false});
+ if(error){message('Gagal memuat produk: '+error.message);return}products=data||[];renderProducts()
+}
+async function loadOrders(){
+ const {data,error}=await db.from('pesanan').select('id,created_at,nama_pelanggan,no_wa,catatan,total_belanja,ongkir,total_pembayaran,status,items,warung_id').eq('warung_id',currentWarung.id).order('created_at',{ascending:false});
+ if(error){message('Gagal memuat pesanan: '+error.message);return}orders=data||[];renderOrders()
+}
+function renderProducts(){$('productsBody').innerHTML=products.map(p=>`<tr><td><b>${esc(p.nama)}</b><div class="muted">${esc(p.kategori||'')}</div></td><td>${rupiah(p.harga)}</td><td>${Number(p.stok??0)}</td><td>${esc(p.status||'aktif')}</td><td><div class="actions"><button onclick="editProduct(${p.id})">Edit</button><button class="secondary" onclick="toggleProduct(${p.id})">${String(p.status).toLowerCase()==='nonaktif'?'Aktifkan':'Nonaktifkan'}</button></div></td></tr>`).join('')||'<tr><td colspan="5">Belum ada menu.</td></tr>'}
+function renderOrders(){$('ordersBody').innerHTML=orders.map(o=>{let items=Array.isArray(o.items)?o.items.map(i=>`${esc(i.nama||i.name||'Produk')} x${Number(i.jumlah||i.qty||1)}`).join('<br>'):esc(o.items||'-');return `<tr><td>#${o.id}<div class="muted">${o.created_at?new Date(o.created_at).toLocaleString('id-ID'):''}</div></td><td>${esc(o.nama_pelanggan)}<div class="muted">${esc(o.no_wa)}</div></td><td>${items}<div class="muted">${esc(o.catatan||'')}</div></td><td>${rupiah(o.total_pembayaran||((Number(o.total_belanja)||0)+(Number(o.ongkir)||0)))}</td><td>${esc(o.status||'baru')}</td><td><div class="actions">${['baru','diproses','siap','selesai'].map(s=>`<button class="secondary" onclick="setOrderStatus(${o.id},'${s}')">${s}</button>`).join('')}</div></td></tr>`}).join('')||'<tr><td colspan="6">Belum ada pesanan.</td></tr>'}
+function updateStats(){const active=orders.filter(o=>!['selesai','dibatalkan'].includes(String(o.status||'').toLowerCase())).length;const sales=orders.filter(o=>String(o.status||'').toLowerCase()==='selesai').reduce((n,o)=>n+Number(o.total_belanja||0),0);$('statActive').textContent=active;$('statProducts').textContent=products.length;$('statSales').textContent=rupiah(sales);$('openState').textContent=currentWarung.buka?'Warung Buka':'Warung Tutup'}
+window.editProduct=id=>{const p=products.find(x=>x.id===id);if(!p)return;$('productId').value=p.id;$('pName').value=p.nama;$('pCategory').value=p.kategori||'';$('pPrice').value=p.harga;$('pStock').value=p.stok??0;$('pDesc').value=p.deskripsi||'';$('pStatus').value=p.status||'aktif';setTab('products');window.scrollTo({top:0,behavior:'smooth'})};
+window.toggleProduct=async id=>{const p=products.find(x=>x.id===id);const status=String(p.status).toLowerCase()==='nonaktif'?'aktif':'nonaktif';const {error}=await db.from('produk').update({status}).eq('id',id).eq('warung_id',currentWarung.id);if(error){message(error.message);return}await loadProducts();updateStats()};
+$('cancelEdit').onclick=()=>{$('productForm').reset();$('productId').value=''};
+$('productForm').onsubmit=async e=>{e.preventDefault();const id=$('productId').value;const payload={nama:$('pName').value.trim(),kategori:$('pCategory').value.trim()||null,harga:Number($('pPrice').value),stok:Math.max(0,Number($('pStock').value)),deskripsi:$('pDesc').value.trim()||null,status:$('pStatus').value,warung_id:currentWarung.id};const q=id?db.from('produk').update(payload).eq('id',Number(id)).eq('warung_id',currentWarung.id):db.from('produk').insert(payload);const {error}=await q;if(error){message('Gagal menyimpan menu: '+error.message);return}message('Menu berhasil disimpan.');$('productForm').reset();$('productId').value='';await loadProducts();updateStats()};
+window.setOrderStatus=async(id,status)=>{const {error}=await db.from('pesanan').update({status}).eq('id',id).eq('warung_id',currentWarung.id);if(error){message('Gagal mengubah status pesanan: '+error.message);return}message('Status pesanan diperbarui.');await loadOrders();updateStats()};
+$('profileForm').onsubmit=async e=>{e.preventDefault();const payload={nama:$('wName').value.trim(),alamat:$('wAddress').value.trim(),no_wa:$('wPhone').value.trim()||null,status:$('wStatus').value,buka:$('wOpen').value==='true'};const {error}=await db.from('warung').update(payload).eq('id',currentWarung.id);if(error){message('Gagal menyimpan profil: '+error.message);return}Object.assign(currentWarung,payload);$('warungName').textContent=payload.nama;$('warungAddress').textContent=payload.alamat;updateStats();message('Profil warung berhasil diperbarui.')};
+(async()=>{const {data:{session}}=await db.auth.getSession();if(session)await startApp()})();
+</script></body></html>
