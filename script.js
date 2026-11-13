@@ -1338,6 +1338,13 @@ function normalisasiNomorWA(nomor) {
     return { normalized: angka, e164: "+" + angka };
 }
 
+// Supabase Email Auth dipakai sebagai mesin autentikasi tanpa SMS/OTP.
+// Email virtual ini tidak dipakai untuk menerima email; pelanggan tetap login
+// menggunakan nomor WhatsApp yang dimasukkan pada formulir.
+function emailAuthPelanggan(nomorNormalized) {
+    return String(nomorNormalized || "").replace(/\D/g, "") + "@akun.payarengas.invalid";
+}
+
 let pelangganLoginAktif = null;
 let authSiap = false;
 
@@ -1428,10 +1435,15 @@ async function prosesAkunPelanggan() {
                 .select("id,auth_user_id").eq("no_wa_normalized",wa.normalized).maybeSingle();
             if (findError) throw findError;
             if (existing?.auth_user_id) throw new Error("Nomor WhatsApp ini sudah memiliki akun. Silakan login.");
-            const { data, error } = await supabaseClient.auth.signUp({phone:wa.e164,password,options:{data:{nama}}});
+            const emailAuth = emailAuthPelanggan(wa.normalized);
+            const { data, error } = await supabaseClient.auth.signUp({
+                email: emailAuth,
+                password,
+                options: { data: { nama, no_wa: wa.e164, no_wa_normalized: wa.normalized } }
+            });
             if (error) throw error;
             if (!data.user) throw new Error("Akun belum berhasil dibuat.");
-            if (!data.session) throw new Error("Supabase masih meminta verifikasi nomor. Matikan Confirm phone di Authentication > Providers > Phone agar pendaftaran tanpa OTP.");
+            if (!data.session) throw new Error("Supabase masih meminta konfirmasi email. Buka Authentication > Sign In / Providers, lalu matikan Confirm email.");
             let linkResult;
             if (existing) {
                 linkResult = await supabaseClient.from("pelanggan").update({auth_user_id:data.user.id,nama,no_wa:wa.e164,no_wa_normalized:wa.normalized}).eq("id",existing.id);
@@ -1440,7 +1452,8 @@ async function prosesAkunPelanggan() {
             }
             if (linkResult.error) throw linkResult.error;
         } else {
-            const { error } = await supabaseClient.auth.signInWithPassword({phone:wa.e164,password});
+            const emailAuth = emailAuthPelanggan(wa.normalized);
+            const { error } = await supabaseClient.auth.signInWithPassword({ email: emailAuth, password });
             if (error) throw error;
             const profile=await ambilPelangganLogin();
             if (!profile) { await supabaseClient.auth.signOut(); throw new Error("Akun belum terhubung ke data pelanggan. Hubungi Admin."); }
