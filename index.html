@@ -1355,6 +1355,33 @@ footer h2,footer a{color:#ffc400!important}
   </div>
 </section>
 
+<!-- AKUN PELANGGAN: login/daftar tanpa OTP -->
+<style>
+#authAccountStatus{display:inline-block;margin:10px;padding:9px 14px;border:1px solid #d7b44a;border-radius:20px;background:#fff8dc;color:#604600;font-weight:700;cursor:pointer}
+#customerAuthModal{display:none;position:fixed;inset:0;z-index:99999;background:#0009;align-items:center;justify-content:center;padding:16px}
+#customerAuthCard{width:min(420px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 15px 45px #0004;color:#222}
+#customerAuthCard input{box-sizing:border-box;width:100%;padding:12px;margin:6px 0 12px;border:1px solid #ccc;border-radius:9px;font:inherit}
+#customerAuthCard button{padding:11px 14px;border:0;border-radius:9px;font-weight:700;cursor:pointer;margin:5px 4px 0 0}
+#authMessage{display:block;margin-top:12px;color:#a33;font-size:13px;overflow-wrap:anywhere}
+</style>
+<div style="text-align:center"><button type="button" onclick="tampilkanRiwayatPesanan()" style="padding:9px 14px;border:1px solid #ddd;border-radius:18px;background:#fff;cursor:pointer">Riwayat Pesanan</button></div>
+<div id="customerOrderHistory" style="display:none;width:min(700px,94%);margin:10px auto;padding:12px;background:#fff;border:1px solid #eee;border-radius:12px;overflow-wrap:anywhere"></div>
+<div style="text-align:center"><button id="authAccountStatus" type="button" onclick="bukaModalAkun('login')">Login / Daftar</button></div>
+<div id="customerAuthModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+ <div id="customerAuthCard">
+  <h2 id="authModalTitle">Login Pelanggan</h2>
+  <input id="authMode" type="hidden" value="login">
+  <div id="authNamaWrap" style="display:none"><label for="authNama">Nama lengkap</label><input id="authNama" autocomplete="name" placeholder="Nama lengkap"></div>
+  <label for="authWa">Nomor WhatsApp</label><input id="authWa" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx atau 628xxxxxxxxxx">
+  <label for="authPassword">Password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Minimal 6 karakter">
+  <button id="authSubmit" type="button" onclick="prosesAkunPelanggan()">Login</button>
+  <button id="authSwitch" type="button" onclick="bukaModalAkun(document.getElementById('authMode').value==='login'?'register':'login')">Belum punya akun? Daftar</button>
+  <button type="button" onclick="tutupModalAkun()">Tutup</button>
+  <small id="authMessage" role="status"></small>
+  <p style="font-size:12px;color:#666">Pendaftaran menggunakan nama, nomor WhatsApp, dan password. Tidak menggunakan OTP.</p>
+ </div>
+</div>
+
 <!-- FORM OJEK PINTAR: tertanam di halaman utama, tidak memerlukan maps.html -->
 <section id="formOjekPintar" aria-label="Form pemesanan ojek">
   <h2 id="judulFormOjek">Pesan Ojek PINTAR</h2>
@@ -1823,7 +1850,8 @@ footer h2,footer a{color:#ffc400!important}
 
     
 <script>
-function bukaPesanMakanan(){
+async function bukaPesanMakanan(){
+  if (!(await wajibLoginPelanggan())) return;
   const menu=document.getElementById('menu');
   if(!menu) return;
   menu.classList.add('menu-open','pr-flow-open');
