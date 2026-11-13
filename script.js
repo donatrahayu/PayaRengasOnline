@@ -1431,26 +1431,31 @@ async function prosesAkunPelanggan() {
     btn.disabled=true; msg.textContent="Memproses akun...";
     try {
         if (mode === "register") {
-            const { data: existing, error: findError } = await supabaseClient.from("pelanggan")
-                .select("id,auth_user_id").eq("no_wa_normalized",wa.normalized).maybeSingle();
-            if (findError) throw findError;
-            if (existing?.auth_user_id) throw new Error("Nomor WhatsApp ini sudah memiliki akun. Silakan login.");
-            const emailAuth = emailAuthPelanggan(wa.normalized);
-            const { data, error } = await supabaseClient.auth.signUp({
-                email: emailAuth,
-                password,
-                options: { data: { nama, no_wa: wa.e164, no_wa_normalized: wa.normalized } }
-            });
-            if (error) throw error;
-            if (!data.user) throw new Error("Akun belum berhasil dibuat.");
-            if (!data.session) throw new Error("Supabase masih meminta konfirmasi email. Buka Authentication > Sign In / Providers, lalu matikan Confirm email.");
-            let linkResult;
-            if (existing) {
-                linkResult = await supabaseClient.from("pelanggan").update({auth_user_id:data.user.id,nama,no_wa:wa.e164,no_wa_normalized:wa.normalized}).eq("id",existing.id);
-            } else {
-                linkResult = await supabaseClient.from("pelanggan").insert({auth_user_id:data.user.id,nama,no_wa:wa.e164,no_wa_normalized:wa.normalized});
+            // Pembuatan akun dilakukan di Edge Function agar Confirm email global
+            // tetap aktif untuk Driver. Service role tidak pernah dikirim ke browser.
+            const { data: registerResult, error: registerError } = await supabaseClient.functions.invoke(
+                "customer-register",
+                { body: { nama, no_wa: wa.e164, no_wa_normalized: wa.normalized, password } }
+            );
+            if (registerError) {
+                let detail = registerError.message || "Pendaftaran pelanggan gagal.";
+                try {
+                    const payload = await registerError.context?.clone?.().json();
+                    if (payload?.error) detail = payload.error;
+                } catch (_) {}
+                throw new Error(detail);
             }
-            if (linkResult.error) throw linkResult.error;
+            if (!registerResult?.success) {
+                throw new Error(registerResult?.error || "Akun pelanggan belum berhasil dibuat.");
+            }
+
+            // Akun dibuat dan dikonfirmasi di server; sekarang buat sesi pelanggan.
+            const emailAuth = emailAuthPelanggan(wa.normalized);
+            const { error: loginError } = await supabaseClient.auth.signInWithPassword({
+                email: emailAuth,
+                password
+            });
+            if (loginError) throw new Error("Akun sudah dibuat, tetapi login otomatis gagal. Silakan masuk menggunakan nomor WhatsApp dan password yang sama.");
         } else {
             const emailAuth = emailAuthPelanggan(wa.normalized);
             const { error } = await supabaseClient.auth.signInWithPassword({ email: emailAuth, password });
