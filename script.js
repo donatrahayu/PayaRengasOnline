@@ -14,19 +14,17 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_0SQdiECEZD6oNp-bjZcTyg_FJYHeJv8";
 
-// Halaman pelanggan tidak memerlukan sesi login Supabase.
-// Isolasi dari sesi Admin agar permintaan data publik tetap memakai
-// publishable/anon key dan tidak mewarisi sesi authenticated di browser.
+// Sesi autentikasi khusus pelanggan; terpisah dari sesi Admin.
 const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_PUBLISHABLE_KEY,
         {
             auth: {
-                persistSession: false,
-                autoRefreshToken: false,
+                persistSession: true,
+                autoRefreshToken: true,
                 detectSessionInUrl: false,
-                storageKey: "paya-rengas-pelanggan-public-auth"
+                storageKey: "paya-rengas-pelanggan-auth-v1"
             }
         }
     );
@@ -1098,6 +1096,8 @@ function ambilDataPelanggan() {
 
 function validasiCheckout() {
 
+    if (!pelangganLoginAktif) { alert("Silakan login terlebih dahulu."); bukaModalAkun("login"); return false; }
+
     if (keranjang.length === 0) {
 
         alert(
@@ -1331,91 +1331,153 @@ function simpanPesananLokal(pesanan) {
    CARI / BUAT PELANGGAN SUPABASE
 ===================================================== */
 
-async function cariAtauBuatPelanggan(data) {
-
-    /*
-       Cari berdasarkan nomor WhatsApp
-    */
-
-    const hasilCari =
-        await supabaseClient
-            .from("pelanggan")
-            .select("id")
-            .eq("no_wa", data.whatsapp)
-            .limit(1);
-
-
-    if (
-        hasilCari.error
-    ) {
-
-        throw new Error(
-            "Gagal mencari pelanggan: " +
-            hasilCari.error.message
-        );
-
-    }
-
-
-    if (
-        hasilCari.data &&
-        hasilCari.data.length > 0
-    ) {
-
-        return hasilCari.data[0].id;
-
-    }
-
-
-    /*
-       Kalau belum ada,
-       buat pelanggan baru
-    */
-
-    const pelangganBaru =
-        await supabaseClient
-            .from("pelanggan")
-            .insert({
-
-                nama:
-                    data.nama,
-
-                no_wa:
-                    data.whatsapp,
-
-                alamat:
-                    data.alamat,
-
-                latitude:
-                    lokasiPelanggan
-                        ? lokasiPelanggan.latitude
-                        : null,
-
-                longitude:
-                    lokasiPelanggan
-                        ? lokasiPelanggan.longitude
-                        : null
-
-            })
-            .select("id")
-            .single();
-
-
-    if (
-        pelangganBaru.error
-    ) {
-
-        throw new Error(
-            "Gagal menyimpan pelanggan: " +
-            pelangganBaru.error.message
-        );
-
-    }
-
-
-    return pelangganBaru.data.id;
-
+function normalisasiNomorWA(nomor) {
+    let angka = String(nomor || "").replace(/\D/g, "");
+    if (angka.startsWith("0")) angka = "62" + angka.slice(1);
+    if (!angka.startsWith("62")) angka = "62" + angka;
+    return { normalized: angka, e164: "+" + angka };
 }
+
+let pelangganLoginAktif = null;
+let authSiap = false;
+
+async function ambilPelangganLogin() {
+    const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError) throw sessionError;
+    const user = sessionData.session?.user;
+    if (!user) { pelangganLoginAktif = null; return null; }
+    const { data, error } = await supabaseClient.from("pelanggan")
+        .select("id,nama,no_wa,auth_user_id,no_wa_normalized")
+        .eq("auth_user_id", user.id).maybeSingle();
+    if (error) throw error;
+    pelangganLoginAktif = data || null;
+    return pelangganLoginAktif;
+}
+
+async function tampilkanRiwayatPesanan() {
+    const area=document.getElementById("customerOrderHistory");
+    if (!area) return;
+    if (!(await wajibLoginPelanggan())) return;
+    area.style.display="block"; area.textContent="Memuat riwayat pesanan...";
+    try {
+        const {data,error}=await supabaseClient.from("pesanan")
+            .select("id,created_at,status,total_pembayaran,jenis_layanan")
+            .eq("pelanggan_id",pelangganLoginAktif.id)
+            .order("created_at",{ascending:false}).limit(30);
+        if(error) throw error;
+        area.innerHTML="";
+        if(!data || !data.length){area.textContent="Belum ada riwayat pesanan.";return;}
+        data.forEach(row=>{
+            const item=document.createElement("div");
+            item.style="padding:10px;border-bottom:1px solid #eee";
+            const when=row.created_at?new Date(row.created_at).toLocaleString("id-ID"):"Tanggal tidak tersedia";
+            const total=Number(row.total_pembayaran||0).toLocaleString("id-ID");
+            item.textContent=`Pesanan #${row.id} · ${when} · ${row.status||"status belum tersedia"} · Rp${total}`;
+            area.appendChild(item);
+        });
+    } catch(e) { area.textContent="Riwayat belum dapat dimuat: "+(e.message||e); }
+}
+
+function tampilkanStatusAkun() {
+    const el = document.getElementById("authAccountStatus");
+    if (!el) return;
+    if (pelangganLoginAktif) {
+        el.textContent = "Login: " + (pelangganLoginAktif.nama || "Pelanggan") + " · Keluar";
+        el.style.display = "inline-block";
+        el.onclick = async () => {
+            await supabaseClient.auth.signOut();
+            pelangganLoginAktif = null;
+            tampilkanStatusAkun();
+            bukaModalAkun("login");
+        };
+    } else {
+        el.textContent = "Login / Daftar";
+        el.style.display = "inline-block";
+        el.onclick = () => bukaModalAkun("login");
+    }
+}
+
+function bukaModalAkun(mode) {
+    const modal = document.getElementById("customerAuthModal");
+    if (!modal) { alert("Form akun belum tersedia. Muat ulang halaman."); return; }
+    modal.style.display = "flex";
+    const reg = mode === "register";
+    document.getElementById("authNamaWrap").style.display = reg ? "block" : "none";
+    document.getElementById("authModalTitle").textContent = reg ? "Daftar Akun Pelanggan" : "Login Pelanggan";
+    document.getElementById("authSubmit").textContent = reg ? "Daftar" : "Login";
+    document.getElementById("authSwitch").textContent = reg ? "Sudah punya akun? Login" : "Belum punya akun? Daftar";
+    document.getElementById("authMode").value = mode;
+    document.getElementById("authMessage").textContent = "";
+}
+function tutupModalAkun() { const m=document.getElementById("customerAuthModal"); if(m) m.style.display="none"; }
+
+async function prosesAkunPelanggan() {
+    const mode=document.getElementById("authMode").value;
+    const nama=document.getElementById("authNama").value.trim();
+    const wa=normalisasiNomorWA(document.getElementById("authWa").value);
+    const password=document.getElementById("authPassword").value;
+    const msg=document.getElementById("authMessage");
+    const btn=document.getElementById("authSubmit");
+    if (!/^628[0-9]{8,13}$/.test(wa.normalized)) { msg.textContent="Nomor WhatsApp Indonesia tidak valid. Gunakan 08... atau 628..."; return; }
+    if (password.length < 6) { msg.textContent="Password minimal 6 karakter."; return; }
+    if (mode === "register" && !nama) { msg.textContent="Nama wajib diisi."; return; }
+    btn.disabled=true; msg.textContent="Memproses akun...";
+    try {
+        if (mode === "register") {
+            const { data: existing, error: findError } = await supabaseClient.from("pelanggan")
+                .select("id,auth_user_id").eq("no_wa_normalized",wa.normalized).maybeSingle();
+            if (findError) throw findError;
+            if (existing?.auth_user_id) throw new Error("Nomor WhatsApp ini sudah memiliki akun. Silakan login.");
+            const { data, error } = await supabaseClient.auth.signUp({phone:wa.e164,password,options:{data:{nama}}});
+            if (error) throw error;
+            if (!data.user) throw new Error("Akun belum berhasil dibuat.");
+            if (!data.session) throw new Error("Supabase masih meminta verifikasi nomor. Matikan Confirm phone di Authentication > Providers > Phone agar pendaftaran tanpa OTP.");
+            let linkResult;
+            if (existing) {
+                linkResult = await supabaseClient.from("pelanggan").update({auth_user_id:data.user.id,nama,no_wa:wa.e164,no_wa_normalized:wa.normalized}).eq("id",existing.id);
+            } else {
+                linkResult = await supabaseClient.from("pelanggan").insert({auth_user_id:data.user.id,nama,no_wa:wa.e164,no_wa_normalized:wa.normalized});
+            }
+            if (linkResult.error) throw linkResult.error;
+        } else {
+            const { error } = await supabaseClient.auth.signInWithPassword({phone:wa.e164,password});
+            if (error) throw error;
+            const profile=await ambilPelangganLogin();
+            if (!profile) { await supabaseClient.auth.signOut(); throw new Error("Akun belum terhubung ke data pelanggan. Hubungi Admin."); }
+        }
+        await ambilPelangganLogin();
+        if (!pelangganLoginAktif) throw new Error("Login berhasil, tetapi profil pelanggan belum terbaca.");
+        isiIdentitasPelanggan(); tampilkanStatusAkun(); tutupModalAkun();
+        msg.textContent="";
+    } catch(e) {
+        console.error("Akun pelanggan:",e);
+        msg.textContent=e.message || "Proses akun gagal. Periksa koneksi dan pengaturan Supabase.";
+    } finally { btn.disabled=false; }
+}
+
+function isiIdentitasPelanggan() {
+    if (!pelangganLoginAktif) return;
+    ["namaPelanggan","ojekNama"].forEach(id=>{const el=document.getElementById(id);if(el){el.value=pelangganLoginAktif.nama||"";el.readOnly=true;}});
+    ["nomorWhatsApp","ojekWa"].forEach(id=>{const el=document.getElementById(id);if(el){el.value=pelangganLoginAktif.no_wa||"";el.readOnly=true;}});
+}
+
+async function wajibLoginPelanggan() {
+    try { await ambilPelangganLogin(); } catch(e) { console.error(e); }
+    if (!pelangganLoginAktif) { bukaModalAkun("login"); return false; }
+    return true;
+}
+
+async function cariAtauBuatPelanggan(data) {
+    const profile = await ambilPelangganLogin();
+    if (!profile) throw new Error("Silakan login terlebih dahulu sebelum membuat pesanan.");
+    return profile.id;
+}
+
+// Inisialisasi sesi pelanggan yang tersimpan di perangkat.
+document.addEventListener("DOMContentLoaded", async () => {
+    try { await ambilPelangganLogin(); } catch(e) { console.error("Memuat sesi pelanggan:",e); }
+    authSiap=true; isiIdentitasPelanggan(); tampilkanStatusAkun();
+});
 
 
 /* =====================================================
@@ -1726,7 +1788,12 @@ function buatPesanWhatsApp() {
    KIRIM WA
 ===================================================== */
 
-function kirimWA() {
+async function kirimWA() {
+
+    // Wajib login sebelum pesanan makanan dikirim melalui WhatsApp.
+    if (!(await wajibLoginPelanggan())) {
+        return;
+    }
 
     if (keranjang.length === 0) {
 
@@ -1837,6 +1904,14 @@ function buatPesanKeranjang() {
 ===================================================== */
 
 async function konfirmasiPesan() {
+
+    // Wajib login sebelum pesanan disimpan ke Supabase dan dikirim ke WhatsApp.
+    if (!(await wajibLoginPelanggan())) {
+        return;
+    }
+
+    // Isi nama dan nomor WhatsApp dari akun yang sudah login.
+    isiIdentitasPelanggan();
 
     const warungSekarang = getWarungTerpilih();
     if (!warungSekarang ||
@@ -2775,7 +2850,9 @@ async function muatTarifOjekPelanggan(){
   try{const {data,error}=await supabaseClient.from('pengaturan_tarif_ojek').select('*').eq('aktif',true).order('id',{ascending:false}).limit(1).maybeSingle();if(error)throw error;tarifOjekPelanggan=data;return data;}
   catch(e){console.error('Tarif Ojek:',e);tarifOjekPelanggan=null;return null;}
 }
-function bukaFormOjek(jenis){
+async function bukaFormOjek(jenis){
+  if (!(await wajibLoginPelanggan())) return;
+  isiIdentitasPelanggan();
   jenisLayananOjekAktif=jenis;koordinatJemputOjek=null;koordinatTujuanOjek=null;jarakRuteOjekKm=null;tarifHitungOjek=null;
   const form=document.getElementById('formOjekPintar');if(form)form.style.display='block';
   const food=document.querySelector('.menu');if(food)food.style.display='none';
@@ -2904,8 +2981,11 @@ function hitungTarifDariJarakRuteOjek(){
 }
 function hitungTarifOjekPelanggan(){return hitungTarifDariJarakRuteOjek();}
 async function konfirmasiPesananOjek(){
+  if (!(await wajibLoginPelanggan())) return;
+  const profile=await ambilPelangganLogin();
+  if(!profile){alert("Silakan login kembali.");return;}
   const btn=document.getElementById('btnKirimOjek'),status=document.getElementById('ojekPesanStatus');
-  const nama=document.getElementById('ojekNama').value.trim(),wa=document.getElementById('ojekWa').value.trim();
+  const nama=profile.nama,wa=profile.no_wa;
   const jemput=document.getElementById('ojekJemput').value.trim(),tujuan=document.getElementById('ojekTujuan').value.trim();
   const detail=document.getElementById('ojekDetailBarang').value.trim(),catatan=document.getElementById('ojekCatatan').value.trim();
   const tarif=hitungTarifDariJarakRuteOjek(),barang=jenisLayananOjekAktif==='ojek_barang';
@@ -2913,7 +2993,7 @@ async function konfirmasiPesananOjek(){
   if(barang&&!detail){alert('Isi keterangan barang.');return;}
   btn.disabled=true;btn.textContent='Menyimpan pesanan...';
   try{
-    const payload={pelanggan_id:null,warung_id:null,items:[],nama_pelanggan:nama,no_wa:wa,"alamat pengantara":tujuan,catatan,total_belanja:0,ongkir:tarif,jarak_km:Number(jarakRuteOjekKm.toFixed(3)),total_pembayaran:tarif,status:'baru',metode_pembayaran:'WhatsApp',latitude:koordinatJemputOjek.lat,longitude:koordinatJemputOjek.lng,jenis_layanan:jenisLayananOjekAktif,lokasi_jemput:jemput,lokasi_tujuan:tujuan,detail_barang:barang?detail:null,tarif_ojek:tarif,tujuan_latitude:koordinatTujuanOjek.lat,tujuan_longitude:koordinatTujuanOjek.lng};
+    const payload={pelanggan_id:profile.id,warung_id:null,items:[],nama_pelanggan:nama,no_wa:wa,"alamat pengantara":tujuan,catatan,total_belanja:0,ongkir:tarif,jarak_km:Number(jarakRuteOjekKm.toFixed(3)),total_pembayaran:tarif,status:'baru',metode_pembayaran:'WhatsApp',latitude:koordinatJemputOjek.lat,longitude:koordinatJemputOjek.lng,jenis_layanan:jenisLayananOjekAktif,lokasi_jemput:jemput,lokasi_tujuan:tujuan,detail_barang:barang?detail:null,tarif_ojek:tarif,tujuan_latitude:koordinatTujuanOjek.lat,tujuan_longitude:koordinatTujuanOjek.lng};
     const {data:order,error}=await supabaseClient.from('pesanan').insert(payload).select('id,created_at').single();if(error)throw error;
     status.textContent=`Pesanan #${order.id} berhasil masuk. Menghubungi Admin...`;
     const txt=`PESANAN ${barang?'OJEK ANTAR BARANG':'OJEK PENUMPANG'} PINTAR\nNomor: #${order.id}\nNama: ${nama}\nWA: ${wa}\nJemput: ${jemput}\nTujuan: ${tujuan}\nJarak rute jalan: ${jarakRuteOjekKm.toFixed(2)} km\nTarif: Rp${tarif.toLocaleString('id-ID')}\n${barang?'Barang: '+detail+'\n':''}Catatan: ${catatan||'-'}`;
