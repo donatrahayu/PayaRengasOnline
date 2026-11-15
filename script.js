@@ -1338,13 +1338,6 @@ function normalisasiNomorWA(nomor) {
     return { normalized: angka, e164: "+" + angka };
 }
 
-// Supabase Email Auth dipakai sebagai mesin autentikasi tanpa SMS/OTP.
-// Email virtual ini tidak dipakai untuk menerima email; pelanggan tetap login
-// menggunakan nomor WhatsApp yang dimasukkan pada formulir.
-function emailAuthPelanggan(nomorNormalized) {
-    return String(nomorNormalized || "").replace(/\D/g, "") + "@akun.payarengas.com";
-}
-
 let pelangganLoginAktif = null;
 let authSiap = false;
 
@@ -1361,28 +1354,88 @@ async function ambilPelangganLogin() {
     return pelangganLoginAktif;
 }
 
+function labelStatusRiwayat(row) {
+    const status = String(row.status || "baru").toLowerCase();
+    const ojek = String(row.jenis_layanan || "").toLowerCase().includes("ojek");
+    const labels = {
+        baru: ojek ? "Menunggu Driver" : "Menunggu Warung",
+        diproses: "Diproses Warung",
+        siap: "Siap Diantar",
+        siap_diantar: "Siap Diantar",
+        diantar: "Dalam Perjalanan",
+        selesai: "Selesai",
+        batal: "Dibatalkan",
+        dibatalkan: "Dibatalkan"
+    };
+    return labels[status] || status.replace(/[_-]/g, " ");
+}
+
+function amanRiwayat(value) {
+    return String(value ?? "").replace(/[&<>\"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+    }[c]));
+}
+
 async function tampilkanRiwayatPesanan() {
-    const area=document.getElementById("customerOrderHistory");
+    const area = document.getElementById("customerOrderHistory");
     if (!area) return;
     if (!(await wajibLoginPelanggan())) return;
-    area.style.display="block"; area.textContent="Memuat riwayat pesanan...";
+    area.style.display = "block";
+    area.innerHTML = '<div class="pintar-history-loading">Memuat riwayat pesanan...</div>';
     try {
-        const {data,error}=await supabaseClient.from("pesanan")
-            .select("id,created_at,status,total_pembayaran,jenis_layanan")
-            .eq("pelanggan_id",pelangganLoginAktif.id)
-            .order("created_at",{ascending:false}).limit(30);
-        if(error) throw error;
-        area.innerHTML="";
-        if(!data || !data.length){area.textContent="Belum ada riwayat pesanan.";return;}
-        data.forEach(row=>{
-            const item=document.createElement("div");
-            item.style="padding:10px;border-bottom:1px solid #eee";
-            const when=row.created_at?new Date(row.created_at).toLocaleString("id-ID"):"Tanggal tidak tersedia";
-            const total=Number(row.total_pembayaran||0).toLocaleString("id-ID");
-            item.textContent=`Pesanan #${row.id} · ${when} · ${row.status||"status belum tersedia"} · Rp${total}`;
+        const { data, error } = await supabaseClient.from("pesanan")
+            .select("id,created_at,status,total_belanja,ongkir,total_pembayaran,jenis_layanan,items,lokasi_jemput,lokasi_tujuan,detail_barang,driver_id,driver_nama,warung_id")
+            .eq("pelanggan_id", pelangganLoginAktif.id)
+            .order("created_at", { ascending: false }).limit(50);
+        if (error) throw error;
+        area.innerHTML = "";
+        if (!data || !data.length) {
+            area.innerHTML = '<div class="pintar-history-empty">Belum ada riwayat pesanan.</div>';
+            return;
+        }
+        // Satu baris Supabase = satu kartu. Refresh mengganti isi daftar, bukan menambah kartu duplikat.
+        data.forEach(row => {
+            const item = document.createElement("article");
+            item.className = "pintar-history-card";
+            const when = row.created_at ? new Date(row.created_at).toLocaleString("id-ID") : "Tanggal tidak tersedia";
+            const total = Number(row.total_pembayaran ?? ((Number(row.total_belanja) || 0) + (Number(row.ongkir) || 0))).toLocaleString("id-ID");
+            const isOjek = String(row.jenis_layanan || "").toLowerCase().includes("ojek");
+            const service = isOjek
+                ? (String(row.jenis_layanan).toLowerCase().includes("barang") ? "Ojek Antar Barang" : "Ojek Penumpang")
+                : "Pesanan Makanan";
+            let detail = "";
+            if (isOjek) {
+                detail = `<div class="pintar-history-detail">Jemput: ${amanRiwayat(row.lokasi_jemput || "-")}<br>Tujuan: ${amanRiwayat(row.lokasi_tujuan || "-")}${row.detail_barang ? `<br>Barang: ${amanRiwayat(row.detail_barang)}` : ""}</div>`;
+            } else {
+                const products = Array.isArray(row.items) ? row.items.map(x => {
+                    const name = amanRiwayat(x.nama || x.name || "Produk");
+                    const qty = Number(x.jumlah || x.qty || 1);
+                    return `${name} × ${qty}`;
+                }).join("<br>") : amanRiwayat(row.items || "Rincian produk tidak tersedia");
+                detail = `<div class="pintar-history-detail">${products || "Rincian produk tidak tersedia"}</div>`;
+            }
+            const status = amanRiwayat(labelStatusRiwayat(row));
+            item.innerHTML = `<div class="pintar-history-top"><strong>Pesanan #${amanRiwayat(row.id)}</strong><span class="pintar-history-status">${status}</span></div><div class="pintar-history-meta">${amanRiwayat(service)} · ${amanRiwayat(when)}</div>${detail}<div class="pintar-history-total">Total: Rp${total}</div>`;
             area.appendChild(item);
         });
-    } catch(e) { area.textContent="Riwayat belum dapat dimuat: "+(e.message||e); }
+        const updated = document.createElement("div");
+        updated.className = "pintar-history-updated";
+        updated.textContent = "Status mengikuti pembaruan terakhir dari Warung dan Driver.";
+        area.appendChild(updated);
+    } catch (e) {
+        area.innerHTML = `<div class="pintar-history-error">Riwayat belum dapat dimuat: ${amanRiwayat(e.message || e)}</div>`;
+    }
+}
+
+let customerHistoryRefreshTimer = null;
+function mulaiPantauRiwayatPelanggan() {
+    if (customerHistoryRefreshTimer) clearInterval(customerHistoryRefreshTimer);
+    customerHistoryRefreshTimer = setInterval(() => {
+        const area = document.getElementById("customerOrderHistory");
+        if (area && area.style.display !== "none" && pelangganLoginAktif) {
+            tampilkanRiwayatPesanan();
+        }
+    }, 15000);
 }
 
 function tampilkanStatusAkun() {
@@ -1431,34 +1484,23 @@ async function prosesAkunPelanggan() {
     btn.disabled=true; msg.textContent="Memproses akun...";
     try {
         if (mode === "register") {
-            // Pembuatan akun dilakukan di Edge Function agar Confirm email global
-            // tetap aktif untuk Driver. Service role tidak pernah dikirim ke browser.
-            const { data: registerResult, error: registerError } = await supabaseClient.functions.invoke(
-                "customer-register",
-                { body: { nama, no_wa: wa.e164, no_wa_normalized: wa.normalized, password } }
-            );
-            if (registerError) {
-                let detail = registerError.message || "Pendaftaran pelanggan gagal.";
-                try {
-                    const payload = await registerError.context?.clone?.().json();
-                    if (payload?.error) detail = payload.error;
-                } catch (_) {}
-                throw new Error(detail);
+            const { data: existing, error: findError } = await supabaseClient.from("pelanggan")
+                .select("id,auth_user_id").eq("no_wa_normalized",wa.normalized).maybeSingle();
+            if (findError) throw findError;
+            if (existing?.auth_user_id) throw new Error("Nomor WhatsApp ini sudah memiliki akun. Silakan login.");
+            const { data, error } = await supabaseClient.auth.signUp({phone:wa.e164,password,options:{data:{nama}}});
+            if (error) throw error;
+            if (!data.user) throw new Error("Akun belum berhasil dibuat.");
+            if (!data.session) throw new Error("Supabase masih meminta verifikasi nomor. Matikan Confirm phone di Authentication > Providers > Phone agar pendaftaran tanpa OTP.");
+            let linkResult;
+            if (existing) {
+                linkResult = await supabaseClient.from("pelanggan").update({auth_user_id:data.user.id,nama,no_wa:wa.e164,no_wa_normalized:wa.normalized}).eq("id",existing.id);
+            } else {
+                linkResult = await supabaseClient.from("pelanggan").insert({auth_user_id:data.user.id,nama,no_wa:wa.e164,no_wa_normalized:wa.normalized});
             }
-            if (!registerResult?.success) {
-                throw new Error(registerResult?.error || "Akun pelanggan belum berhasil dibuat.");
-            }
-
-            // Akun dibuat dan dikonfirmasi di server; sekarang buat sesi pelanggan.
-            const emailAuth = emailAuthPelanggan(wa.normalized);
-            const { error: loginError } = await supabaseClient.auth.signInWithPassword({
-                email: emailAuth,
-                password
-            });
-            if (loginError) throw new Error("Akun sudah dibuat, tetapi login otomatis gagal. Silakan masuk menggunakan nomor WhatsApp dan password yang sama.");
+            if (linkResult.error) throw linkResult.error;
         } else {
-            const emailAuth = emailAuthPelanggan(wa.normalized);
-            const { error } = await supabaseClient.auth.signInWithPassword({ email: emailAuth, password });
+            const { error } = await supabaseClient.auth.signInWithPassword({phone:wa.e164,password});
             if (error) throw error;
             const profile=await ambilPelangganLogin();
             if (!profile) { await supabaseClient.auth.signOut(); throw new Error("Akun belum terhubung ke data pelanggan. Hubungi Admin."); }
@@ -1466,6 +1508,8 @@ async function prosesAkunPelanggan() {
         await ambilPelangganLogin();
         if (!pelangganLoginAktif) throw new Error("Login berhasil, tetapi profil pelanggan belum terbaca.");
         isiIdentitasPelanggan(); tampilkanStatusAkun(); tutupModalAkun();
+        const historyArea=document.getElementById("customerOrderHistory");
+        if(historyArea && historyArea.style.display!=="none") await tampilkanRiwayatPesanan();
         msg.textContent="";
     } catch(e) {
         console.error("Akun pelanggan:",e);
@@ -1494,7 +1538,7 @@ async function cariAtauBuatPelanggan(data) {
 // Inisialisasi sesi pelanggan yang tersimpan di perangkat.
 document.addEventListener("DOMContentLoaded", async () => {
     try { await ambilPelangganLogin(); } catch(e) { console.error("Memuat sesi pelanggan:",e); }
-    authSiap=true; isiIdentitasPelanggan(); tampilkanStatusAkun();
+    authSiap=true; isiIdentitasPelanggan(); tampilkanStatusAkun(); mulaiPantauRiwayatPelanggan();
 });
 
 
