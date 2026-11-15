@@ -1364,8 +1364,19 @@ footer h2,footer a{color:#ffc400!important}
 #customerAuthCard button{padding:11px 14px;border:0;border-radius:9px;font-weight:700;cursor:pointer;margin:5px 4px 0 0}
 #authMessage{display:block;margin-top:12px;color:#a33;font-size:13px;overflow-wrap:anywhere}
 </style>
-<div style="text-align:center"><button type="button" onclick="tampilkanRiwayatPesanan()" style="padding:9px 14px;border:1px solid #ddd;border-radius:18px;background:#fff;cursor:pointer">Riwayat Pesanan</button></div>
-<div id="customerOrderHistory" style="display:none;width:min(700px,94%);margin:10px auto;padding:12px;background:#fff;border:1px solid #eee;border-radius:12px;overflow-wrap:anywhere"></div>
+<style>
+.pintar-history-wrap{width:min(700px,94%);margin:10px auto}
+.pintar-history-card{padding:13px;margin:10px 0;border:1px solid #e8e8e8;border-radius:13px;background:#fff;box-shadow:0 2px 8px #00000008}
+.pintar-history-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pintar-history-status{padding:5px 10px;border-radius:20px;background:#fff3d6;color:#765000;font-size:12px;font-weight:700}
+.pintar-history-meta,.pintar-history-detail,.pintar-history-updated{margin-top:7px;color:#666;font-size:13px;line-height:1.55}
+.pintar-history-total{margin-top:9px;font-weight:800;color:#222}
+.pintar-history-empty,.pintar-history-error,.pintar-history-loading{padding:14px;text-align:center;color:#666}
+</style>
+<div class="pintar-history-wrap">
+ <div style="text-align:center"><button type="button" onclick="tampilkanRiwayatPesanan()" style="padding:9px 14px;border:1px solid #ddd;border-radius:18px;background:#fff;cursor:pointer">Riwayat Pesanan / Perbarui</button></div>
+ <div id="customerOrderHistory" style="display:none" aria-live="polite"></div>
+</div>
 <div style="text-align:center"><button id="authAccountStatus" type="button" onclick="bukaModalAkun('login')">Login / Daftar</button></div>
 <div id="customerAuthModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
  <div id="customerAuthCard">
