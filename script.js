@@ -1389,12 +1389,16 @@ async function tampilkanRiwayatPesanan() {
             .order("created_at", { ascending: false }).limit(50);
         if (error) throw error;
         area.innerHTML = "";
-        if (!data || !data.length) {
-            area.innerHTML = '<div class="pintar-history-empty">Belum ada riwayat pesanan.</div>';
+        // Pesanan yang sudah selesai tetap tersimpan di Supabase, tetapi disembunyikan dari riwayat pelanggan.
+        const pesananAktif = (data || []).filter(row =>
+            String(row.status || "").trim().toLowerCase() !== "selesai"
+        );
+        if (!pesananAktif.length) {
+            area.innerHTML = '<div class="pintar-history-empty">Tidak ada pesanan yang sedang berjalan.</div>';
             return;
         }
         // Satu baris Supabase = satu kartu. Refresh mengganti isi daftar, bukan menambah kartu duplikat.
-        data.forEach(row => {
+        pesananAktif.forEach(row => {
             const item = document.createElement("article");
             item.className = "pintar-history-card";
             const when = row.created_at ? new Date(row.created_at).toLocaleString("id-ID") : "Tanggal tidak tersedia";
