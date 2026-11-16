@@ -1338,6 +1338,12 @@ function normalisasiNomorWA(nomor) {
     return { normalized: angka, e164: "+" + angka };
 }
 
+// Supabase Email Auth dipakai sebagai mesin autentikasi tanpa SMS/OTP.
+// Pelanggan tetap memasukkan nomor WhatsApp pada formulir.
+function emailAuthPelanggan(nomorNormalized) {
+    return String(nomorNormalized || "").replace(/\D/g, "") + "@akun.payarengas.com";
+}
+
 let pelangganLoginAktif = null;
 let authSiap = false;
 
@@ -1476,49 +1482,94 @@ function bukaModalAkun(mode) {
 function tutupModalAkun() { const m=document.getElementById("customerAuthModal"); if(m) m.style.display="none"; }
 
 async function prosesAkunPelanggan() {
-    const mode=document.getElementById("authMode").value;
-    const nama=document.getElementById("authNama").value.trim();
-    const wa=normalisasiNomorWA(document.getElementById("authWa").value);
-    const password=document.getElementById("authPassword").value;
-    const msg=document.getElementById("authMessage");
-    const btn=document.getElementById("authSubmit");
-    if (!/^628[0-9]{8,13}$/.test(wa.normalized)) { msg.textContent="Nomor WhatsApp Indonesia tidak valid. Gunakan 08... atau 628..."; return; }
-    if (password.length < 6) { msg.textContent="Password minimal 6 karakter."; return; }
-    if (mode === "register" && !nama) { msg.textContent="Nama wajib diisi."; return; }
-    btn.disabled=true; msg.textContent="Memproses akun...";
+    const mode = document.getElementById("authMode").value;
+    const nama = document.getElementById("authNama").value.trim();
+    const wa = normalisasiNomorWA(document.getElementById("authWa").value);
+    const password = document.getElementById("authPassword").value;
+    const msg = document.getElementById("authMessage");
+    const btn = document.getElementById("authSubmit");
+
+    if (!/^628[0-9]{8,13}$/.test(wa.normalized)) {
+        msg.textContent = "Nomor WhatsApp Indonesia tidak valid. Gunakan 08... atau 628...";
+        return;
+    }
+    if (password.length < 6) {
+        msg.textContent = "Password minimal 6 karakter.";
+        return;
+    }
+    if (mode === "register" && !nama) {
+        msg.textContent = "Nama wajib diisi.";
+        return;
+    }
+
+    btn.disabled = true;
+    msg.textContent = "Memproses akun...";
+
     try {
+        const emailAuth = emailAuthPelanggan(wa.normalized);
+
         if (mode === "register") {
-            const { data: existing, error: findError } = await supabaseClient.from("pelanggan")
-                .select("id,auth_user_id").eq("no_wa_normalized",wa.normalized).maybeSingle();
-            if (findError) throw findError;
-            if (existing?.auth_user_id) throw new Error("Nomor WhatsApp ini sudah memiliki akun. Silakan login.");
-            const { data, error } = await supabaseClient.auth.signUp({phone:wa.e164,password,options:{data:{nama}}});
-            if (error) throw error;
-            if (!data.user) throw new Error("Akun belum berhasil dibuat.");
-            if (!data.session) throw new Error("Supabase masih meminta verifikasi nomor. Matikan Confirm phone di Authentication > Providers > Phone agar pendaftaran tanpa OTP.");
-            let linkResult;
-            if (existing) {
-                linkResult = await supabaseClient.from("pelanggan").update({auth_user_id:data.user.id,nama,no_wa:wa.e164,no_wa_normalized:wa.normalized}).eq("id",existing.id);
-            } else {
-                linkResult = await supabaseClient.from("pelanggan").insert({auth_user_id:data.user.id,nama,no_wa:wa.e164,no_wa_normalized:wa.normalized});
+            // Pendaftaran dilakukan di Edge Function agar Confirm email global
+            // tetap aktif untuk Driver. Service role tidak pernah dikirim ke aplikasi.
+            const { data: registerResult, error: registerError } = await supabaseClient.functions.invoke(
+                "customer-register",
+                { body: { nama, no_wa: wa.e164, no_wa_normalized: wa.normalized, password } }
+            );
+
+            if (registerError) {
+                let detail = registerError.message || "Pendaftaran pelanggan gagal.";
+                try {
+                    const payload = await registerError.context?.clone?.().json();
+                    if (payload?.error) detail = payload.error;
+                } catch (_) {}
+                throw new Error(detail);
             }
-            if (linkResult.error) throw linkResult.error;
+            if (!registerResult?.success) {
+                throw new Error(registerResult?.error || "Akun pelanggan belum berhasil dibuat.");
+            }
+
+            // Akun dibuat dan dikonfirmasi di server, lalu login memakai email virtual.
+            const { error: loginError } = await supabaseClient.auth.signInWithPassword({
+                email: emailAuth,
+                password
+            });
+            if (loginError) {
+                throw new Error("Akun sudah dibuat, tetapi login otomatis gagal. Silakan masuk menggunakan nomor WhatsApp dan password yang sama.");
+            }
         } else {
-            const { error } = await supabaseClient.auth.signInWithPassword({phone:wa.e164,password});
+            // Nomor WhatsApp diterjemahkan ke email virtual; tidak memakai Phone Auth/OTP.
+            const { error } = await supabaseClient.auth.signInWithPassword({
+                email: emailAuth,
+                password
+            });
             if (error) throw error;
-            const profile=await ambilPelangganLogin();
-            if (!profile) { await supabaseClient.auth.signOut(); throw new Error("Akun belum terhubung ke data pelanggan. Hubungi Admin."); }
+
+            const profile = await ambilPelangganLogin();
+            if (!profile) {
+                await supabaseClient.auth.signOut();
+                throw new Error("Akun belum terhubung ke data pelanggan. Hubungi Admin.");
+            }
         }
+
         await ambilPelangganLogin();
-        if (!pelangganLoginAktif) throw new Error("Login berhasil, tetapi profil pelanggan belum terbaca.");
-        isiIdentitasPelanggan(); tampilkanStatusAkun(); tutupModalAkun();
-        const historyArea=document.getElementById("customerOrderHistory");
-        if(historyArea && historyArea.style.display!=="none") await tampilkanRiwayatPesanan();
-        msg.textContent="";
-    } catch(e) {
-        console.error("Akun pelanggan:",e);
-        msg.textContent=e.message || "Proses akun gagal. Periksa koneksi dan pengaturan Supabase.";
-    } finally { btn.disabled=false; }
+        if (!pelangganLoginAktif) {
+            throw new Error("Login berhasil, tetapi profil pelanggan belum terbaca.");
+        }
+
+        isiIdentitasPelanggan();
+        tampilkanStatusAkun();
+        tutupModalAkun();
+        const historyArea = document.getElementById("customerOrderHistory");
+        if (historyArea && historyArea.style.display !== "none") {
+            await tampilkanRiwayatPesanan();
+        }
+        msg.textContent = "";
+    } catch (e) {
+        console.error("Akun pelanggan:", e);
+        msg.textContent = e.message || "Proses akun gagal. Periksa koneksi dan pengaturan Supabase.";
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 function isiIdentitasPelanggan() {
